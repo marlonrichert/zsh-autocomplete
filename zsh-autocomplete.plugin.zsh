@@ -60,6 +60,11 @@ key[ControlSpace]='^@'
 key[DeleteList]='^D'
 key[ListChoices]='^[^D'
 key[Undo]='^_'
+if [[ $( bindkey -lL main ) == *viins* ]]
+then
+  key[ListChoices]='^D'
+  key[Undo]='u'
+fi
 
 bindkey ' ' magic-space
 bindkey '^[ ' self-insert-unmeta
@@ -73,7 +78,6 @@ bindkey "${key[Down]}" down-line-or-menu-select
 bindkey "^[${key[Down]}" menu-select
 
 # Completion menu behavior
-# bindkey -M menuselect " " accept-line
 bindkey -M menuselect "${key[Tab]}" accept-and-hold
 bindkey -M menuselect -s "${key[Return]}" "${key[LineFeed]}${key[ListChoices]}"
 bindkey -M menuselect -s "${key[ShiftTab]}" "${key[DeleteList]}${key[Undo]}${key[ShiftTab]}"
@@ -81,7 +85,17 @@ bindkey -M menuselect -s "${key[ControlSpace]}" "${key[LineFeed]}${key[ControlSp
 
 # Wrap existing widgets to provide auto-completion.
 local widget
-for widget in self-insert delete-char backward-delete-char kill-word backward-kill-word
+for widget in vi-add-eol vi-add-next backward-delete-char vi-backward-delete-char \
+  backward-delete-word backward-kill-line backward-kill-word vi-backward-kill-word \
+  capitalize-word vi-change vi-change-eol vi-change-whole-line copy-region-as-kill copy-prev-word \
+  copy-prev-shell-word vi-delete delete-char vi-delete-char delete-word down-case-word \
+  vi-down-case kill-word gosmacs-transpose-chars vi-indent vi-insert vi-insert-bol vi-join \
+  kill-line vi-kill-line vi-kill-eol kill-region kill-buffer kill-whole-line vi-match-bracket \
+  vi-open-line-above vi-open-line-below vi-oper-swap-case overwrite-mode vi-put-before \
+  vi-put-after put-replace-selection quoted-insert vi-quoted-insert quote-line quote-region \
+  vi-replace vi-repeat-change vi-replace-chars self-insert self-insert-unmeta vi-substitute \
+  vi-swap-case transpose-chars transpose-words vi-unindent vi-up-case up-case-word yank yank-pop \
+  vi-yank vi-yank-whole-line vi-yank-eol
 do
   eval "zle -N $widget
   $widget() {
