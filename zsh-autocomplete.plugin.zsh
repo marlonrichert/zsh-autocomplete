@@ -1,5 +1,3 @@
-zmodload -i zsh/complist
-
 setopt EXTENDED_GLOB
 setopt GLOB_COMPLETE
 setopt GLOB_DOTS
@@ -56,41 +54,73 @@ zstyle ':completion:list-more:*' group-name ''
 zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
 zstyle ':completion:list-more:*' menu 'select=long-list'
 
-typeset -g -A key
-key[Up]='^[[A'
-key[Down]='^[[B'
-key[Right]='^[[C'
-key[Left]='^[[D'
-key[Return]='^M'
-key[LineFeed]='^J'
-key[Tab]='^I'
-key[ShiftTab]='^[[Z'
-key[ControlSpace]='^@'
-key[DeleteList]='^D'
-key[ListChoices]='^[^D'
-key[Undo]='^_'
-if [[ $( bindkey -lL main ) == *viins* ]]
+if [[ ! -v key ]]
 then
-  key[ListChoices]='^D'
-  key[Undo]='u'
+  if [[ -r ${ZDOTDIR:-$HOME}/.zkbd/${TERM}-${VENDOR} ]]
+  then
+    source ${ZDOTDIR:-$HOME}/.zkbd/${TERM}-${VENDOR}
+  fi
+  if [[ ! -v key ]]
+  then
+    typeset -g -A key
+  fi
 fi
+if [[ -z $key[Up] ]]; then
+  if [[ -n $terminfo[kcuu1] ]]; then key[Up]=$terminfo[kcuu1]; else key[Up]='^[OA'; fi
+fi
+if [[ -z $key[Down] ]]; then
+  if [[ -n $terminfo[kcud1] ]]; then key[Down]=$terminfo[kcud1]; else key[Down]='^[OB'; fi
+fi
+if [[ -z $key[Tab] ]]; then
+  if [[ -n $terminfo[ht] ]]; then key[Tab]=$terminfo[ht]; else key[Tab]='^I'; fi
+fi
+if [[ -z $key[BackTab] ]]; then
+  if [[ -n $terminfo[kcbt] ]]; then key[BackTab]=$terminfo[kcbt]; else key[BackTab]='^[[Z'; fi
+fi
+if [[ -z $key[ControlSpace] ]]; then key[ControlSpace]='^@'; fi
+if [[ -z $key[Return] ]]; then key[Return]='^M'; fi
+if [[ -z $key[LineFeed] ]]; then key[LineFeed]='^J'; fi
+if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 
-bindkey ' ' magic-space
-bindkey '^[ ' self-insert-unmeta
-bindkey "${key[Tab]}" complete-word
-bindkey "${key[ShiftTab]}" list-more
-bindkey "${key[ControlSpace]}" expand-or-fuzzy-find
+zle -N zle-keymap-select _zsh_autocomplete_init
+zle -N zle-line-init _zsh_autocomplete_init
+_zsh_autocomplete_init() {
+  echoti smkx
+  local keymap=$( bindkey -lL main )
+  if [[ $keymap == *emacs* ]]
+  then
+    [[ -z key[ListChoices] ]] || key[ListChoices]='^[^D'
+    [[ -z key[Undo] ]] || key[Undo]='^_'
+  elif [[ $keymap == *viins* ]]
+  then
+    [[ -z key[ListChoices] ]] || key[ListChoices]='^D'
+    [[ -z key[Undo] ]] || key[Undo]='u'
+  else
+    return
+  fi
+  bindkey ' ' magic-space
+  bindkey '^[ ' self-insert-unmeta
 
-bindkey "${key[Up]}" up-line-or-fuzzy-history
-bindkey "^[${key[Up]}" fzf-history-widget
-bindkey "${key[Down]}" down-line-or-menu-select
-bindkey "^[${key[Down]}" menu-select
+  bindkey $key[Tab] complete-word
+  bindkey $key[BackTab] list-more
+  bindkey $key[ControlSpace] expand-or-fuzzy-find
 
-# Completion menu behavior
-bindkey -M menuselect "${key[Tab]}" accept-and-hold
-bindkey -M menuselect -s "${key[Return]}" "${key[LineFeed]}${key[ListChoices]}"
-bindkey -M menuselect -s "${key[ShiftTab]}" "${key[DeleteList]}${key[Undo]}${key[ShiftTab]}"
-bindkey -M menuselect -s "${key[ControlSpace]}" "${key[LineFeed]}${key[ControlSpace]}"
+  bindkey $key[Up] up-line-or-fuzzy-history
+  bindkey "^[$key[Up]" fzf-history-widget
+  bindkey $key[Down] down-line-or-menu-select
+  bindkey "^[$key[Down]" menu-select
+
+  # Completion menu behavior
+  bindkey -M menuselect $key[Tab] accept-and-hold
+  bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
+  bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+  bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
+}
+
+zle -N zle-line-finish
+_zsh_autocomplete_finish() {
+  echoti rmkx
+}
 
 # Wrap existing widgets to provide auto-completion.
 local widget

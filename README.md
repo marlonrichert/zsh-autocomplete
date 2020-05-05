@@ -37,41 +37,32 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 
 ## Requirements
 Mandatory:
-* You need to run [`zsh`](http://zsh.sourceforge.net) as your shell and you need to have enabled "new style" completions a.k.a. `compinit`.
+* You need to run [**zsh**](http://zsh.sourceforge.net) as your shell and you need to have enabled "new style" completions a.k.a. `compinit`.
 
 Optional:
-* [↑ fuzzy history search](#key-bindings "up arrow") and [⌃␣ fuzzy file search](#key-bindings "ctrl + space") require that you have [`fzf`](https://github.com/junegunn/fzf) installed and have sourced its
+* [↑ fuzzy history search](#key-bindings "up arrow") and [⌃␣ fuzzy file search](#key-bindings "ctrl + space") require that you have [**fzf**](https://github.com/junegunn/fzf) installed and source its
 [completion](https://github.com/junegunn/fzf/blob/master/shell/completion.zsh) and
-[key-bindings](https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh) in your `.zshrc` file. `zsh-autocomplete` should be sourced _after_ these.
+[key-bindings](https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh) in your `.zshrc` file.
 
 
 ## Installation
 
-**Important:**
-* `zsh-autocomplete` should be sourced *after* plugins that change key bindings (such as `fzf`'s completion and key-binding plugins), but *before* plugins that wrap key binding widgets (such as
-`zsh-syntax-highlighting` and `zsh-autosuggest`).
-* `zsh-autocomplete` should be sourced *after* calling `compinit`.
-
-### Manual installation
-1. Clone or download this repo
+1. `git clone` this repo.
 1. Add the following to your `.zshrc` file:
-```shell
-autoload compinit && compinit
-source path/to/zsh-autocomplete.plugin.zsh
-```
+   ```shell
+   zmodload -i zsh/complist
+   autoload -U compinit && compinit
+   source path/to/zsh-autocomplete.plugin.zsh
+   ```
+   * If you already have `compinit` in your `.zshrc`, then just source `zsh-autocomplete` right after it.
+   * Make sure you load `zsh/complist` _before_ `compinit`.
+   * If you use any form of syntax highlighting, make sure you source it _after_ `zsh-autocomplete`.
 
-### Using a plugin manager
-Add `marlonrichert/zsh-autocomplete` as a plugin. See your plugin manager's documentation for more info.
-
-For example, using `zinit`, add the following to your `.zshrc` file:
-```shell
-autoload compinit && compinit
-zinit light-mode for marlonrichert/zsh-autocomplete
-```
+To update, `cd` into your local repo and do `git pull`.
 
 ### Prezto
-When using `zsh-autocomplete`, it's recommended that you do _not_ use Prezto's `completion` module. However, if you really do want to keep it, then `zsh-autocomplete` should be sourced _after_ it. See [Manual installation](#manual-installation) for further instructions.
-
+Make sure you source `zsh-autocomplete` **after** the `completion` module. You might get \
+unexpected results otherwise.
 
 ## Author
 © 2020 [Marlon Richert](/marlonrichert)
