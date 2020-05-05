@@ -48,18 +48,16 @@ zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}
 zstyle ':completion:list-more:*' menu 'select=long-list'
 
 typeset -g -A key
-#Set bindings for iTerm2
-if [[ $TERM_PROGRAM = iTerm.app ]]; then
-    key[Up]='^[OA'
-    key[Down]='^[OB'
-    key[Right]='^[OC'
-    key[Left]='^[OD'
-else
-    key[Up]='^[[A'
-    key[Down]='^[[B'
-    key[Right]='^[[C'
-    key[Left]='^[[D'
-fi
+#Alternate bindings for iTerm2
+key[UpIterm]='^[OA'
+key[DownIterm]='^[OB'
+key[RightIterm]='^[OC'
+key[LeftIterm]='^[OD'
+#Standard bindings
+key[Up]='^[[A'
+key[Down]='^[[B'
+key[Right]='^[[C'
+key[Left]='^[[D'
 key[Return]='^M'
 key[LineFeed]='^J'
 key[Tab]='^I'
@@ -81,9 +79,13 @@ bindkey "${key[ShiftTab]}" list-more
 bindkey "${key[ControlSpace]}" expand-or-fuzzy-find
 
 bindkey "${key[Up]}" up-line-or-fuzzy-history
+bindkey "${key[UpIterm]}" up-line-or-fuzzy-history
+bindkey "^[${key[UpIterm]}" fzf-history-widget
 bindkey "^[${key[Up]}" fzf-history-widget
 bindkey "${key[Down]}" down-line-or-menu-select
+bindkey "${key[DownIterm]}" down-line-or-menu-select
 bindkey "^[${key[Down]}" menu-select
+bindkey "^[${key[DownIterm]}" menu-select
 
 # Completion menu behavior
 bindkey -M menuselect "${key[Tab]}" accept-and-hold
