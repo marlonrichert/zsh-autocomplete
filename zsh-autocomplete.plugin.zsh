@@ -26,17 +26,19 @@ zstyle ':completion:*:widgets' matcher 'l:?|=**'
 zstyle ':completion:complete-word:*' menu 'auto select'
 
 zstyle ':completion:correct-word:*' accept-exact true
-zstyle ':completion:correct-word:*' completer _complete _correct
+zstyle ':completion:correct-word:*' completer _complete _correct _approximate
+zstyle ':completion:correct-word:*' glob false
 zstyle ':completion:correct-word:*' matcher-list ''
-zstyle ':completion:correct-word:*:options' ignored-patterns '*'
 
 zstyle ':completion:(correct-word|list-choices):*' \
   tag-order '! urls hosts repositories local-repositories remote-repositories' '-'
-  zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '-'
+zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '-'
+zstyle ':completion:(correct-word|list-choices):*:(for|foreach|select):*' \
+  tag-order '! globbed-files' '-'
 
 zstyle ':completion:list-choices:expand:*' glob false
 zstyle -e ':completion:list-choices:*' tag-order '
-  if [[ $PREFIX == "(-|--)" ]]; then
+  if [[ $PREFIX == (-|--)* ]] then
     reply=( "options argument-rest" "-" )
   else
     reply=( "" )
@@ -203,11 +205,13 @@ _force_list() {
 
 zle -C correct-word complete-word _correct_word
 _correct_word() {
-  local current_word=$SUFFIX$PREFIX
-  if (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
+  if [[ $PREFIX != [[:punct:]]#
+        && $PREFIX != -[^-]* ]]
   then
     local curcontext=$( _context correct-word )
+    compstate[old_list]=''
     _main_complete $@
+    compstate[list]=''
   fi
 }
 
@@ -223,14 +227,15 @@ _list_choices() {
       if (( (compstate[list_lines] + BUFFERLINES + 1) > LINES
          || ( compstate[list_max] != 0 && compstate[nmatches] > compstate[list_max] ) ))
       then
-        compstate[list]=
+        compstate[list]=''
       fi
     fi
     if (( ${#compstate[list]} == 0 ))
     then
       zle -M ''
     fi
-    # zle -M "$CURRENT ${#words[1]} ${#current_word} ${compstate[list_lines]} ${compstate[nmatches]}"
+    # zle -M "$CURRENT>1? ${#words[1]}>0? ${#current_word}>0? ${compstate[list_lines]}+$BUFFERLINES+1>$LINES? ${compstate[nmatches]}>${compstate[nmatches]}?"
+    # zle -M "prefix='$PREFIX'"
   fi
 }
 
