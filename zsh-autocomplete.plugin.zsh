@@ -8,7 +8,6 @@ setopt NO_CASE_GLOB
 unsetopt AUTO_CD
 unsetopt BEEP
 
-ZAC_BASE_DIR=${0:a:h}
 export FZF_COMPLETION_TRIGGER=''
 export FZF_CTRL_R_OPTS="--height=40% --layout=default --no-multi"
 export fzf_default_completion='list-more'
