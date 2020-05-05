@@ -48,10 +48,18 @@ zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}
 zstyle ':completion:list-more:*' menu 'select=long-list'
 
 typeset -g -A key
-key[Up]='^[[A'
-key[Down]='^[[B'
-key[Right]='^[[C'
-key[Left]='^[[D'
+#Set bindings for iTerm2
+if [[ $TERM_PROGRAM = iTerm.app ]]; then
+    key[Up]='^[OA'
+    key[Down]='^[OB'
+    key[Right]='^[OC'
+    key[Left]='^[OD'
+else
+    key[Up]='^[[A'
+    key[Down]='^[[B'
+    key[Right]='^[[C'
+    key[Left]='^[[D'
+fi
 key[Return]='^M'
 key[LineFeed]='^J'
 key[Tab]='^I'
