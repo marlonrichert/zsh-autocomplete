@@ -7,6 +7,7 @@ setopt NO_CASE_GLOB
 
 unsetopt AUTO_CD
 unsetopt BEEP
+unsetopt COMPLETE_IN_WORD
 
 export FZF_COMPLETION_TRIGGER=''
 export FZF_CTRL_R_OPTS="--height=40% --layout=default --no-multi"
@@ -14,6 +15,12 @@ export fzf_default_completion='list-more'
 export FZF_TMUX_HEIGHT=$(( ${LINES} - 2 ))
 export FZF_DEFAULT_OPTS="--height=$FZF_TMUX_HEIGHT -i --bind=ctrl-space:abort,ctrl-k:kill-line \
   --exact --info=inline --layout=reverse --multi --tiebreak=length,begin,end"
+
+zstyle -d ':completion:*' format
+zstyle -d ':completion:*:descriptions' format
+zstyle -d ':completion:*:warnings' format
+zstyle -d ':completion:*' group-name
+zstyle -d '*' single-ignored
 
 zstyle ':completion:*' add-space file
 zstyle ':completion:*' completer _expand _complete _ignored
