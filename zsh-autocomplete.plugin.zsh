@@ -8,6 +8,7 @@ setopt NO_CASE_GLOB
 unsetopt AUTO_CD
 unsetopt BEEP
 
+ZAC_BASE_DIR=${0:a:h}
 export FZF_COMPLETION_TRIGGER=''
 export FZF_CTRL_R_OPTS="--height=40% --layout=default --no-multi"
 export fzf_default_completion='list-more'
@@ -47,41 +48,12 @@ zstyle ':completion:list-more:*' group-name ''
 zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
 zstyle ':completion:list-more:*' menu 'select=long-list'
 
-typeset -g -A key
-key[Up]='^[[A'
-key[Down]='^[[B'
-key[Right]='^[[C'
-key[Left]='^[[D'
-key[Return]='^M'
-key[LineFeed]='^J'
-key[Tab]='^I'
-key[ShiftTab]='^[[Z'
-key[ControlSpace]='^@'
-key[DeleteList]='^D'
-key[ListChoices]='^[^D'
-key[Undo]='^_'
-if [[ $( bindkey -lL main ) == *viins* ]]
-then
-  key[ListChoices]='^D'
-  key[Undo]='u'
+
+if [[ -r $ZAC_BASE_DIR/custom-binds.zsh ]]; then
+    source $ZAC_BASE_DIR/custom-binds.zsh
+else
+    source $ZAC_BASE_DIR/default-binds.zsh
 fi
-
-bindkey ' ' magic-space
-bindkey '^[ ' self-insert-unmeta
-bindkey "${key[Tab]}" complete-word
-bindkey "${key[ShiftTab]}" list-more
-bindkey "${key[ControlSpace]}" expand-or-fuzzy-find
-
-bindkey "${key[Up]}" up-line-or-fuzzy-history
-bindkey "^[${key[Up]}" fzf-history-widget
-bindkey "${key[Down]}" down-line-or-menu-select
-bindkey "^[${key[Down]}" menu-select
-
-# Completion menu behavior
-bindkey -M menuselect "${key[Tab]}" accept-and-hold
-bindkey -M menuselect -s "${key[Return]}" "${key[LineFeed]}${key[ListChoices]}"
-bindkey -M menuselect -s "${key[ShiftTab]}" "${key[DeleteList]}${key[Undo]}${key[ShiftTab]}"
-bindkey -M menuselect -s "${key[ControlSpace]}" "${key[LineFeed]}${key[ControlSpace]}"
 
 # Wrap existing widgets to provide auto-completion.
 local widget
