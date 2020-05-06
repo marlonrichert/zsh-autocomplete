@@ -114,7 +114,7 @@ _zsh_autocomplete_init() {
   bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 }
 
-zle -N zle-line-finish
+zle -N zle-line-finish _zsh_autocomplete_finish
 _zsh_autocomplete_finish() {
   echoti rmkx
 }
