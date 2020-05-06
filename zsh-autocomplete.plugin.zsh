@@ -1,3 +1,17 @@
+emulate -L zsh
+
+[[ ! -v zsh_autocomplete_options ]] && export zsh_autocomplete_options=(
+  EXTENDED_GLOB
+  GLOB_COMPLETE
+  GLOB_DOTS
+  NO_CASE_GLOB
+  no_COMPLETE_IN_WORD
+  no_LIST_BEEP
+)
+[[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
+[[ ! -v fzf_default_completion ]] && export fzf_default_completion='list-more'
+[[ ! -v FZF_DEFAULT_OPTS ]] && export FZF_DEFAULT_OPTS="--bind=ctrl-space:abort,ctrl-k:kill-line"
+
 if ! zmodload -e zsh/complist
 then
   zmodload -i zsh/complist
@@ -7,19 +21,6 @@ if [[ ! -v _comp_setup ]]
 then
   autoload -U compinit && compinit
 fi
-
-setopt EXTENDED_GLOB
-setopt GLOB_COMPLETE
-setopt GLOB_DOTS
-setopt NO_CASE_GLOB
-
-unsetopt AUTO_CD
-unsetopt BEEP
-unsetopt COMPLETE_IN_WORD
-
-[[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
-[[ ! -v fzf_default_completion ]] && export fzf_default_completion='list-more'
-[[ ! -v FZF_DEFAULT_OPTS ]] && export FZF_DEFAULT_OPTS="--bind=ctrl-space:abort,ctrl-k:kill-line"
 
 zstyle -d ':completion:*' format
 zstyle -d ':completion:*:descriptions' format
@@ -102,6 +103,7 @@ if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 zle -N zle-keymap-select _zsh_autocomplete_init
 zle -N zle-line-init _zsh_autocomplete_init
 _zsh_autocomplete_init() {
+  emulate -L zsh
   echoti smkx
   local keymap=$( bindkey -lL main )
   if [[ $keymap == *emacs* ]]
@@ -139,10 +141,11 @@ _zsh_autocomplete_init() {
 
 zle -N zle-line-finish _zsh_autocomplete_finish
 _zsh_autocomplete_finish() {
+  emulate -L zsh
   echoti rmkx
 }
 
-# Wrap existing widgets to provide auto-completion.
+# Wrap all text modification widgets to provide auto-completion.
 local widget
 for widget in vi-add-eol vi-add-next backward-delete-char vi-backward-delete-char \
   backward-delete-word backward-kill-line backward-kill-word vi-backward-kill-word \
@@ -159,30 +162,37 @@ do
   eval "zle -N $widget
   $widget() {
     zle .$widget
+    setopt localoptions $zsh_autocomplete_options
     zle list-choices
+    true
   }"
 done
 
 zle -N magic-space
 magic-space() {
+  setopt localoptions $zsh_autocomplete_options
   zle correct-word
   zle .magic-space
   zle list-choices
+  true
 }
 
 zle -N complete-word
 complete-word() {
+  setopt localoptions $zsh_autocomplete_options
   local buffer=$BUFFER
   zle _complete_word
   if [[ $buffer != $BUFFER ]]
   then
     zle .auto-suffix-retain
     zle list-choices
+    true
   fi
 }
 
 zle -N down-line-or-menu-select
 down-line-or-menu-select() {
+  setopt localoptions $zsh_autocomplete_options
   zle -M ''
   if (( ${#RBUFFER} > 0 && BUFFERLINES > 1 )); then
     zle .down-line || zle .end-of-line
@@ -193,6 +203,7 @@ down-line-or-menu-select() {
 
 zle -N up-line-or-fuzzy-history
 up-line-or-fuzzy-history() {
+  setopt localoptions $zsh_autocomplete_options
   zle -M ''
   if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
     zle .up-line || zle .beginning-of-line
@@ -203,6 +214,7 @@ up-line-or-fuzzy-history() {
 
 zle -N expand-or-fuzzy-find
 expand-or-fuzzy-find() {
+  setopt localoptions $zsh_autocomplete_options
   zle -M ''
   local buffer=$BUFFER
   zle _expand_alias
@@ -224,6 +236,7 @@ expand-or-fuzzy-find() {
 
 zle -C _complete_word complete-word _complete_word
 _complete_word() {
+  setopt localoptions $zsh_autocomplete_options
   local curcontext=$( _context complete-word )
   _keep_old_list
   _main_complete $@
@@ -232,6 +245,7 @@ _complete_word() {
 
 zle -C menu-select menu-select _menu_select
 _menu_select() {
+  setopt localoptions $zsh_autocomplete_options
   local curcontext=$( _context menu-select )
   _keep_old_list
   _main_complete $@
@@ -239,6 +253,7 @@ _menu_select() {
 }
 
 _keep_old_list() {
+  emulate -L zsh
   if [[ -v compstate[old_list] ]]
   then
     compstate[old_list]=keep
@@ -246,6 +261,7 @@ _keep_old_list() {
 }
 
 _force_list() {
+  emulate -L zsh
   if (( ${#compstate[old_list]} == 0 ))
   then
     compstate[insert]=''
@@ -255,6 +271,7 @@ _force_list() {
 
 zle -C correct-word complete-word _correct_word
 _correct_word() {
+  setopt $zsh_autocomplete_options
   if [[ $PREFIX != [[:punct:]]#
         && $PREFIX != -[^-]* ]]
   then
@@ -267,6 +284,7 @@ _correct_word() {
 
 zle -C list-choices list-choices _list_choices
 _list_choices() {
+  setopt $zsh_autocomplete_options
   if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
   then
     local current_word=$PREFIX$SUFFIX
@@ -291,11 +309,13 @@ _list_choices() {
 
 zle -C list-more list-choices list_more
 list_more() {
+  setopt $zsh_autocomplete_options
   local curcontext=$( _context list-more )
   _main_complete $@
 }
 
 _context() {
+  emulate -L zsh
   local curcontext="${curcontext:-}"
   if [[ -z "$curcontext" ]]; then
     curcontext="$1:::"
