@@ -50,12 +50,8 @@ Optional:
 1. `git clone` this repo.
 1. Add the following to your `.zshrc` file:
    ```shell
-   zmodload -i zsh/complist
-   autoload -U compinit && compinit
    source path/to/zsh-autocomplete.plugin.zsh
    ```
-   * If you already have `compinit` in your `.zshrc`, then just source `zsh-autocomplete` right after it.
-   * Make sure you load `zsh/complist` _before_ `compinit`.
    * If you use any form of syntax highlighting, make sure you source it _after_ `zsh-autocomplete`.
 
 To update, `cd` into your local repo and do `git pull`.

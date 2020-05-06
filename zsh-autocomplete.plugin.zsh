@@ -1,3 +1,13 @@
+if ! zmodload -e zsh/complist
+then
+  zmodload -i zsh/complist
+  autoload -U compinit && compinit
+fi
+if [[ ! -v _comp_setup ]]
+then
+  autoload -U compinit && compinit
+fi
+
 setopt EXTENDED_GLOB
 setopt GLOB_COMPLETE
 setopt GLOB_DOTS
@@ -69,6 +79,10 @@ then
   then
     typeset -g -A key
   fi
+fi
+if ! zmodload -e zsh/terminfo
+then
+  zmodload -i zsh/terminfo
 fi
 if [[ -z $key[Up] ]]; then
   if [[ -n $terminfo[kcuu1] ]]; then key[Up]=$terminfo[kcuu1]; else key[Up]='^[OA'; fi
