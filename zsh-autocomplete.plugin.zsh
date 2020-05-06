@@ -19,8 +19,16 @@ zstyle -d '*' single-ignored
 
 zstyle ':completion:*' add-space file
 zstyle ':completion:*' completer _expand _complete _ignored
-zstyle ':completion:*' ignored-patterns '(*/)#.*' '[_+]*' '[[:punct:]]zinit-*'
-zstyle ':completion:*' matcher-list '' 'r:|?=**' '+m:{[:lower:]}={[:upper:]}'
+zstyle -e ':completion:*' ignored-patterns '
+  reply=( "+*" "[[:punct:]]zinit-*" )
+  if [[ $PREFIX$SUFFIX != .* ]] then
+    reply+=( "(*/)#.*" )
+  fi
+  if [[ $PREFIX$SUFFIX != _* ]] then
+    reply+=( "_*" )
+  fi
+'
+zstyle ':completion:*' matcher-list 'r:|.=*' 'r:|?=**' '+m:{[:lower:]}={[:upper:]}'
 zstyle ':completion:*:z:*' file-patterns '%p(-/):directories'
 zstyle ':completion:*:options' ignored-patterns ''
 zstyle ':completion:*:widgets' matcher 'l:?|=**'
@@ -40,7 +48,7 @@ zstyle ':completion:(correct-word|list-choices):*:(for|foreach|select):*' \
 
 zstyle ':completion:list-choices:expand:*' glob false
 zstyle -e ':completion:list-choices:*' tag-order '
-  if [[ $PREFIX == (-|--)* ]] then
+  if [[ $PREFIX$SUFFIX == (-|--)* ]] then
     reply=( "options argument-rest" "-" )
   else
     reply=( "" )
@@ -249,7 +257,7 @@ zle -C list-choices list-choices _list_choices
 _list_choices() {
   if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
   then
-    local current_word=$SUFFIX$PREFIX
+    local current_word=$PREFIX$SUFFIX
     if (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
     then
       local curcontext=$( _context list-choices )
