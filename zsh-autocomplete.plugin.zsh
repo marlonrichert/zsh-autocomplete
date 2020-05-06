@@ -264,7 +264,7 @@ _force_list() {
   emulate -L zsh
   if (( ${#compstate[old_list]} == 0 ))
   then
-    compstate[insert]=''
+    compstate[insert]='automenu'
     compstate[list]='list force'
   fi
 }
@@ -272,7 +272,8 @@ _force_list() {
 zle -C correct-word complete-word _correct_word
 _correct_word() {
   setopt $zsh_autocomplete_options
-  if [[ $PREFIX != [[:punct:]]#
+  if [[ $SUFFIX[1] == [[:IFS:]]#
+        && $PREFIX != [[:punct:]]#
         && $PREFIX != -[^-]* ]]
   then
     local curcontext=$( _context correct-word )
@@ -288,6 +289,7 @@ _list_choices() {
   if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
   then
     local current_word=$PREFIX$SUFFIX
+    zle -M ''
     if (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
     then
       local curcontext=$( _context list-choices )
@@ -296,11 +298,12 @@ _list_choices() {
          || ( compstate[list_max] != 0 && compstate[nmatches] > compstate[list_max] ) ))
       then
         compstate[list]=''
+        if (( BUFFERLINES == 1))
+        then
+          local prompt='^'
+          zle -M "${(l:CURSOR+${#prompt}+2:)prompt}"
+        fi
       fi
-    fi
-    if (( ${#compstate[list]} == 0 ))
-    then
-      zle -M ''
     fi
     # zle -M "$CURRENT>1? ${#words[1]}>0? ${#current_word}>0? ${compstate[list_lines]}+$BUFFERLINES+1>$LINES? ${compstate[nmatches]}>${compstate[nmatches]}?"
     # zle -M "prefix='$PREFIX'"
