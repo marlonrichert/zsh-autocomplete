@@ -9,7 +9,7 @@ unsetopt COMPLETE_IN_WORD
 
 [[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
 [[ ! -v fzf_default_completion ]] && export fzf_default_completion='list-more'
-[[ ! -v fzf_default_completion ]] && export FZF_DEFAULT_OPTS="--bind=ctrl-space:abort,ctrl-k:kill-line"
+[[ ! -v FZF_DEFAULT_OPTS ]] && export FZF_DEFAULT_OPTS="--bind=ctrl-space:abort,ctrl-k:kill-line"
 
 zstyle -d ':completion:*' format
 zstyle -d ':completion:*:descriptions' format
