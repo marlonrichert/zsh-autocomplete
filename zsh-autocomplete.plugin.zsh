@@ -100,11 +100,20 @@ if [[ -z $key[Return] ]]; then key[Return]='^M'; fi
 if [[ -z $key[LineFeed] ]]; then key[LineFeed]='^J'; fi
 if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 
+bindkey ' ' magic-space
+bindkey '^[ ' self-insert-unmeta
+bindkey $key[BackTab] list-more
+bindkey $key[ControlSpace] expand-or-fuzzy-find
+bindkey -M menuselect $key[Tab] accept-and-hold
+
 zle -N zle-keymap-select _zsh_autocomplete_init
 zle -N zle-line-init _zsh_autocomplete_init
 _zsh_autocomplete_init() {
   emulate -L zsh
   echoti smkx
+
+  bindkey $key[Tab] complete-word
+
   local keymap=$( bindkey -lL main )
   if [[ $keymap == *emacs* ]]
   then
@@ -117,12 +126,9 @@ _zsh_autocomplete_init() {
   else
     return
   fi
-  bindkey ' ' magic-space
-  bindkey '^[ ' self-insert-unmeta
-
-  bindkey $key[Tab] complete-word
-  bindkey $key[BackTab] list-more
-  bindkey $key[ControlSpace] expand-or-fuzzy-find
+  bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
+  bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+  bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 
   if zle -l fzf-history-widget
   then
@@ -131,12 +137,6 @@ _zsh_autocomplete_init() {
     bindkey $key[Down] down-line-or-menu-select
     bindkey "^[$key[Down]" menu-select
   fi
-
-  # Completion menu behavior
-  bindkey -M menuselect $key[Tab] accept-and-hold
-  bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
-  bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
-  bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 }
 
 zle -N zle-line-finish _zsh_autocomplete_finish
