@@ -102,10 +102,13 @@ _zsh_autocomplete_init() {
   bindkey $key[BackTab] list-more
   bindkey $key[ControlSpace] expand-or-fuzzy-find
 
-  bindkey $key[Up] up-line-or-fuzzy-history
-  bindkey "^[$key[Up]" fzf-history-widget
-  bindkey $key[Down] down-line-or-menu-select
-  bindkey "^[$key[Down]" menu-select
+  if zle -l fzf-history-widget
+  then
+    bindkey $key[Up] up-line-or-fuzzy-history
+    bindkey "^[$key[Up]" fzf-history-widget
+    bindkey $key[Down] down-line-or-menu-select
+    bindkey "^[$key[Down]" menu-select
+  fi
 
   # Completion menu behavior
   bindkey -M menuselect $key[Tab] accept-and-hold
@@ -174,12 +177,7 @@ up-line-or-fuzzy-history() {
   if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
     zle .up-line || zle .beginning-of-line
   else
-    if zle -l fzf-history-widget
-    then
-      fzf-history-widget
-    else
-      zle .history-search-backward
-    fi
+    fzf-history-widget
   fi
 }
 
