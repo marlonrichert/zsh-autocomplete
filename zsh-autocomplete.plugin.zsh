@@ -46,23 +46,21 @@ zstyle ':completion:*:widgets' matcher 'l:?|=**'
 zstyle ':completion:complete-word:*' menu 'auto select'
 
 zstyle ':completion:correct-word:*' accept-exact true
-zstyle ':completion:correct-word:*' completer _complete _correct _approximate
+zstyle ':completion:correct-word:*' completer _complete _correct
 zstyle ':completion:correct-word:*' glob false
 zstyle ':completion:correct-word:*' matcher-list ''
+zstyle ':completion:correct-word:*' tag-order '! options globbed-files' '-'
 
+zstyle ':completion:(correct-word|list-choices):*' file-patterns '%p(-/):directories %p:all-files'
 zstyle ':completion:(correct-word|list-choices):*' \
-  tag-order '! urls hosts repositories local-repositories remote-repositories' '-'
+  tag-order '! repositories local-repositories remote-repositories' '-'
 zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '-'
-zstyle ':completion:(correct-word|list-choices):*:(for|foreach|select):*' \
-  tag-order '! globbed-files' '-'
 
-zstyle ':completion:list-choices:expand:*' glob false
 zstyle -e ':completion:list-choices:*' tag-order '
   if [[ $PREFIX$SUFFIX == (-|--)* ]] then
     reply=( "options argument-rest" "-" )
-  else
-    reply=( "" )
   fi'
+zstyle ':completion:list-choices:expand:*' glob false
 
 zstyle ':completion:list-more:*' format '%F{yellow}%d%f'
 zstyle ':completion:list-more:*' group-name ''
