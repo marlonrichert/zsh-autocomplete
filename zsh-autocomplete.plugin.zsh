@@ -57,22 +57,26 @@ autoload -U add-zle-hook-widget
 
   zstyle ':completion:complete-word:*' menu 'auto select'
 
+  zstyle ':completion:(correct-word|list-choices):*' file-patterns \
+    '%p(-/):directories %p:all-files'
+  zstyle ':completion:correct-word:*' tag-order '! options globbed-files remote-repositories' '-'
+  zstyle -e ':completion:list-choices:*' tag-order '
+    if [[ $PREFIX$SUFFIX == -* ]] then
+      reply=( "options argument-rest" "-" )
+    else
+      reply=(
+        "! commit-tags heads-remote remote-repositories"
+        "commit-tags heads-remote"
+        "-"
+        )
+    fi'
+  zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '! all-commands' '-'
+
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' completer _complete _correct
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
-  zstyle ':completion:correct-word:*' tag-order '! options globbed-files' '-'
 
-  zstyle ':completion:(correct-word|list-choices):*' \
-    file-patterns '%p(-/):directories %p:all-files'
-  zstyle ':completion:(correct-word|list-choices):*' \
-    tag-order '! repositories local-repositories remote-repositories' '-'
-  zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '-'
-
-  zstyle -e ':completion:list-choices:*' tag-order '
-    if [[ $PREFIX$SUFFIX == (-|--)* ]] then
-      reply=( "options argument-rest" "-" )
-    fi'
   zstyle ':completion:list-choices:expand:*' glob false
 
   zstyle ':completion:list-more:*' format '%F{yellow}%d%f'
@@ -334,8 +338,6 @@ _zsh_autocomplete_c_list_choices() {
         fi
       fi
     fi
-    # zle -M "$CURRENT>1? ${#words[1]}>0? ${#current_word}>0? ${compstate[list_lines]}+$BUFFERLINES+1>$LINES? ${compstate[nmatches]}>${compstate[nmatches]}?"
-    # zle -M "prefix='$PREFIX'"
   fi
 }
 
