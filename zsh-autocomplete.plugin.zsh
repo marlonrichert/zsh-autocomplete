@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+# Load dependencies.
 if ! zmodload -e zsh/complist
 then
   zmodload -i zsh/complist
@@ -33,6 +34,7 @@ autoload -U add-zle-hook-widget
   emulate -L zsh
   setopt warncreateglobal noshortloops
 
+  # Remove incompatible styles.
   zstyle -d ':completion:*' format
   zstyle -d ':completion:*:descriptions' format
   zstyle -d ':completion:*:warnings' format
@@ -117,32 +119,16 @@ autoload -U add-zle-hook-widget
   bindkey $key[BackTab] list-more
   bindkey $key[ControlSpace] expand-or-fuzzy-find
   bindkey -M menuselect $key[Tab] accept-and-hold
+  bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 }
 
-add-zle-hook-widget zle-keymap-select _zsh_autocomplete_init
-add-zle-hook-widget zle-line-init _zsh_autocomplete_init
-_zsh_autocomplete_init() {
+# Make it so the order in which fzf and zsh-autocomplete are sourced doesn't matter.
+add-zle-hook-widget line-init _zsh_autocomplete_bindkeys
+_zsh_autocomplete_bindkeys() {
   emulate -L zsh
   setopt warncreateglobal noshortloops
-  echoti smkx
 
   bindkey $key[Tab] complete-word
-
-  local keymap=$( bindkey -lL main )
-  if [[ $keymap == *emacs* ]]
-  then
-    [[ -z key[ListChoices] ]] || key[ListChoices]='^[^D'
-    [[ -z key[Undo] ]] || key[Undo]='^_'
-  elif [[ $keymap == *viins* ]]
-  then
-    [[ -z key[ListChoices] ]] || key[ListChoices]='^D'
-    [[ -z key[Undo] ]] || key[Undo]='u'
-  else
-    return
-  fi
-  bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
-  bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
-  bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 
   if zle -l fzf-history-widget
   then
@@ -151,12 +137,37 @@ _zsh_autocomplete_init() {
     bindkey $key[Down] down-line-or-menu-select
     bindkey "^[$key[Down]" menu-select
   fi
+
+  local keymap=$( bindkey -lL main )
+  if [[ $keymap == *emacs* ]]
+  then
+    if [[ ! -v key[ListChoices] ]]; then key[ListChoices]='^[^D'; fi
+    if [[ ! -v key[Undo] ]]; then key[Undo]='^_'; fi
+  elif [[ $keymap == *viins* ]]
+  then
+    [[ ! -v key[ListChoices] ]] || key[ListChoices]='^D'
+    [[ ! -v key[Undo] ]] || key[Undo]='u'
+  fi
+  if [[ -v key[ListChoices] ]]
+  then
+    bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
+  fi
+  if [[ -v key[Undo] ]]
+  then
+    bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+  fi
+
+  # Remove itself after being called.
+  add-zle-hook-widget -d line-init _zsh_autocomplete_bindkeys
 }
 
-add-zle-hook-widget zle-line-finish _zsh_autocomplete_finish
-_zsh_autocomplete_finish() {
-  emulate -L zsh
-  setopt warncreateglobal noshortloops
+# Make `terminfo` codes work.
+add-zle-hook-widget line-init _zsh_autocomplete_application_mode
+_zsh_autocomplete_application_mode() {
+  echoti smkx
+}
+add-zle-hook-widget line-finish _zsh_autocomplete_raw_mode
+_zsh_autocomplete_raw_mode() {
   echoti rmkx
 }
 
@@ -180,8 +191,8 @@ _zsh_autocomplete_finish() {
   do
     eval "zle -N $widget _zsh_autocomplete_n_$widget
     _zsh_autocomplete_n_$widget() {
-      zle .$widget
-      setopt localoptions $zsh_autocomplete_options
+      zle .$widget \$@
+      setopt localoptions \$zsh_autocomplete_options
       zle list-choices
       true
     }"
@@ -193,7 +204,7 @@ _zsh_autocomplete_n_magic-space() {
   setopt localoptions $zsh_autocomplete_options
 
   zle correct-word
-  zle .magic-space
+  zle .magic-space $@
   zle list-choices
   true
 }
@@ -203,7 +214,7 @@ _zsh_autocomplete_n_complete-word() {
   setopt localoptions $zsh_autocomplete_options
 
   local buffer=$BUFFER
-  zle _complete_word
+  zle _complete_word $@
   if [[ $buffer != $BUFFER ]]
   then
     zle .auto-suffix-retain
@@ -218,9 +229,9 @@ _zsh_autocomplete_n_down-line-or-menu-select() {
 
   zle -M ''
   if (( ${#RBUFFER} > 0 && BUFFERLINES > 1 )); then
-    zle .down-line || zle .end-of-line
+    zle .down-line $@ || zle .end-of-line $@
   else
-    zle menu-select
+    zle menu-select $@
   fi
 }
 
@@ -230,9 +241,9 @@ _zsh_autocomplete_n_up-line-or-fuzzy-history() {
 
   zle -M ''
   if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
-    zle .up-line || zle .beginning-of-line
+    zle .up-line $@ || zle .beginning-of-line $@
   else
-    fzf-history-widget
+    fzf-history-widget $@
   fi
 }
 
@@ -242,8 +253,8 @@ _zsh_autocomplete_n_expand-or-fuzzy-find() {
 
   zle -M ''
   local buffer=$BUFFER
-  zle _expand_alias
-  zle _expand_word
+  zle _expand_alias $@
+  zle _expand_word $@
   if [[ $buffer == $BUFFER ]]
   then
     if zle -l fzf-completion
@@ -252,9 +263,9 @@ _zsh_autocomplete_n_expand-or-fuzzy-find() {
       do
         zle .forward-word
       done
-      fzf-completion
+      fzf-completion $@
     else
-      zle list-more
+      zle list-more $@
     fi
   fi
 }

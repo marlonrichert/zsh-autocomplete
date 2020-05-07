@@ -65,7 +65,7 @@ Optional:
 To update, `cd` into your local repo and do `git pull`.
 
 ### Prezto
-Make sure you source `zsh-autocomplete` **after** the `completion` module. You might get \
+Make sure you source `zsh-autocomplete` **after** the `completion` module. You might get
 unexpected results otherwise.
 
 
