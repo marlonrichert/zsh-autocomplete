@@ -7,10 +7,12 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 * Press Up to search history.
 * Press Ctrl-Space to search dirs/files.
 
+
 ## Demo
 [![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
 
-## Key bindings
+
+## Key bindings on the command line
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
@@ -24,8 +26,7 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 | [⌥↓](# "alt/esc + down arrow") | Down line (no selection) |
 | [⌥↑](# "alt/esc + up arrow") | Up line (no search) |
 
-
-### Key bindings in completion menu
+### Key bindings in the completion menu
 | Key(s) | Action |
 | --- | --- |
 | [↑ ↓ ← →](# "arrow keys") | Change selection |
@@ -37,12 +38,15 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 
 ## Requirements
 Mandatory:
-* You need to run [**zsh**](http://zsh.sourceforge.net) as your shell and you need to have enabled "new style" completions a.k.a. `compinit`.
+* [**zsh**](http://zsh.sourceforge.net) needs to be your shell.
 
 Optional:
-* [↑ fuzzy history search](#key-bindings "up arrow") and [⌃␣ fuzzy file search](#key-bindings "ctrl + space") require that you have [**fzf**](https://github.com/junegunn/fzf) installed and source its
-[completion](https://github.com/junegunn/fzf/blob/master/shell/completion.zsh) and
-[key-bindings](https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh) in your `.zshrc` file.
+* [**fzf**](https://github.com/junegunn/fzf) and
+  [its **shell extensions**](https://github.com/junegunn/fzf#installation) are required for
+  [↑ fuzzy history search](#key-bindings "up arrow") and
+  [⌃␣ fuzzy file search](#key-bindings "ctrl + space").
+  * **Note:** It's _not_ enough for `fzf` to be in your path! You will also need to source its
+    shell extensions in your `.zshrc` file.
 
 
 ## Installation
@@ -52,13 +56,18 @@ Optional:
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
    ```
-   * If you use any form of syntax highlighting, make sure you source it _after_ `zsh-autocomplete`.
+   * If you use any form of syntax highlighting, make sure you source it _after_
+     `zsh-autocomplete`.
+   * If you want to use [↑ fuzzy history search](#key-bindings "up arrow") and
+     [⌃␣ fuzzy file search](#key-bindings "ctrl + space"), make sure you also source
+     [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
 
 To update, `cd` into your local repo and do `git pull`.
 
 ### Prezto
 Make sure you source `zsh-autocomplete` **after** the `completion` module. You might get \
 unexpected results otherwise.
+
 
 ## Author
 © 2020 [Marlon Richert](/marlonrichert)
