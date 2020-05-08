@@ -322,7 +322,6 @@ _zsh_autocomplete_c_list_choices() {
   if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
   then
     local current_word=$PREFIX$SUFFIX
-    zle -M ''
     if (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
     then
       local curcontext=$( _zsh_autocomplete__context list-choices )
