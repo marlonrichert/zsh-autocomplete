@@ -75,9 +75,16 @@ _zsh_autocomplete__completion_styles() {
 
   zstyle ':completion:complete-word:*' menu 'select=long-list'
 
-  zstyle ':completion:(correct-word|list-choices):*' file-patterns \
-    '%p(-/):directories %p:all-files'
-  zstyle ':completion:correct-word:*' tag-order '! options globbed-files remote-repositories' '-'
+  zstyle ':completion:correct-word:*' accept-exact true
+  zstyle ':completion:correct-word:*' completer _complete _correct
+  zstyle ':completion:correct-word:*' glob false
+  zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle ':completion:correct-word:*' tag-order \
+    'commands builtins functions aliases suffix-aliases reserved-words jobs parameters parameters' \
+    '-'
+
+  zstyle ':completion:list-choices:expand:*' glob false
+  zstyle ':completion:list-choices:*' file-patterns '%p(-/):directories %p:all-files'
   zstyle -e ':completion:list-choices:*' tag-order '
     if [[ $PREFIX$SUFFIX == -* ]] then
       reply=( "options argument-rest" "-" )
@@ -88,14 +95,7 @@ _zsh_autocomplete__completion_styles() {
         "-"
         )
     fi'
-  zstyle ':completion:(correct-word|list-choices):*:brew:*' tag-order '! all-commands' '-'
-
-  zstyle ':completion:correct-word:*' accept-exact true
-  zstyle ':completion:correct-word:*' completer _complete _correct
-  zstyle ':completion:correct-word:*' glob false
-  zstyle ':completion:correct-word:*' matcher-list ''
-
-  zstyle ':completion:list-choices:expand:*' glob false
+  zstyle ':completion:list-choices:*:brew:*' tag-order '! all-commands' '-'
 
   zstyle ':completion:list-more:*' format '%F{yellow}%d%f'
   zstyle ':completion:list-more:*' group-name ''
@@ -330,14 +330,15 @@ _zsh_autocomplete__c__complete_word() {
 _zsh_autocomplete__c__correct_word() {
   setopt localoptions $zsh_autocomplete_options
 
-  if [[ $SUFFIX[1] == [[:IFS:]]#
-        && $PREFIX != [[:punct:]]#
-        && $PREFIX != -[^-]* ]]
+  local curcontext=$( _zsh_autocomplete__context correct-word )
+  compstate[old_list]=''
+
+  _main_complete $@
+
+  compstate[list]=''
+  if (( ${#exact_string} > 0 ))
   then
-    local curcontext=$( _zsh_autocomplete__context correct-word )
-    compstate[old_list]=''
-    _main_complete $@
-    compstate[list]=''
+   compstate[insert]=''
   fi
 }
 
