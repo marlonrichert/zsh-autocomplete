@@ -66,14 +66,14 @@ _zsh_autocomplete__completion_styles() {
     fi
     if [[ $PREFIX$SUFFIX != _* ]] then
       reply+=( "_*" )
-    fi
-  '
+    fi'
   zstyle ':completion:*' matcher-list 'r:|.=*' 'r:|?=**' '+m:{[:lower:]}={[:upper:]}'
+
   zstyle ':completion:*:z:*' file-patterns '%p(-/):directories'
   zstyle ':completion:*:options' ignored-patterns ''
   zstyle ':completion:*:widgets' matcher 'l:?|=**'
 
-  zstyle ':completion:complete-word:*' menu 'auto select'
+  zstyle ':completion:complete-word:*' menu 'select=long-list'
 
   zstyle ':completion:(correct-word|list-choices):*' file-patterns \
     '%p(-/):directories %p:all-files'
@@ -101,7 +101,6 @@ _zsh_autocomplete__completion_styles() {
   zstyle ':completion:list-more:*' group-name ''
   zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
   zstyle ':completion:list-more:*' menu 'select=long-list'
-
 }
 
 _zsh_autocomplete__auto_list_choices() {
@@ -198,6 +197,7 @@ _zsh_autocomplete__keybindings() {
   add-zle-hook-widget line-finish _zsh_autocomplete__h__raw_mode
 
   # Make it so the order in which fzf and zsh-autocomplete are sourced doesn't matter.
+  _zsh_autocomplete__h__bindkeys
   add-zle-hook-widget line-init _zsh_autocomplete__h__bindkeys
 }
 
@@ -213,10 +213,10 @@ _zsh_autocomplete__h__bindkeys() {
   emulate -L zsh
   setopt warncreateglobal noshortloops
 
-  bindkey $key[Tab] complete-word
-
   if zle -l fzf-history-widget
   then
+    bindkey $key[Tab] complete-word
+
     bindkey $key[Up] up-line-or-fuzzy-history
     zle -N up-line-or-fuzzy-history _zsh_autocomplete__w__up-line-or-fuzzy-history
 
@@ -255,9 +255,9 @@ _zsh_autocomplete__h__bindkeys() {
 _zsh_autocomplete__w__complete-word() {
   setopt localoptions $zsh_autocomplete_options
 
-  local buffer=$BUFFER
+  local lbuffer=$LBUFFER
   zle _complete_word $@
-  if [[ $buffer != $BUFFER ]]
+  if [[ $lbuffer != $LBUFFER ]]
   then
     zle .auto-suffix-retain
     zle list-choices
@@ -352,17 +352,10 @@ _zsh_autocomplete__c__list_choices() {
       local curcontext=$( _zsh_autocomplete__context list-choices )
       _main_complete $@ 2> /dev/null
 
-      if (( (compstate[list_lines] + BUFFERLINES + 1) > LINES
-         || ( compstate[list_max] != 0 && compstate[nmatches] > compstate[list_max] ) ))
+      if _zsh_autocomplete__too_long_list
       then
       compstate[list]=''
-        if (( BUFFERLINES == 1))
-        then
-          local prompt='^'
-          zle -M "${(l:CURSOR+${#prompt}+2:)prompt}"
-        else
-          zle -M ''
-        fi
+      zle -M ''
       elif (( compstate[nmatches] == 0 ))
       then
         zle -M ''
@@ -406,7 +399,12 @@ _zsh_autocomplete__force_list() {
 
   if (( ${#compstate[old_list]} == 0 ))
   then
-    compstate[insert]='automenu'
+    if _zsh_autocomplete__too_long_list
+    then
+      compstate[insert]='menu'
+    else
+      compstate[insert]=''
+    fi
     compstate[list]='list force'
   fi
 }
@@ -419,4 +417,9 @@ _zsh_autocomplete__keep_old_list() {
   then
     compstate[old_list]=keep
   fi
+}
+
+_zsh_autocomplete__too_long_list() {
+  (( (compstate[list_lines] + BUFFERLINES + 1) > LINES
+     || ( compstate[list_max] != 0 && compstate[nmatches] > compstate[list_max] ) ))
 }
