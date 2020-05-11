@@ -51,22 +51,35 @@ Optional:
 
 ## Installation
 
+There's three ways to install `zsh-autocomplete`:
+
+### Plug and Play
+Choose this if you want that **It Just Works**.
 1. `git clone` this repo.
-1. Add the following to your `.zshrc` file:
+1. If you want to use [↑ fuzzy history search](#key-bindings "up arrow") and
+   [⌃␣ fuzzy file search](#key-bindings "ctrl + space"):
+   1. Make sure you have [fzf](https://github.com/junegunn/fzf) installed.
+   1. Source [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
+1. Add the following to your `.zshrc` file :
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
    ```
-   * If you use any form of syntax highlighting, make sure you source it _after_
-     `zsh-autocomplete`.
-   * If you want to use [↑ fuzzy history search](#key-bindings "up arrow") and
-     [⌃␣ fuzzy file search](#key-bindings "ctrl + space"), make sure you also source
-     [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
+   **Note** that the file name has the word **plugin** in it.
+
+If you use any form of syntax highlighting, you have to source it _after_ `zsh-autocomplete`.
 
 To update, `cd` into your local repo and do `git pull`.
 
-### Prezto
-Make sure you source `zsh-autocomplete` **after** the `completion` module. You might get
-unexpected results otherwise.
+### Manual Override
+Choose this if you want total control over everything.
+
+1. Complete [steps 1 and 2 of the Plug and Play instructions](#plug-and-play).
+1. Add the following to your `.zshrc` file:
+   ```shell
+   source path/to/zsh-autocomplete.zsh
+   ```
+   **Note** that the file name does **not** have the word plugin in it.
+1. In that file, look at `_zsh_autocomplete__main()` to see how to get started.
 
 
 ## Author
