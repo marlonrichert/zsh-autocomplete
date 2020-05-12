@@ -197,8 +197,10 @@ _zsh_autocomplete__keybindings() {
   add-zle-hook-widget line-finish _zsh_autocomplete__h__raw_mode
 
   # Make it so the order in which fzf and zsh-autocomplete are sourced doesn't matter.
-  _zsh_autocomplete__h__bindkeys
-  add-zle-hook-widget line-init _zsh_autocomplete__h__bindkeys
+  _zsh_autocomplete__h__fzf_keys
+  _zsh_autocomplete__h__keymap-specific_keys
+  add-zle-hook-widget line-init _zsh_autocomplete__h__fzf_keys
+  add-zle-hook-widget line-init _zsh_autocomplete__h__keymap-specific_keys
 }
 
 _zsh_autocomplete__h__application_mode() {
@@ -209,7 +211,7 @@ _zsh_autocomplete__h__raw_mode() {
   echoti rmkx
 }
 
-_zsh_autocomplete__h__bindkeys() {
+_zsh_autocomplete__h__fzf_keys() {
   emulate -L zsh
   setopt warncreateglobal noshortloops
 
@@ -228,6 +230,14 @@ _zsh_autocomplete__h__bindkeys() {
     bindkey "^[$key[Down]" menu-select
     zle -C menu-select menu-select _zsh_autocomplete__c__menu_select
   fi
+
+  # Remove itself after being called.
+  add-zle-hook-widget -d line-init _zsh_autocomplete__h__fzf_keys
+}
+
+_zsh_autocomplete__h__keymap-specific_keys() {
+  emulate -L zsh
+  setopt warncreateglobal noshortloops
 
   local keymap=$( bindkey -lL main )
   if [[ $keymap == *emacs* ]]
@@ -249,7 +259,7 @@ _zsh_autocomplete__h__bindkeys() {
   fi
 
   # Remove itself after being called.
-  add-zle-hook-widget -d line-init _zsh_autocomplete__h__bindkeys
+  add-zle-hook-widget -d line-init _zsh_autocomplete__h__keymap-specific_keys
 }
 
 _zsh_autocomplete__w__complete-word() {
