@@ -1,9 +1,9 @@
 _zsh_autocomplete__main() {
-  _zsh_autocomplete__environment_variables
   _zsh_autocomplete__dependencies
   _zsh_autocomplete__completion_styles
   _zsh_autocomplete__auto_list_choices
   _zsh_autocomplete__keybindings
+  _zsh_autocomplete__environment_variables
 }
 
 _zsh_autocomplete__environment_variables() {
@@ -83,7 +83,6 @@ _zsh_autocomplete__completion_styles() {
     'commands builtins functions aliases suffix-aliases reserved-words jobs parameters parameters' \
     '-'
 
-  zstyle ':completion:list-choices:expand:*' glob false
   zstyle ':completion:list-choices:*' file-patterns '%p(-/):directories %p:all-files'
   zstyle -e ':completion:list-choices:*' tag-order '
     if [[ $PREFIX$SUFFIX == -* ]] then
@@ -95,6 +94,9 @@ _zsh_autocomplete__completion_styles() {
         "-"
         )
     fi'
+  zstyle ':completion:list-choices:expand:*' glob false
+  zstyle ':completion:list-choices:expand:*' subst-globs-only true
+  zstyle ':completion:list-choices:expand:*' substitute false
   zstyle ':completion:list-choices:*:brew:*' tag-order '! all-commands' '-'
 
   zstyle ':completion:list-more:*' format '%F{yellow}%d%f'
@@ -124,9 +126,7 @@ _zsh_autocomplete__auto_list_choices() {
     eval "zle -N $widget _zsh_autocomplete__w__$widget
     _zsh_autocomplete__w__$widget() {
       zle .$widget \$@
-      setopt localoptions \$zsh_autocomplete_options
-      zle list-choices
-      true
+      _zsh_autocomplete__list_choices
     }"
   done
 }
@@ -260,7 +260,7 @@ _zsh_autocomplete__w__complete-word() {
   if [[ $lbuffer != $LBUFFER ]]
   then
     zle .auto-suffix-retain
-    zle list-choices
+    _zsh_autocomplete__list_choices
     true
   fi
 }
@@ -314,7 +314,7 @@ _zsh_autocomplete__w__magic-space() {
 
   zle correct-word
   zle .magic-space $@
-  zle list-choices
+  _zsh_autocomplete__list_choices
   true
 }
 
@@ -329,40 +329,46 @@ _zsh_autocomplete__c__complete_word() {
 
 _zsh_autocomplete__c__correct_word() {
   setopt localoptions $zsh_autocomplete_options
+  unsetopt GLOB_COMPLETE
 
-  local curcontext=$( _zsh_autocomplete__context correct-word )
-  compstate[old_list]=''
-
-  _main_complete $@
-
-  compstate[list]=''
-  if (( ${#exact_string} > 0 ))
+  if [[ $RBUFFER[1] == [[:IFS:]]# ]] \
+     && _zsh_autocomplete__is_enough_input
   then
-   compstate[insert]=''
+    local curcontext=$( _zsh_autocomplete__context correct-word )
+    compstate[old_list]=''
+
+    _main_complete $@
+
+    compstate[list]=''
+    if (( ${#exact_string} > 0 ))
+    then
+     compstate[insert]=''
+    fi
   fi
 }
 
 _zsh_autocomplete__c__list_choices() {
   setopt localoptions $zsh_autocomplete_options
+  unsetopt GLOB_COMPLETE
 
   if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
   then
-    local current_word=$PREFIX$SUFFIX
-    if (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
+    if _zsh_autocomplete__is_enough_input
     then
       local curcontext=$( _zsh_autocomplete__context list-choices )
       _main_complete $@ 2> /dev/null
 
-      if _zsh_autocomplete__too_long_list
+      if _zsh_autocomplete__is_too_long_list
       then
-      compstate[list]=''
-      zle -M ''
+        compstate[list]=''
+        zle -M ''
       elif (( compstate[nmatches] == 0 ))
       then
         zle -M ''
       fi
     fi
   fi
+  true
 }
 
 _zsh_autocomplete__c__list_more() {
@@ -400,7 +406,7 @@ _zsh_autocomplete__force_list() {
 
   if (( ${#compstate[old_list]} == 0 ))
   then
-    if _zsh_autocomplete__too_long_list
+    if _zsh_autocomplete__is_too_long_list
     then
       compstate[insert]='menu'
     else
@@ -420,7 +426,24 @@ _zsh_autocomplete__keep_old_list() {
   fi
 }
 
-_zsh_autocomplete__too_long_list() {
+_zsh_autocomplete__list_choices() {
+  setopt localoptions $zsh_autocomplete_options
+
+  local safechars='\-\#\:'
+  local histexpansion="${(q)histchars[1]}([$safechars](#c0,1))[^$safechars]*"
+  if [[ "${LBUFFER}" != ${~histexpansion} && "${${(z)LBUFFER}[-1]}" != ${~histexpansion} ]]
+  then
+    zle list-choices
+    true
+  fi
+}
+
+_zsh_autocomplete__is_enough_input() {
+  local current_word=$PREFIX$SUFFIX
+  (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
+}
+
+_zsh_autocomplete__is_too_long_list() {
   (( (compstate[list_lines] + BUFFERLINES + 1) > LINES
      || ( compstate[list_max] != 0 && compstate[nmatches] > compstate[list_max] ) ))
 }
