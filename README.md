@@ -16,31 +16,31 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
-| [⇥](# "tab") | Complete word |
+| [⇥](# "tab") | Insert top match |
 | [⇤](# "shift + tab") | List more choices/info |
-| [↓](# "down arrow") | Select a choice (or down line) |
-| [↑](# "up arrow") | [Fuzzy history search](#requirements) (or up line) |
-| [␣](# "space") | Correct spelling + insert space |
+| [↓](# "down arrow") | Menu select or down line |
+| [↑](# "up arrow") | [Fuzzy history search](#requirements) or up line |
+| [␣](# "space") | Correct spelling + history expansion + insert space |
 | [⌃␣](# "ctrl + space") | [Fuzzy file search](#requirements) or expand alias |
-| [⌥␣](# "alt/esc + space") | Insert space (no correction) |
-| [⌥↓](# "alt/esc + down arrow") | Down line (no selection) |
+| [⌥␣](# "alt/esc + space") | Insert space (no correction or expansion) |
+| [⌥↓](# "alt/esc + down arrow") | Down line (no select) |
 | [⌥↑](# "alt/esc + up arrow") | Up line (no search) |
 
 ### Key bindings in the completion menu
 | Key(s) | Action |
 | --- | --- |
 | [↑ ↓ ← →](# "arrow keys") | Change selection |
-| [↩︎](# "enter") | Insert selection and exit menu |
-| [⇥](# "tab") | Insert selection and select next choice |
+| [↩︎](# "enter") | Insert single match (exit menu) |
+| [⇥](# "tab") | Insert multiple matches (stay in menu) |
 | [⇤](# "shift + tab") | List more choices/info |
-| [⌃␣](# "ctrl + space") | Insert selection + [fuzzy file search](#requirements) |
+| [⌃␣](# "ctrl + space") | Insert single match + [fuzzy file search](#requirements) |
 
 
 ## Requirements
 Mandatory:
 * [**zsh**](http://zsh.sourceforge.net) needs to be your shell.
 
-Optional:
+Recommended:
 * [**fzf**](https://github.com/junegunn/fzf) and
   [its **shell extensions**](https://github.com/junegunn/fzf#installation) are required for
   [↑ fuzzy history search](#key-bindings "up arrow") and
@@ -70,6 +70,11 @@ If you use any form of syntax highlighting, you have to source it _after_ `zsh-a
 
 To update, `cd` into your local repo and do `git pull`.
 
+### As a Plugin
+Installing `zsh-autocomplete` as a plugin through a Zsh framework or plugin manager leads to the
+same results as using [Plug and Play installation](#plug-and-play). Please refer to your framework
+or plugin manager's documentation for instructions.
+
 ### Manual Override
 Choose this if you want total control over everything.
 
@@ -82,10 +87,54 @@ Choose this if you want total control over everything.
 1. In that file, look at `_zsh_autocomplete__main()` to see how to get started.
 
 
+## Configuration
+
+The behavior of `zsh-autocomplete` can be customized greatly. Here are just some of the things that
+are commonly requested.
+
+**Note:** To use these, add them in your `.zshrc` file **after** sourcing `zsh-autocomplete`.
+
+### Turn off automatic spelling correction
+By default, [␣](# "space")
+* corrects your spelling and
+* does history expansions.
+
+To remove the spell-checking part, use this:
+```shell
+zstyle ':completion:correct-word:*' tag-order '-'
+```
+
+### Use [⇥](# "tab") to cycle matches
+By default, [⇥](# "tab") inserts the top match. The idea is that you just keep typing until the
+match you want is
+* at the top, at which point you press [⇥](# "tab") to insert it, or
+* ([if you have `fzf` installed](#requirements)) near the top, at which point you press
+  [↓](# "down arrow") to enter the menu, navigate to it with [↑ ↓ ← →](# "arrow keys") and press
+  [↩︎](# "enter") to insert it.
+
+If instead you want [⇥](# "tab") to cycle between matches _without_ entering the menu, use this:
+```shell
+zle -N complete-word && complete-word() { zle .complete-word; }
+```
+
+### Use [⇥](# "tab") and [⇤](# "shift + tab") to navigate the menu
+By default,
+* [↑ ↓ ← →](# "arrow keys") navigate the menu,
+* [⇥](# "tab") does multi-selection and
+* [⇤](# "shift + tab") shows you more matches and/or more info.
+
+If you want to use [⇥](# "tab") and [⇤](# "shift + tab") to navigate the menu, use this:
+```shell
+add-zle-hook-widget -d line-init _zsh_autocomplete__h__keymap-specific_keys
+bindkey -M menuselect $key[Tab] menu-complete
+bindkey -M menuselect $key[BackTab] reverse-menu-complete
+```
+
+
 ## Author
-© 2020 [Marlon Richert](/marlonrichert)
+© 2020 [Marlon Richert](https://github.com/marlonrichert)
 
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](/marlonrichert/.config/LICENSE)
-file for details
+This project is licensed under the MIT License. See the [LICENSE](/marlonrichert/.config/LICENSE)
+file for details.
