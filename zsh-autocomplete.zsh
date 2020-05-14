@@ -316,21 +316,32 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
   setopt localoptions $zsh_autocomplete_options
 
   zle -M ''
-  local buffer=$BUFFER
-  zle _expand_alias $@
-  zle _expand_word $@
-  if [[ $buffer == $BUFFER ]]
+
+  if zle _expand_alias $@
   then
-    if zle -l fzf-completion
-    then
-      while [[ $RBUFFER[1] == [[:graph:]] ]]
-      do
-        zle .forward-word
-      done
-      fzf-completion $@
-    else
-      zle list-more $@
-    fi
+    _zsh_autocomplete__list_choices
+    return
+  fi
+
+  local -h comppostfuncs=( _zsh_autocomplete__force_list )
+
+  if zle _expand_word $@
+  then
+    _zsh_autocomplete__list_choices
+    return
+  fi
+
+  if zle -l fzf-completion
+  then
+
+    while [[ $RBUFFER[1] == [[:graph:]] ]]
+    do
+      zle .forward-word
+    done
+
+    fzf-completion $@
+  else
+    zle list-more $@
   fi
 }
 
