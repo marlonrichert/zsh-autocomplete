@@ -1,39 +1,45 @@
 # zsh-autocomplete
 IntelliSense-like find-as-you-type completion for the Z Shell!
 * Automatically lists completions as you type.
-* Press Tab to insert the top match or press Down to select a different one.
-* Press Shift-Tab for more choices/info.
-* Press Space to correct the last word.
-* Press Up to search history.
-* Press Ctrl-Space to search dirs/files.
+* Press [`⇥`](# "tab") to insert the top match or press [`↓`](# "down arrow") to select a different one.
+* Press [`⇤`](# "shift + tab") for more choices/info.
+* Press [`␣`](# "space") to correct the last word or do
+  [history expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html#History-Expansion).
+* Press [`↑`](# "up arrow") to search history.
+* Press [`⌃␣`](# "ctrl + space") to search dirs/files.
 
 
 ## Demo
 [![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
 
 
-## Key bindings on the command line
-| Key(s) | Action |
-| --- | --- |
-| any | List choices (automatic) |
-| [⇥](# "tab") | Insert top match |
-| [⇤](# "shift + tab") | List more choices/info |
-| [↓](# "down arrow") | Menu select or down line |
-| [↑](# "up arrow") | [Fuzzy history search](#requirements) or up line |
-| [␣](# "space") | Correct spelling + history expansion + insert space |
-| [⌃␣](# "ctrl + space") | [Fuzzy file search](#requirements) or expand alias |
-| [⌥␣](# "alt/esc + space") | Insert space (no correction or expansion) |
-| [⌥↓](# "alt/esc + down arrow") | Down line (no select) |
-| [⌥↑](# "alt/esc + up arrow") | Up line (no search) |
+## Key Bindings
+`zsh-autocomplete` adds intuitive key bindings for both the command line and the completion menu.
 
-### Key bindings in the completion menu
+### On Command Line
 | Key(s) | Action |
 | --- | --- |
-| [↑ ↓ ← →](# "arrow keys") | Change selection |
-| [↩︎](# "enter") | Insert single match (exit menu) |
-| [⇥](# "tab") | Insert multiple matches (stay in menu) |
-| [⇤](# "shift + tab") | List more choices/info |
-| [⌃␣](# "ctrl + space") | Insert single match + [fuzzy file search](#requirements) |
+| any character | List choices (automatic) |
+| [`⇥`](# "tab") | Insert top match |
+| [`⇤`](# "shift + tab") | List more choices/info |
+| [`↓`](# "down arrow") | Menu select or down line |
+| [`↑`](# "up arrow") | [Fuzzy history search](#requirements) or up line |
+| [`␣`](# "space") | Correct spelling + history expansion + insert space |
+| [`⌃␣`](# "ctrl + space") | [Fuzzy file search](#requirements) or expand alias |
+| [`⌥␣`](# "alt/esc + space") | Insert space (no correction or expansion) |
+| [`⌥↓`](# "alt/esc + down arrow") | Down line (no select) |
+| [`⌥↑`](# "alt/esc + up arrow") | Up line (no search) |
+
+### In Completion Menu
+| Key(s) | Action |
+| --- | --- |
+| [`↑ ↓ ← →`](# "arrow keys") | Change selection |
+| any character | Insert single match + insert character (exit menu) |
+| [`␣`](# "space") | Insert single match + insert space (exit menu) |
+| [`↩︎`](# "enter") | Insert single match (exit menu) |
+| [`⇥`](# "tab") | Insert multiple matches (stay in menu) |
+| [`⇤`](# "shift + tab") | List more choices/info (does not work in "corrections" menu) |
+| [`⌃␣`](# "ctrl + space") | Insert single match + [fuzzy file search](#requirements) |
 
 
 ## Requirements

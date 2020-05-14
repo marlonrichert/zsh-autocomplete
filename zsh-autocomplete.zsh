@@ -20,6 +20,12 @@ _zsh_autocomplete__environment_variables() {
     no_LIST_BEEP
     no_SHORT_LOOPS
   )
+  [[ ! -v zsh_autocomplete_long_tags ]] && export zsh_autocomplete_long_tags=(
+    commit-tags heads-remote
+  )
+  [[ ! -v zsh_autocomplete_slow_tags ]] && export zsh_autocomplete_slow_tags=(
+    globbed-files remote-files remote-repositories
+  )
 
   # Configuration for Fzf shell extensions
   [[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
@@ -55,56 +61,52 @@ _zsh_autocomplete__completion_styles() {
   # Remove incompatible styles.
   zstyle -d ':completion:*' format
   zstyle -d ':completion:*:descriptions' format
-  zstyle -d ':completion:*:warnings' format
   zstyle -d ':completion:*' group-name
   zstyle -d '*' single-ignored
 
-  zstyle ':completion:*' add-space file
+  zstyle ':completion:*' add-space true
   zstyle ':completion:*' completer _expand _complete _ignored
+  zstyle ':completion:*:corrections' format '%F{green}%d:%f'
+  zstyle ':completion:*:original' format '%F{yellow}%d:%f'
+  zstyle ':completion:*:warnings' format '%F{red}%D%f'
+
+  # Ignore completions starting with punctuation, unless that punctuation has been typed.
   zstyle -e ':completion:*' ignored-patterns '
-    reply=( "+*" "[[:punct:]]zinit-*" )
-    if [[ $PREFIX$SUFFIX != .* ]] then
-      reply+=( "(*/)#.*" )
-    fi
-    if [[ $PREFIX$SUFFIX != _* ]] then
-      reply+=( "_*" )
-    fi'
-  zstyle ':completion:*' matcher-list 'r:|.=*' 'r:|?=**' '+m:{[:lower:]}={[:upper:]}'
+    local current_word=$PREFIX$SUFFIX
+    reply=( "(*/)#([[:punct:]]~^[^${current_word[1]}])*" )'
 
+  zstyle ':completion:*' matcher-list 'r:|.=* l:?|=**' 'r:|?=** m:{[:lower:]}={[:upper:]}'
+  zstyle ':completion:*' menu 'select=long-list'
+  zstyle ':completion:*' use-cache true
+
+  zstyle ':completion:*:expand:*' tag-order '! all-expansions' '-'
   zstyle ':completion:*:z:*' file-patterns '%p(-/):directories'
-  zstyle ':completion:*:options' ignored-patterns ''
-  zstyle ':completion:*:widgets' matcher 'l:?|=**'
-
-  zstyle ':completion:complete-word:*' menu 'select=long-list'
 
   zstyle ':completion:correct-word:*' accept-exact true
-  zstyle ':completion:correct-word:*' completer _complete _correct
+  zstyle ':completion:correct-word:*' accept-exact-dirs true
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
-  zstyle ':completion:correct-word:*' tag-order \
-    'commands builtins functions aliases suffix-aliases reserved-words jobs parameters parameters' \
-    '-'
+  zstyle ':completion:correct-word:*' tag-order "! options $zsh_autocomplete_slow_tags" "-"
+
+  zstyle ':completion:correct-word:*:brew*:*' tag-order "! list" "-"
 
   zstyle ':completion:list-choices:*' file-patterns '%p(-/):directories %p:all-files'
-  zstyle -e ':completion:list-choices:*' tag-order '
-    if [[ $PREFIX$SUFFIX == -* ]] then
-      reply=( "options argument-rest" "-" )
-    else
-      reply=(
-        "! commit-tags heads-remote remote-repositories"
-        "commit-tags heads-remote"
-        "-"
-        )
-    fi'
-  zstyle ':completion:list-choices:expand:*' glob false
-  zstyle ':completion:list-choices:expand:*' subst-globs-only true
-  zstyle ':completion:list-choices:expand:*' substitute false
-  zstyle ':completion:list-choices:*:brew:*' tag-order '! all-commands' '-'
+  zstyle ':completion:list-choices:*' glob false
+  zstyle ':completion:list-choices:*' menu ''
+  zstyle ':completion:list-choices:*' tag-order \
+    "options" "! options $zsh_autocomplete_long_tags $zsh_autocomplete_slow_tags" \
+    "$zsh_autocomplete_long_tags" "-"
 
-  zstyle ':completion:list-more:*' format '%F{yellow}%d%f'
+  zstyle ':completion:list-choices:*:brew:*' tag-order "! all-commands argument-rest" "-"
+  zstyle -e ':completion:list-choices:*:zle:*' tag-order '
+    if [[ $PREFIX$SUFFIX == -* ]]
+    then
+      reply=( "! widgets" "-" )
+    fi'
+
+  zstyle ':completion:list-more:*' format '%F{yellow}%d:%f'
   zstyle ':completion:list-more:*' group-name ''
   zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
-  zstyle ':completion:list-more:*' menu 'select=long-list'
 }
 
 _zsh_autocomplete__auto_list_choices() {
@@ -184,9 +186,10 @@ _zsh_autocomplete__keybindings() {
 
   bindkey ' ' magic-space
   zle -N magic-space _zsh_autocomplete__w__magic-space
-  zle -C correct-word complete-word _zsh_autocomplete__c__correct_word
+  zle -C _correct_word menu-select _zsh_autocomplete__c__correct_word
 
-  bindkey '^[ ' self-insert-unmeta
+  bindkey '^[ ' menu-space
+  zle -N menu-space _zsh_autocomplete__w__menu-space
 
   bindkey $key[BackTab] list-more
   zle -C list-more list-choices _zsh_autocomplete__c__list-more
@@ -262,6 +265,7 @@ _zsh_autocomplete__h__keymap-specific_keys() {
 
   if [[ -v key[ListChoices] ]]
   then
+    bindkey -M menuselect -s ' ' '^[ '$key[ListChoices]
     bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
   fi
 
@@ -348,10 +352,48 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
 _zsh_autocomplete__w__magic-space() {
   setopt localoptions $zsh_autocomplete_options
 
-  zle correct-word
-  zle .magic-space $@
+  local keys=$KEYS
+  LBUFFER=$LBUFFER' '
+
+  if [[ $LBUFFER[-2] == [\ \/] ]]
+  then
+    _zsh_autocomplete__list_choices
+    return 0
+  fi
+
+  zle .split-undo
+  (( CURSOR-- ))
+  local lbuffer=$LBUFFER
+  zle .expand-history $@
+
+  if [[ $LBUFFER[-1] == [\ \/] || $lbuffer != $LBUFFER ]]
+  then
+    (( CURSOR++ ))
+    _zsh_autocomplete__list_choices
+    return 0
+  fi
+
+  zle _correct_word
+
+  if [[ $LBUFFER[-1] == $keys[-1] ]]
+  then
+    zle .auto-suffix-remove
+  else
+    zle .auto-suffix-retain
+  fi
+
+  (( CURSOR++ ))
   _zsh_autocomplete__list_choices
-  true
+  return 0
+}
+
+_zsh_autocomplete__w__menu-space() {
+  zle .auto-suffix-retain
+  if [[ $LBUFFER[-1] != $KEYS[-1] ]]
+  then
+    zle .self-insert $@
+  fi
+  return 0
 }
 
 _zsh_autocomplete__c__complete_word() {
@@ -369,14 +411,33 @@ _zsh_autocomplete__c__correct_word() {
     local curcontext=$( _zsh_autocomplete__context correct-word )
     compstate[old_list]=''
 
-    _main_complete $@
+    _main_complete _match
 
-    compstate[list]=''
-    if (( ${#exact_string} > 0 ))
+    if (( $compstate[nmatches] > 0 ))
     then
-     compstate[insert]=''
+      compstate[insert]=''
+      compstate[list]=''
+      return 0
+    fi
+
+    _main_complete _correct
+
+    if (( $compstate[nmatches] == 0 ))
+    then
+      return 0
+    fi
+
+    _main_complete _complete
+
+    if (( ${#compstate[exact_string]} > 0 )) || [[ ${compstate[unambiguous]} == $PREFIX$SUFFIX ]]
+    then
+      compstate[insert]=''
+      compstate[list]=''
+    else
+      compstate[list]='ambiguous'
     fi
   fi
+  return 0
 }
 
 _zsh_autocomplete__c__list-choices() {
