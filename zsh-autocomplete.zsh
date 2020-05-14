@@ -304,18 +304,6 @@ _zsh_autocomplete__w__down-line-or-menu-select() {
   fi
 }
 
-_zsh_autocomplete__w__up-line-or-fuzzy-history() {
-  setopt localoptions $zsh_autocomplete_options
-
-  zle -M ''
-
-  if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
-    zle .up-line $@ || zle .beginning-of-line $@
-  else
-    fzf-history-widget $@
-  fi
-}
-
 _zsh_autocomplete__w__expand-or-fuzzy-find() {
   setopt localoptions $zsh_autocomplete_options
 
@@ -394,6 +382,18 @@ _zsh_autocomplete__w__menu-space() {
     zle .self-insert $@
   fi
   return 0
+}
+
+_zsh_autocomplete__w__up-line-or-fuzzy-history() {
+  setopt localoptions $zsh_autocomplete_options
+
+  zle -M ''
+
+  if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
+    zle .up-line $@ || zle .beginning-of-line $@
+  else
+    fzf-history-widget $@
+  fi
 }
 
 _zsh_autocomplete__c__complete_word() {
