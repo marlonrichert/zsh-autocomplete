@@ -49,87 +49,86 @@ Mandatory:
 Recommended:
 * [**fzf**](https://github.com/junegunn/fzf) and
   [its **shell extensions**](https://github.com/junegunn/fzf#installation) are required for
-  [↑ fuzzy history search](#key-bindings "up arrow") and
-  [⌃␣ fuzzy file search](#key-bindings "ctrl + space").
+  [`↑` fuzzy history search](#key-bindings "up arrow") and
+  [`⌃␣` fuzzy file search](#key-bindings "ctrl + space").
   * **Note:** It's _not_ enough for `fzf` to be in your path! You will also need to source its
     shell extensions in your `.zshrc` file.
 
 
 ## Installation
 
-There's three ways to install `zsh-autocomplete`:
+There's two ways to install `zsh-autocomplete`:
 
-### Plug and Play
-Choose this if you want that **It Just Works**.
+### As a Plugin
+Please refer to your plugin manager's documentation for instructions.
+
+**Note** for Prezto users: It's recommended that you load `zsh-autocomplete` _after or instead of_
+Prezto's built-in `completion` module.
+
+### Manually
 1. `git clone` this repo.
-1. If you want to use [↑ fuzzy history search](#key-bindings "up arrow") and
-   [⌃␣ fuzzy file search](#key-bindings "ctrl + space"):
-   1. Make sure you have [fzf](https://github.com/junegunn/fzf) installed.
+1. If you want to use [`↑` fuzzy history search](#key-bindings "up arrow") and
+   [`⌃␣` fuzzy file search](#key-bindings "ctrl + space"):
+   1. Make sure you have [`fzf`](https://github.com/junegunn/fzf) installed.
    1. Source [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
 1. Add the following to your `.zshrc` file :
    ```shell
-   source path/to/zsh-autocomplete.plugin.zsh
-   ```
-   **Note** that the file name has the word **plugin** in it.
-
-If you use any form of syntax highlighting, you have to source it _after_ `zsh-autocomplete`.
-
-To update, `cd` into your local repo and do `git pull`.
-
-### As a Plugin
-Installing `zsh-autocomplete` as a plugin through a Zsh framework or plugin manager leads to the
-same results as using [Plug and Play installation](#plug-and-play). Please refer to your framework
-or plugin manager's documentation for instructions.
-
-### Manual Override
-Choose this if you want total control over everything.
-
-1. Complete [steps 1 and 2 of the Plug and Play instructions](#plug-and-play).
-1. Add the following to your `.zshrc` file:
-   ```shell
    source path/to/zsh-autocomplete.zsh
+   _zsh_autocomplete__main
    ```
-   **Note** that the file name does **not** have the word plugin in it.
-1. In that file, look at `_zsh_autocomplete__main()` to see how to get started.
+   **Note** that you should source the file that does **not** have the word `plugin` in its name.
+
+If you use any form of syntax highlighting, you have to source that _after_ `zsh-autocomplete`.
+
+To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 
 
-## Configuration
+## Customization
 
-The behavior of `zsh-autocomplete` can be customized greatly. Here are just some of the things that
-are commonly requested.
+The behavior of `zsh-autocomplete` is highly configurable. Here are just some of the modifications
+that are commonly requested.
 
 **Note:** To use these, add them in your `.zshrc` file **after** sourcing `zsh-autocomplete`.
 
+### Always show group names
+By default, group names and duplicate entries are shown only when you press [`⇤`](# "shift + tab").
+This allows the automatic listing of completion matches to be as compact as possible.
+
+If instead, you want group names (and thus duplicate entries) to always be shown, use the following:
+```shell
+zstyle ':completion:*' format '%F{yellow}%d:%f'
+zstyle ':completion:*' group-name ''
+```
+You can replace `yellow` with `black`, `red`, `green`, `blue`, `magenta`, `cyan`, `white` or a 3-digit `#hex` value.
+
 ### Turn off automatic spelling correction
-By default, [␣](# "space")
-* corrects your spelling and
-* does history expansions.
+By default, [`␣`](# "space") corrects your spelling and does history expansions.
 
 To remove the spell-checking part, use this:
 ```shell
-zstyle ':completion:correct-word:*' tag-order '-'
+zstyle ':completion:correct-word:*' max-errors 0
 ```
 
-### Use [⇥](# "tab") to cycle matches
-By default, [⇥](# "tab") inserts the top match. The idea is that you just keep typing until the
+### Use [`⇥`](# "tab") to cycle matches
+By default, [`⇥`](# "tab") inserts the top match. The idea is that you just keep typing until the
 match you want is
-* at the top, at which point you press [⇥](# "tab") to insert it, or
+* at the top, at which point you press [`⇥`](# "tab") to insert it, or
 * ([if you have `fzf` installed](#requirements)) near the top, at which point you press
-  [↓](# "down arrow") to enter the menu, navigate to it with [↑ ↓ ← →](# "arrow keys") and press
-  [↩︎](# "enter") to insert it.
+  [`↓`](# "down arrow") to enter the menu, navigate to it with [`↑ ↓ ← →`](# "arrow keys") and press
+  [`↩︎`](# "enter") to insert it.
 
-If instead you want [⇥](# "tab") to cycle between matches _without_ entering the menu, use this:
+If instead you want [`⇥`](# "tab") to cycle between matches _without_ entering the menu, use this:
 ```shell
 zle -N complete-word && complete-word() { zle .complete-word; }
 ```
 
-### Use [⇥](# "tab") and [⇤](# "shift + tab") to navigate the menu
+### Use [`⇥`](# "tab") and [`⇤`](# "shift + tab") to navigate the menu
 By default,
-* [↑ ↓ ← →](# "arrow keys") navigate the menu,
-* [⇥](# "tab") does multi-selection and
-* [⇤](# "shift + tab") shows you more matches and/or more info.
+* [`↑ ↓ ← →`](# "arrow keys") navigate the menu,
+* [`⇥`](# "tab") does multi-selection and
+* [`⇤`](# "shift + tab") shows you more matches and/or more info.
 
-If you want to use [⇥](# "tab") and [⇤](# "shift + tab") to navigate the menu, use this:
+If you want to use [`⇥`](# "tab") and [`⇤`](# "shift + tab") to navigate the menu, use this:
 ```shell
 add-zle-hook-widget -d line-init _zsh_autocomplete__h__keymap-specific_keys
 bindkey -M menuselect $key[Tab] menu-complete
