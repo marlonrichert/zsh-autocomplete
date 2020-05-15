@@ -281,14 +281,12 @@ _zsh_autocomplete__h__list_choices() {
     fi
 
   fi
-  return 0
 }
 
 _zsh_autocomplete__w__complete-word() {
   setopt localoptions $zsh_autocomplete_options
 
   local lbuffer=$LBUFFER
-
   zle _complete_word $@
 
   if [[ $lbuffer != $LBUFFER ]]
@@ -300,25 +298,42 @@ _zsh_autocomplete__w__complete-word() {
 _zsh_autocomplete__w__down-line-or-menu-select() {
   setopt localoptions $zsh_autocomplete_options
 
-  zle -M ''
-
-  if (( ${#RBUFFER} > 0 && BUFFERLINES > 1 )); then
-    zle .down-line $@ || zle .end-of-line $@
-  else
+  if (( ${#RBUFFER} == 0 || BUFFERLINES == 1 ))
+  then
     zle menu-select $@
+  else
+    zle -M ''
+    zle .down-line $@ || zle .end-of-line $@
   fi
 }
 
 _zsh_autocomplete__w__expand-or-fuzzy-find() {
   setopt localoptions $zsh_autocomplete_options
 
-  zle -M ''
+  local lbuffer
 
-  if zle _expand_alias $@
+  if [[ $BUFFER == [[:IFS:]]# ]]
+  then
+
+    if zle -l fzf-cd-widget
+    then
+      zle fzf-cd-widget $@
+    else
+      zle list-more $@
+    fi
+
+    return 0
+  fi
+
+  lbuffer=$LBUFFER
+  zle _expand_alias $@
+
+  if [[ $lbuffer != $LBUFFER ]]
   then
     return 0
   fi
 
+  lbuffer=$LBUFFER
   local -h comppostfuncs=( _zsh_autocomplete__force_list )
 
   if zle _expand_word $@
@@ -334,7 +349,7 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
       zle .forward-word
     done
 
-    fzf-completion $@
+    zle fzf-completion $@
   else
     zle list-more $@
   fi
@@ -388,12 +403,12 @@ _zsh_autocomplete__w__menu-space() {
 _zsh_autocomplete__w__up-line-or-fuzzy-history() {
   setopt localoptions $zsh_autocomplete_options
 
-  zle -M ''
-
-  if (( ${#LBUFFER} > 0 && BUFFERLINES > 1 )); then
-    zle .up-line $@ || zle .beginning-of-line $@
+  if (( ${#LBUFFER} == 0 || BUFFERLINES == 1 ))
+  then
+    zle fzf-history-widget $@
   else
-    fzf-history-widget $@
+    zle -M ''
+    zle .up-line $@ || zle .beginning-of-line $@
   fi
 }
 
@@ -401,6 +416,7 @@ _zsh_autocomplete__c__complete_word() {
   setopt localoptions $zsh_autocomplete_options
   local curcontext=$( _zsh_autocomplete__context complete-word )
   _zsh_autocomplete__menu_complete $@
+  return 0
 }
 
 _zsh_autocomplete__c__correct_word() {
@@ -466,6 +482,7 @@ _zsh_autocomplete__c__list-more() {
 
   local curcontext=$( _zsh_autocomplete__context list-more )
   _main_complete $@
+  return 0
 }
 
 _zsh_autocomplete__c__menu-select() {
@@ -473,6 +490,7 @@ _zsh_autocomplete__c__menu-select() {
 
   local curcontext=$( _zsh_autocomplete__context menu-select )
   _zsh_autocomplete__menu_complete $@
+  return 0
 }
 
 _zsh_autocomplete__context() {
