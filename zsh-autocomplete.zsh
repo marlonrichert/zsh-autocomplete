@@ -53,6 +53,7 @@ _zsh_autocomplete__dependencies() {
     zmodload -i zsh/terminfo
   fi
 
+  autoload -U add-zsh-hook
   autoload -U add-zle-hook-widget
 }
 
@@ -111,33 +112,6 @@ _zsh_autocomplete__completion_styles() {
   zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
 }
 
-_zsh_autocomplete__auto_list_choices() {
-  emulate -L zsh
-  setopt warncreateglobal noshortloops
-
-  local widget
-
-  # Wrap all text modification widgets to provide auto-completion.
-  for widget in vi-add-eol vi-add-next backward-delete-char vi-backward-delete-char \
-    backward-delete-word backward-kill-line backward-kill-word vi-backward-kill-word \
-    capitalize-word vi-change vi-change-eol vi-change-whole-line copy-region-as-kill \
-    copy-prev-word copy-prev-shell-word vi-delete delete-char vi-delete-char delete-word \
-    down-case-word vi-down-case kill-word gosmacs-transpose-chars vi-indent vi-insert \
-    vi-insert-bol vi-join kill-line vi-kill-line vi-kill-eol kill-region kill-buffer \
-    kill-whole-line vi-match-bracket vi-open-line-above vi-open-line-below vi-oper-swap-case \
-    overwrite-mode vi-put-before vi-put-after put-replace-selection quoted-insert \
-    vi-quoted-insert quote-line quote-region vi-replace vi-repeat-change vi-replace-chars \
-    self-insert self-insert-unmeta vi-substitute vi-swap-case transpose-chars transpose-words \
-    vi-unindent vi-up-case up-case-word yank yank-pop vi-yank vi-yank-whole-line vi-yank-eol
-  do
-    eval "zle -N $widget _zsh_autocomplete__w__$widget
-    _zsh_autocomplete__w__$widget() {
-      zle .$widget \$@
-      _zsh_autocomplete__list_choices
-    }"
-  done
-}
-
 _zsh_autocomplete__key_bindings() {
   emulate -L zsh
   setopt warncreateglobal noshortloops
@@ -182,9 +156,9 @@ _zsh_autocomplete__key_bindings() {
 
   zle -N complete-word _zsh_autocomplete__w__complete-word
   zle -C _complete_word complete-word _zsh_autocomplete__c__complete_word
-  zle -C list-choices list-choices _zsh_autocomplete__c__list-choices
 
   bindkey ' ' magic-space
+  bindkey -M menuselect -s ' ' '^[ '
   zle -N magic-space _zsh_autocomplete__w__magic-space
   zle -C _correct_word menu-select _zsh_autocomplete__c__correct_word
 
@@ -207,8 +181,17 @@ _zsh_autocomplete__key_bindings() {
   # Make it so the order in which fzf and zsh-autocomplete are sourced doesn't matter.
   _zsh_autocomplete__h__fzf_keys
   _zsh_autocomplete__h__keymap-specific_keys
-  add-zle-hook-widget line-init _zsh_autocomplete__h__fzf_keys
-  add-zle-hook-widget line-init _zsh_autocomplete__h__keymap-specific_keys
+  add-zsh-hook precmd _zsh_autocomplete__h__fzf_keys
+  add-zsh-hook precmd _zsh_autocomplete__h__keymap-specific_keys
+}
+
+_zsh_autocomplete__auto_list_choices() {
+  emulate -L zsh
+  setopt warncreateglobal noshortloops
+
+  typeset -g _zsh_autocomplete_last_buffer
+  add-zle-hook-widget line-pre-redraw _zsh_autocomplete__h__list_choices
+  zle -C list-choices list-choices _zsh_autocomplete__c__list-choices
 }
 
 _zsh_autocomplete__h__application_mode() {
@@ -240,7 +223,7 @@ _zsh_autocomplete__h__fzf_keys() {
   fi
 
   # Remove itself after being called.
-  add-zle-hook-widget -d line-init _zsh_autocomplete__h__fzf_keys
+  add-zsh-hook -d precmd $0
 }
 
 _zsh_autocomplete__h__keymap-specific_keys() {
@@ -262,7 +245,6 @@ _zsh_autocomplete__h__keymap-specific_keys() {
 
   if [[ -v key[ListChoices] ]]
   then
-    bindkey -M menuselect -s ' ' '^[ '$key[ListChoices]
     bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
   fi
 
@@ -272,7 +254,34 @@ _zsh_autocomplete__h__keymap-specific_keys() {
   fi
 
   # Remove itself after being called.
-  add-zle-hook-widget -d line-init _zsh_autocomplete__h__keymap-specific_keys
+  add-zsh-hook -d precmd $0
+}
+
+_zsh_autocomplete__h__list_choices() {
+  setopt localoptions $zsh_autocomplete_options
+
+  if [[ $BUFFER == $_zsh_autocomplete_last_buffer ]]
+  then
+    return 0
+  fi
+
+  if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 ))
+  then
+    local safechars='\-\#\:'
+    local histexpansion="${(q)histchars[1]}([$safechars](#c0,1))[^$safechars]*"
+
+    if [[ "${LBUFFER}" == ${~histexpansion} || "${${(z)LBUFFER}[-1]}" == ${~histexpansion} ]]
+    then
+      return 0
+    fi
+
+    if zle list-choices 2> /dev/null
+    then
+      _zsh_autocomplete_last_buffer=$BUFFER
+    fi
+
+  fi
+  return 0
 }
 
 _zsh_autocomplete__w__complete-word() {
@@ -285,7 +294,6 @@ _zsh_autocomplete__w__complete-word() {
   if [[ $lbuffer != $LBUFFER ]]
   then
     zle .auto-suffix-retain
-    _zsh_autocomplete__list_choices
   fi
 }
 
@@ -308,7 +316,6 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
 
   if zle _expand_alias $@
   then
-    _zsh_autocomplete__list_choices
     return 0
   fi
 
@@ -316,7 +323,6 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
 
   if zle _expand_word $@
   then
-    _zsh_autocomplete__list_choices
     return 0
   fi
 
@@ -343,7 +349,6 @@ _zsh_autocomplete__w__magic-space() {
 
   if [[ $LBUFFER[-2] == [\ \/] ]]
   then
-    _zsh_autocomplete__list_choices
     return 0
   fi
 
@@ -355,7 +360,6 @@ _zsh_autocomplete__w__magic-space() {
   if [[ $LBUFFER[-1] == [\ \/] || $lbuffer != $LBUFFER ]]
   then
     (( CURSOR++ ))
-    _zsh_autocomplete__list_choices
     return 0
   fi
 
@@ -369,7 +373,6 @@ _zsh_autocomplete__w__magic-space() {
   fi
 
   (( CURSOR++ ))
-  _zsh_autocomplete__list_choices
   return 0
 }
 
@@ -442,21 +445,17 @@ _zsh_autocomplete__c__list-choices() {
   setopt localoptions $zsh_autocomplete_options
   unsetopt GLOB_COMPLETE
 
-  if (( PENDING == 0 && KEYS_QUEUED_COUNT == 0 )) && _zsh_autocomplete__is_enough_input
+  local curcontext=$( _zsh_autocomplete__context list-choices )
+  _main_complete $@
+
+  if (( compstate[nmatches] == 0 ))
   then
-    local curcontext=$( _zsh_autocomplete__context list-choices )
-    _main_complete $@
+    zle -M ''
 
-    if (( compstate[nmatches] == 0 ))
-    then
-      zle -M ''
-
-    elif _zsh_autocomplete__is_too_long_list
-    then
-      compstate[list]=''
-      zle -M ''
-    fi
-
+  elif _zsh_autocomplete__is_too_long_list
+  then
+    compstate[list]=''
+    zle -M ''
   fi
 
   return 0
@@ -507,28 +506,6 @@ _zsh_autocomplete__force_list() {
 
     compstate[list]='list force'
   fi
-}
-
-_zsh_autocomplete__list_choices() {
-  setopt localoptions $zsh_autocomplete_options
-
-  local safechars='\-\#\:'
-  local histexpansion="${(q)histchars[1]}([$safechars](#c0,1))[^$safechars]*"
-
-  if [[ "${LBUFFER}" != ${~histexpansion} && "${${(z)LBUFFER}[-1]}" != ${~histexpansion} ]]
-  then
-    zle list-choices
-  fi
-
-  true
-}
-
-_zsh_autocomplete__is_enough_input() {
-  emulate -L zsh
-  setopt warncreateglobal noshortloops
-
-  local current_word=$PREFIX$SUFFIX
-  (( CURRENT > 1 || ${#words[1]} > 0 || ${#current_word} > 0 ))
 }
 
 _zsh_autocomplete__is_too_long_list() {
