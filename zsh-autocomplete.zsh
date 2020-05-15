@@ -1,8 +1,11 @@
 _zsh_autocomplete__main() {
+  emulate -L zsh
+  setopt warncreateglobal noshortloops
+
   _zsh_autocomplete__dependencies
   _zsh_autocomplete__environment_variables
   _zsh_autocomplete__completion_styles
-  _zsh_autocomplete__keybindings
+  _zsh_autocomplete__key_bindings
   _zsh_autocomplete__auto_list_choices
 }
 
@@ -11,14 +14,8 @@ _zsh_autocomplete__environment_variables() {
   setopt warncreateglobal noshortloops
 
   [[ ! -v zsh_autocomplete_options ]] && export zsh_autocomplete_options=(
-    EXTENDED_GLOB
-    GLOB_COMPLETE
-    GLOB_DOTS
-    NO_CASE_GLOB
-    WARN_CREATE_GLOBAL
-    no_COMPLETE_IN_WORD
-    no_LIST_BEEP
-    no_SHORT_LOOPS
+    EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS NO_CASE_GLOB WARN_CREATE_GLOBAL
+    no_COMPLETE_IN_WORD no_LIST_BEEP no_SHORT_LOOPS
   )
   [[ ! -v zsh_autocomplete_long_tags ]] && export zsh_autocomplete_long_tags=(
     commit-tags heads-remote
@@ -38,20 +35,25 @@ _zsh_autocomplete__dependencies() {
   setopt warncreateglobal noshortloops
 
   # Initialize completion system, if it hasn't been done yet.
-  # `zsh/complist` is required for `menuselect` keymap & should be loaded _before_ `compinit`.
-
+  # `zsh/complist` is required for `menuselect` keymap and `menu-select` widget.
+  # `zsh/complist` should be loaded _before_ `compinit`.
   if ! zmodload -e zsh/complist
   then
     zmodload -i zsh/complist
     autoload -U compinit
     compinit
-  fi
-
-  if [[ ! -v _comp_setup ]]
+  elif ! [[ -v compprefuncs && -v comppostfuncs ]]
   then
     autoload -U compinit
     compinit
   fi
+
+  if ! zmodload -e zsh/terminfo
+  then
+    zmodload -i zsh/terminfo
+  fi
+
+  autoload -U add-zle-hook-widget
 }
 
 _zsh_autocomplete__completion_styles() {
@@ -136,7 +138,7 @@ _zsh_autocomplete__auto_list_choices() {
   done
 }
 
-_zsh_autocomplete__keybindings() {
+_zsh_autocomplete__key_bindings() {
   emulate -L zsh
   setopt warncreateglobal noshortloops
 
@@ -155,8 +157,6 @@ _zsh_autocomplete__keybindings() {
     fi
 
   fi
-
-  if ! zmodload -e zsh/terminfo; then zmodload -i zsh/terminfo; fi
 
   if [[ -z $key[Up] ]]; then
     if [[ -n $terminfo[kcuu1] ]]; then key[Up]=$terminfo[kcuu1]; else key[Up]='^[OA'; fi
@@ -191,17 +191,14 @@ _zsh_autocomplete__keybindings() {
   bindkey '^[ ' menu-space
   zle -N menu-space _zsh_autocomplete__w__menu-space
 
+  bindkey -M menuselect $key[Tab] accept-and-hold
+
   bindkey $key[BackTab] list-more
   zle -C list-more list-choices _zsh_autocomplete__c__list-more
 
   bindkey $key[ControlSpace] expand-or-fuzzy-find
   zle -N expand-or-fuzzy-find _zsh_autocomplete__w__expand-or-fuzzy-find
-
-  bindkey -M menuselect $key[Tab] accept-and-hold
   bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
-
-  # Needed for both sections below
-  autoload -U add-zle-hook-widget
 
   # Make `terminfo` codes work.
   add-zle-hook-widget line-init _zsh_autocomplete__h__application_mode
@@ -233,12 +230,12 @@ _zsh_autocomplete__h__fzf_keys() {
     bindkey $key[Up] up-line-or-fuzzy-history
     zle -N up-line-or-fuzzy-history _zsh_autocomplete__w__up-line-or-fuzzy-history
 
-    bindkey "^[$key[Up]" fzf-history-widget
+    bindkey '^['$key[Up] fzf-history-widget
 
     bindkey $key[Down] down-line-or-menu-select
     zle -N down-line-or-menu-select _zsh_autocomplete__w__down-line-or-menu-select
 
-    bindkey "^[$key[Down]" menu-select
+    bindkey '^['$key[Down] menu-select
     zle -C menu-select menu-select _zsh_autocomplete__c__menu-select
   fi
 
@@ -312,7 +309,7 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
   if zle _expand_alias $@
   then
     _zsh_autocomplete__list_choices
-    return
+    return 0
   fi
 
   local -h comppostfuncs=( _zsh_autocomplete__force_list )
@@ -320,7 +317,7 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
   if zle _expand_word $@
   then
     _zsh_autocomplete__list_choices
-    return
+    return 0
   fi
 
   if zle -l fzf-completion
@@ -335,12 +332,13 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
   else
     zle list-more $@
   fi
+
+  return 0
 }
 
 _zsh_autocomplete__w__magic-space() {
   setopt localoptions $zsh_autocomplete_options
 
-  local keys=$KEYS
   LBUFFER=$LBUFFER' '
 
   if [[ $LBUFFER[-2] == [\ \/] ]]
@@ -363,7 +361,7 @@ _zsh_autocomplete__w__magic-space() {
 
   zle _correct_word
 
-  if [[ $LBUFFER[-1] == $keys[-1] ]]
+  if [[ $LBUFFER[-1] == ' ' ]]
   then
     zle .auto-suffix-remove
   else
@@ -460,6 +458,7 @@ _zsh_autocomplete__c__list-choices() {
     fi
 
   fi
+
   return 0
 }
 
