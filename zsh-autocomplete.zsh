@@ -17,11 +17,14 @@ _zsh_autocomplete__environment_variables() {
     EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS NO_CASE_GLOB WARN_CREATE_GLOBAL
     no_COMPLETE_IN_WORD no_LIST_BEEP no_SHORT_LOOPS
   )
+  [[ ! -v zsh_autocomplete_directory_tags ]] && export zsh_autocomplete_directory_tags=(
+    local-directories directory-stack named-directories directories
+  )
   [[ ! -v zsh_autocomplete_long_tags ]] && export zsh_autocomplete_long_tags=(
     commit-tags heads-remote
   )
   [[ ! -v zsh_autocomplete_slow_tags ]] && export zsh_autocomplete_slow_tags=(
-    globbed-files remote-files remote-repositories
+    all-commands remote-files remote-repositories
   )
 
   # Configuration for Fzf shell extensions
@@ -72,9 +75,31 @@ _zsh_autocomplete__completion_styles() {
 
   zstyle ':completion:*' add-space true
   zstyle ':completion:*' completer _expand _complete _ignored
+
+  zstyle ':completion:*' file-patterns \
+    '*(#q^-/):all-files:file *(-/):directories:directory' '%p:globbed-files:"file or directory"'
+  zstyle ':completion:*:-command-:*' file-patterns \
+    '*(-/):directories:directory %p(#q^-/):globbed-files:executable' '*(#q^-/):all-files:file'
+  zstyle ':completion:*:z:*' file-patterns '%p(-/):directories:directory'
+
+  zstyle ':completion:*' group-order \
+    all-files $zsh_autocomplete_directory_tags globbed-files
+  zstyle ':completion:*:-command-:*' group-order \
+    globbed-files $zsh_autocomplete_directory_tags all-files
+
+  zstyle ':completion:*' tag-order "! all-expansions" "-"
+  zstyle ':completion:*:-command-:*' tag-order "! all-files"
+
   zstyle ':completion:*:corrections' format '%F{green}%d:%f'
   zstyle ':completion:*:original' format '%F{yellow}%d:%f'
   zstyle ':completion:*:warnings' format '%F{red}%D%f'
+
+  zstyle ':completion:*:all-files' group-name ''
+  zstyle ':completion:*:directories' group-name ''
+  zstyle ':completion:*:directory-stack' group-name ''
+  zstyle ':completion:*:globbed-files' group-name ''
+  zstyle ':completion:*:local-directories' group-name ''
+  zstyle ':completion:*:named-directories' group-name ''
 
   # Ignore completions starting with punctuation, unless that punctuation has been typed.
   zstyle -e ':completion:*' ignored-patterns '
@@ -87,8 +112,6 @@ _zsh_autocomplete__completion_styles() {
   zstyle ':completion:*' menu 'select=long-list'
   zstyle ':completion:*' use-cache true
 
-  zstyle ':completion:*:expand:*' tag-order '! all-expansions' '-'
-  zstyle ':completion:*:z:*' file-patterns '%p(-/):directories'
   zstyle ':completion:*:brew*:*' show-completer true
 
   zstyle ':completion:correct-word:*' accept-exact true
@@ -98,14 +121,13 @@ _zsh_autocomplete__completion_styles() {
   zstyle ':completion:correct-word:*' matcher-list ''
   zstyle ':completion:correct-word:*' tag-order "! $zsh_autocomplete_slow_tags" "-"
 
-  zstyle ':completion:list-choices:*' file-patterns '%p(-/):directories %p:all-files'
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
-  zstyle ':completion:list-choices:*' tag-order \
-    "options" "! options $zsh_autocomplete_long_tags $zsh_autocomplete_slow_tags" \
-    "$zsh_autocomplete_long_tags" "-"
 
-  zstyle ':completion:list-choices:*:brew:*' tag-order "! all-commands argument-rest" "-"
+  zstyle ':completion:list-choices:*' tag-order \
+    "! $zsh_autocomplete_long_tags $zsh_autocomplete_slow_tags" \
+    "$zsh_autocomplete_long_tags" \
+    "-"
   zstyle -e ':completion:list-choices:*:zle:*' tag-order '
     if [[ $PREFIX$SUFFIX == -* ]]
     then
