@@ -55,6 +55,9 @@ _zsh_autocomplete__dependencies() {
 
   autoload -U add-zsh-hook
   autoload -U add-zle-hook-widget
+
+  autoload -U zmathfunc
+  zmathfunc
 }
 
 _zsh_autocomplete__completion_styles() {
@@ -79,19 +82,21 @@ _zsh_autocomplete__completion_styles() {
     reply=( "(*/)#([[:punct:]]~^[^${current_word[1]}])*" )'
 
   zstyle ':completion:*' matcher-list 'r:|.=* l:?|=**' 'r:|?=** m:{[:lower:]}={[:upper:]}'
+  zstyle -e ':completion:*' max-errors '
+    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 3) )) numeric"'
   zstyle ':completion:*' menu 'select=long-list'
   zstyle ':completion:*' use-cache true
 
   zstyle ':completion:*:expand:*' tag-order '! all-expansions' '-'
   zstyle ':completion:*:z:*' file-patterns '%p(-/):directories'
+  zstyle ':completion:*:brew*:*' show-completer true
 
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' accept-exact-dirs true
+  zstyle ':completion:correct-word:*' completer _correct
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
-  zstyle ':completion:correct-word:*' tag-order "! options $zsh_autocomplete_slow_tags" "-"
-
-  zstyle ':completion:correct-word:*:brew*:*' tag-order "! list" "-"
+  zstyle ':completion:correct-word:*' tag-order "! $zsh_autocomplete_slow_tags" "-"
 
   zstyle ':completion:list-choices:*' file-patterns '%p(-/):directories %p:all-files'
   zstyle ':completion:list-choices:*' glob false
@@ -423,7 +428,7 @@ _zsh_autocomplete__c__correct_word() {
   setopt localoptions $zsh_autocomplete_options
   unsetopt GLOB_COMPLETE
 
-  if _zsh_autocomplete__is_enough_input && [[ $RBUFFER[1] == [[:IFS:]]# ]]
+  if (( ${#SUFFIX} == 0 && ${#PREFIX} > 0 ))
   then
     local curcontext=$( _zsh_autocomplete__context correct-word )
     compstate[old_list]=''
@@ -434,24 +439,29 @@ _zsh_autocomplete__c__correct_word() {
     then
       compstate[insert]=''
       compstate[list]=''
-      return 0
+      return $compstate[nmatches]
     fi
 
-    _main_complete _correct
+    _main_complete $@
 
     if (( $compstate[nmatches] == 0 ))
     then
-      return 0
+      return 1
     fi
 
     _main_complete _complete
+    compstate[exact]='accept'
 
-    if (( ${#compstate[exact_string]} > 0 )) || [[ ${compstate[unambiguous]} == $PREFIX$SUFFIX ]]
+    if [[ ${compstate[unambiguous]} == $PREFIX$SUFFIX ]]
     then
       compstate[insert]=''
       compstate[list]=''
-    else
-      compstate[list]='ambiguous'
+      return 0
+    fi
+
+    if [[ $compstate[nmatches] < 2 ]]
+    then
+      compstate[list]=''
     fi
   fi
   return 0
