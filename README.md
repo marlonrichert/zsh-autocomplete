@@ -1,13 +1,13 @@
 # zsh-autocomplete
 IntelliSense-like find-as-you-type completion for the Z Shell!
 * Automatically lists completions as you type.
-* Press **`⇥`tab** to insert the top match or press **`↓`down to select a different
-  one.
-* Press **`⇤`shift-tab** for more choices/info.
-* Press **`␣`space** to correct the last word or do
+* Press [<kbd>⇥</kbd>](# "tab") to insert the top match…
+* …or press [<kbd>↓</kbd>](# "down") to select a different one.
+* Press [<kbd>⇤</kbd>](# "shift-tab") for more choices/info.
+* Press [<kbd>␣</kbd>](# "space") to correct the last word or do
   [history expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html#History-Expansion).
-* Press **`↑`up** to search history.
-* Press **`⌃␣`ctrl-space** to search dirs/files.
+* Press [<kbd>↑</kbd>](# "up") to search history.
+* Press [<kbd>⌃␣</kbd>](# "ctrl-space") to do glob/alias expansion or search dirs/files.
 
 
 ## Demo
@@ -15,31 +15,32 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 
 
 ## Key Bindings
-`zsh-autocomplete` adds intuitive key bindings for both the command line and the completion menu.
+`zsh-autocomplete` adds intuitive key bindings for the command line, the completion menu and
+[`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
 
-### On Command Line
+### Command Line
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
-| `⇥`tab | Insert top match |
-| `⇤`shift-tab | List more choices/info |
-| `↓`down | Menu select or down line |
-| `↑`up | [Fuzzy history search](#requirements) or up line |
-| `␣`space | Correct spelling + history expansion + insert space |
-| `⌃␣`ctrl-space | [Fuzzy file search](#requirements) or expand alias |
-| `⌥␣`alt-space | Insert space (no correction or expansion) |
-| `⌥↓`alt-down | Menu select in multi-line buffer |
-| `⌥↑`alt-up | [Fuzzy history search](#requirements) in multi-line buffer |
+| [<kbd>⇥</kbd>](# "tab") | Insert top match |
+| [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
+| [<kbd>↓</kbd>](# "down") | Menu select or down line |
+| [<kbd>↑</kbd>](# "up") | [Fuzzy history search](#requirements) or up line |
+| [<kbd>␣</kbd>](# "space") | Correct spelling + history expansion + insert space |
+| [<kbd>⌃␣</kbd>](# "ctrl-space") | Do glob/alias expansion or [fuzzy file search](#requirements) |
+| [<kbd>⌥␣</kbd>](# "alt-space") | Insert space (no correction or expansion) |
+| [<kbd>⌥↓</kbd>](# "alt-down") | Menu select in multi-line buffer |
+| [<kbd>⌥↑</kbd>](# "alt-up") | [Fuzzy history search](#requirements) in multi-line buffer |
 
-### In Completion Menu
+### Completion Menu
 | Key(s) | Action |
 | --- | --- |
-| `↑ ↓ ← →` | Change selection |
-| `␣`space | Insert single match + insert space (exit menu) |
-| `↩︎`enter | Insert single match (exit menu) |
-| `⇥`tab | Insert multiple matches (stay in menu) |
-| `⇤`shift-tab | List more choices/info (does not work in "corrections" menu) |
-| `⌃␣`ctrl-space | Insert single match + [fuzzy file search](#requirements) |
+| [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
+| [<kbd>␣</kbd>](# "space") | Insert single match + insert space (exit menu) |
+| [<kbd>↩︎</kbd>](# "enter") | Insert single match (exit menu) |
+| [<kbd>⇥</kbd>](# "tab") | Insert multiple matches (stay in menu) |
+| [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info (does not work in "corrections" menu) |
+| [<kbd>⌃␣</kbd>](# "ctrl-space") | Insert single match + [fuzzy file search](#requirements) |
 | other | Insert single match + insert character (exit menu) |
 
 
@@ -50,8 +51,8 @@ Mandatory:
 Recommended:
 * [**fzf**](https://github.com/junegunn/fzf) and
   [its **shell extensions**](https://github.com/junegunn/fzf#installation) are required for
-  [**`↑`** fuzzy history search](#key-bindings) and
-  [**`⌃␣`** fuzzy file search](#key-bindings).
+  [<kbd>↑</kbd> fuzzy history search](#key-bindings) and
+  [<kbd>⌃␣</kbd> fuzzy file search](#key-bindings).
   * **Note:** It's _not_ enough for `fzf` to be in your path! You will also need to source its
     shell extensions in your `.zshrc` file.
 
@@ -68,16 +69,14 @@ Prezto's built-in `completion` module.
 
 ### Manually
 1. `git clone` this repo.
-1. If you want to use [**`↑`** fuzzy history search](#key-bindings) and
-   [**`⌃␣`** fuzzy file search](#key-bindings):
+1. If you want to use [<kbd>↑</kbd> fuzzy history search](#key-bindings) and
+   [<kbd>⌃␣</kbd> fuzzy file search](#key-bindings):
    1. Make sure you have [`fzf`](https://github.com/junegunn/fzf) installed.
    1. Source [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
-  1. Add the following to your `.zshrc` file:
+1. Add the following to your `.zshrc` file:
    ```shell
-   source path/to/zsh-autocomplete.zsh
-   _zsh_autocomplete__main
+   source path/to/zsh-autocomplete.plugin.zsh
    ```
-     **Note** that you should source the file that does **not** have the word d`plugin` in its name.
 
 If you use any form of syntax highlighting, you have to source that _after_ `zsh-autocomplete`.
 
@@ -92,8 +91,9 @@ that are commonly requested.
 **Note:** To use these, add them in your `.zshrc` file **after** sourcing `zsh-autocomplete`.
 
 ### Always show group names
-By default, group names and duplicate entries are shown only when you press **`⇤`shift-tab**.
-This allows the automatic listing of completion matches to be as compact as possible.
+By default, group names and duplicate entries are shown only when you press
+[<kbd>⇤</kbd>](# "shift-tab"). This allows the automatic listing of completion matches to be as
+compact as possible.
 
 If instead, you want group names (and thus duplicate entries) to always be shown, use the
 following:
@@ -105,33 +105,35 @@ You can replace `yellow` with `black`, `red`, `green`, `blue`, `magenta`, `cyan`
 3-digit `#hex` value.
 
 ### Turn off automatic spelling correction
-By default, **`␣`space** corrects your spelling and does history expansions.
+By default, [<kbd>␣</kbd>](# "space") corrects your spelling and does history expansions.
 
 To remove the spell-checking part, use this:
 ```shell
 zstyle ':completion:correct-word:*' max-errors 0
 ```
 
-### Use `⇥`tab to cycle matches
-By default, **`⇥`tab** inserts the top match. The idea is that you just keep typing until the
-match you want is
-* at the top, at which point you press **`⇥`tab** to insert it, or
-* near the top, ([if you have `fzf` installed](#requirements),) at which point you press
-  **`↓`down** to enter the menu, navigate to it with the **`↑ ↓ ← →`arrow keys** and
-  press **`↩︎`enter** to insert it.
+### Use [<kbd>⇥</kbd>](# "tab") to cycle matches
+If you have [`fzf`'s shell extensions installed](#requirements), then `zsh-autocomplete` makes
+[<kbd>⇥</kbd>](# "tab") insert the top match. The idea is that you just keep typing until the match
+you want is
+* at the top, at which point you press [<kbd>⇥</kbd>](# "tab") to insert it, or
+* _near_ the top, at which point you press [<kbd>↓</kbd>](# "down") to enter the menu, navigate to it
+  with [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") and press [<kbd>↩︎</kbd>](# "enter") to insert it.
 
-If instead you want **`⇥`tab** to cycle between matches _without_ entering the menu, use this:
+If instead you want [<kbd>⇥</kbd>](# "tab") to cycle between matches _without_ entering the menu,
+use this:
 ```shell
 zle -N complete-word && complete-word() { zle .complete-word; }
 ```
 
-### Use `⇥`tab and `⇤`shift-tab to navigate the menu
+### Use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to navigate the menu
 By default,
-* **`↑ ↓ ← →`arrow keys** navigate the menu,
-* **`⇥`tab** does multi-selection and
-* **`⇤`shift-tab** shows you more matches and/or more info.
+* [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") navigate the menu,
+* [<kbd>⇥</kbd>](# "tab") does multi-selection and
+* [<kbd>⇤</kbd>](# "shift-tab") shows you more matches and/or more info.
 
-If you want to use **`⇥`tab** and **`⇤`shift-tab** to navigate the menu, use this:
+If you want to use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to navigate the menu,
+use this:
 ```shell
 add-zsh-hook -d precmd _zsh_autocomplete__h__keymap-specific_keys
 bindkey -M menuselect $key[Tab] menu-complete
