@@ -175,10 +175,6 @@ _zsh_autocomplete__key_bindings() {
   if [[ -z $key[ControlSpace] ]]; then key[ControlSpace]='^@'; fi
   if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 
-  zle -N complete-word _zsh_autocomplete__w__complete-word
-  zle -C _complete_word complete-word _zsh_autocomplete__c__complete_word
-  bindkey -M menuselect $key[Tab] accept-and-hold
-
   zle -C _correct_word menu-select _zsh_autocomplete__c__correct_word
 
   bindkey ' ' magic-space
@@ -188,11 +184,7 @@ _zsh_autocomplete__key_bindings() {
   bindkey '/' magic-slash
   zle -N magic-slash _zsh_autocomplete__w__magic-slash
 
-  bindkey $key[BackTab] list-more
-  zle -C list-more list-choices _zsh_autocomplete__c__list-more
-
-  bindkey $key[ControlSpace] expand-or-fuzzy-find
-  zle -N expand-or-fuzzy-find _zsh_autocomplete__w__expand-or-fuzzy-find
+  bindkey $key[ControlSpace] expand-word
   zle -C expand-word complete-word _zsh_autocomplete__c__expand-word
   bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 
@@ -200,11 +192,10 @@ _zsh_autocomplete__key_bindings() {
   add-zle-hook-widget line-init _zsh_autocomplete__h__application_mode
   add-zle-hook-widget line-finish _zsh_autocomplete__h__raw_mode
 
-  # Make it so the order in which fzf and zsh-autocomplete are sourced doesn't matter.
-  _zsh_autocomplete__h__fzf_keys
-  _zsh_autocomplete__h__keymap-specific_keys
-  add-zsh-hook precmd _zsh_autocomplete__h__fzf_keys
-  add-zsh-hook precmd _zsh_autocomplete__h__keymap-specific_keys
+  # Work around the fact that fzf can be sourced/main keymap can be changed in .zshrc _after_
+  # zsh-autocomplete has been sourced.
+  _zsh_autocomplete__h__bindkey_workaround
+  add-zsh-hook precmd _zsh_autocomplete__h__bindkey_workaround
 }
 
 _zsh_autocomplete__auto_list_choices() {
@@ -223,30 +214,7 @@ _zsh_autocomplete__h__raw_mode() {
   echoti rmkx
 }
 
-_zsh_autocomplete__h__fzf_keys() {
-  emulate -L zsh -o noshortloops -o warncreateglobal
-
-  if zle -l fzf-history-widget
-  then
-    bindkey $key[Tab] complete-word
-
-    bindkey $key[Up] up-line-or-fuzzy-history
-    zle -N up-line-or-fuzzy-history _zsh_autocomplete__w__up-line-or-fuzzy-history
-
-    bindkey '^['$key[Up] fzf-history-widget
-
-    bindkey $key[Down] down-line-or-menu-select
-    zle -N down-line-or-menu-select _zsh_autocomplete__w__down-line-or-menu-select
-
-    bindkey '^['$key[Down] menu-select
-    zle -C menu-select menu-select _zsh_autocomplete__c__menu-select
-  fi
-
-  # Remove itself after being called.
-  add-zsh-hook -d precmd $0
-}
-
-_zsh_autocomplete__h__keymap-specific_keys() {
+_zsh_autocomplete__h__bindkey_workaround() {
   emulate -L zsh -o noshortloops -o warncreateglobal
 
   local keymap_main=$( bindkey -lL main )
@@ -267,9 +235,37 @@ _zsh_autocomplete__h__keymap-specific_keys() {
     bindkey -M menuselect -s $key[Return] $key[LineFeed]$key[ListChoices]
   fi
 
-  if [[ -v key[Undo] ]]
+  if zle -l fzf-history-widget
   then
-    bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+    bindkey $key[Tab] complete-word
+    bindkey -M menuselect $key[Tab] accept-and-hold
+    zle -N complete-word _zsh_autocomplete__w__complete-word
+    zle -C _complete_word complete-word _zsh_autocomplete__c__complete_word
+
+    bindkey $key[BackTab] list-more
+    zle -C list-more list-choices _zsh_autocomplete__c__list-more
+
+    if [[ -v key[Undo] ]]
+    then
+      bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+    fi
+
+    bindkey $key[Up] up-line-or-fuzzy-history
+    zle -N up-line-or-fuzzy-history _zsh_autocomplete__w__up-line-or-fuzzy-history
+
+    bindkey '^['$key[Up] fzf-history-widget
+
+    bindkey $key[Down] down-line-or-menu-select
+    zle -N down-line-or-menu-select _zsh_autocomplete__w__down-line-or-menu-select
+
+    bindkey '^['$key[Down] menu-select
+    zle -C menu-select menu-select _zsh_autocomplete__c__menu-select
+  fi
+
+  if zle -l fzf-completion && zle -l fzf-cd-widget
+  then
+    bindkey $key[ControlSpace] expand-or-fuzzy-find
+    zle -N expand-or-fuzzy-find _zsh_autocomplete__w__expand-or-fuzzy-find
   fi
 
   # Remove itself after being called.
@@ -328,12 +324,7 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
 
   if [[ $BUFFER == [[:IFS:]]# ]]
   then
-    if zle -l fzf-cd-widget
-    then
-      zle fzf-cd-widget $@
-    else
-      zle list-more $@
-    fi
+    zle fzf-cd-widget $@
     return
   fi
 
@@ -342,16 +333,11 @@ _zsh_autocomplete__w__expand-or-fuzzy-find() {
     return 0
   fi
 
-  if zle -l fzf-completion
-  then
-    while [[ $RBUFFER[1] == [[:graph:]] ]]
-    do
-      zle .forward-word
-    done
-    zle fzf-completion $@
-  else
-    zle list-more $@
-  fi
+  while [[ $RBUFFER[1] == [[:graph:]] ]]
+  do
+    zle .forward-word
+  done
+  zle fzf-completion $@
 }
 
 _zsh_autocomplete__w__magic-space() {
@@ -450,7 +436,7 @@ _zsh_autocomplete__c__correct_word() {
   setopt localoptions $zsh_autocomplete_options
   unsetopt GLOB_COMPLETE
 
-  if (( ${#SUFFIX} > 0 && ${#PREFIX} == 0 ))
+  if (( ${#PREFIX} == 0 || ${#SUFFIX} > 0 ))
   then
     return 1
   fi
@@ -460,7 +446,7 @@ _zsh_autocomplete__c__correct_word() {
   compstate[old_list]=''
 
   _main_complete _match
-  if (( $compstate[nmatches] > 0 ))
+  if (( compstate[nmatches] > 0 ))
   then
     compstate[insert]=''
     compstate[list]=''
@@ -468,7 +454,7 @@ _zsh_autocomplete__c__correct_word() {
   fi
 
   _main_complete $@
-  if (( $compstate[nmatches] == 0 ))
+  if (( compstate[nmatches] == 0 ))
   then
     return 1
   fi
@@ -482,7 +468,7 @@ _zsh_autocomplete__c__correct_word() {
     return 1
   fi
 
-  if [[ $compstate[nmatches] < 2 ]]
+  if (( compstate[nmatches] < 2 ))
   then
     compstate[list]=''
   fi
