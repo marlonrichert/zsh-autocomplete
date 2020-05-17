@@ -12,17 +12,11 @@ _zsh_autocomplete__environment_variables() {
   emulate -L zsh -o noshortloops -o warncreateglobal
 
   [[ ! -v zsh_autocomplete_options ]] && export zsh_autocomplete_options=(
-    EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS NO_CASE_GLOB WARN_CREATE_GLOBAL
-    no_COMPLETE_IN_WORD no_LIST_BEEP no_SHORT_LOOPS
+    ALWAYS_TO_END COMPLETE_ALIASES EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS LIST_PACKED
+    no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
   )
   [[ ! -v zsh_autocomplete_directory_tags ]] && export zsh_autocomplete_directory_tags=(
     local-directories directory-stack named-directories directories
-  )
-  [[ ! -v zsh_autocomplete_long_tags ]] && export zsh_autocomplete_long_tags=(
-    commit-tags heads-remote
-  )
-  [[ ! -v zsh_autocomplete_slow_tags ]] && export zsh_autocomplete_slow_tags=(
-    all-commands remote-files remote-repositories
   )
 
   # Configuration for Fzf shell extensions
@@ -69,70 +63,75 @@ _zsh_autocomplete__completion_styles() {
   zstyle -d ':completion:*' group-name
   zstyle -d '*' single-ignored
 
-  zstyle ':completion:*' add-space true
-  zstyle ':completion:*' completer _expand _complete _ignored
-
-  zstyle ':completion:*' file-patterns \
-    '*(#q^-/):all-files:file *(-/):directories:directory' '%p:globbed-files:"file or directory"'
-  zstyle ':completion:*:-command-:*' file-patterns \
-    '*(-/):directories:directory %p(#q^-/):globbed-files:executable' '*(#q^-/):all-files:file'
-  zstyle ':completion:*:z:*' file-patterns '%p(-/):directories:directory'
-
-  zstyle ':completion:*' group-order \
-    all-files $zsh_autocomplete_directory_tags globbed-files
-  zstyle ':completion:*:-command-:*' group-order \
-    globbed-files $zsh_autocomplete_directory_tags all-files
-
+  zstyle ':completion:*' completer _oldlist _expand _complete _ignored
+  zstyle ':completion:*' menu 'select=long-list'
+  zstyle ':completion:*' matcher-list 'r:|[./]=* l:?|=**' 'r:|?=** m:{[:lower:]}={[:upper:]}'
   zstyle ':completion:*' tag-order "! all-expansions" "-"
   zstyle ':completion:*:-command-:*' tag-order "! all-files"
-
-  zstyle ':completion:*:corrections' format '%F{green}%d:%f'
-  zstyle ':completion:*:original' format '%F{yellow}%d:%f'
-  zstyle ':completion:*:warnings' format '%F{red}%D%f'
-
-  zstyle ':completion:*:all-files' group-name ''
-  zstyle ':completion:*:directories' group-name ''
-  zstyle ':completion:*:directory-stack' group-name ''
-  zstyle ':completion:*:globbed-files' group-name ''
-  zstyle ':completion:*:local-directories' group-name ''
-  zstyle ':completion:*:named-directories' group-name ''
+  zstyle -e ':completion:*' max-errors '
+    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 3) )) numeric"'
 
   # Ignore completions starting with punctuation, unless that punctuation has been typed.
   zstyle -e ':completion:*' ignored-patterns '
     local current_word=$PREFIX$SUFFIX
     reply=( "(*/)#([[:punct:]]~^[^${current_word[1]}])*" )'
 
-  zstyle ':completion:*' matcher-list 'r:|.=* l:?|=**' 'r:|?=** m:{[:lower:]}={[:upper:]}'
-  zstyle -e ':completion:*' max-errors '
-    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 3) )) numeric"'
-  zstyle ':completion:*' menu 'select=long-list'
+  zstyle ':completion:*' list-suffixes false
+  zstyle ':completion:*' path-completion false
+  zstyle ':completion:*:(-command-|cd|z):*' list-suffixes true
+  zstyle ':completion:*:(-command-|cd|z):*' path-completion true
+
+  zstyle ':completion:*' file-patterns \
+    '*(#q^-/):all-files:file *(-/):directories:directory' '%p:globbed-files:"file or directory"'
+  zstyle ':completion:*:-command-:*' file-patterns \
+    '*(-/):directories:directory %p(#q^-/):globbed-files:executable' '*:all-files:file'
+  zstyle ':completion:*:z:*' file-patterns '%p(-/):directories:directory'
+  zstyle ':completion:*' group-order \
+    all-files $zsh_autocomplete_directory_tags globbed-files
+  zstyle ':completion:*:-command-:*' group-order \
+    globbed-files $zsh_autocomplete_directory_tags all-files
+  zstyle ':completion:*:all-files' group-name ''
+  zstyle ':completion:*:globbed-files' group-name ''
+  zstyle ':completion:*:('${(j:|:)zsh_autocomplete_directory_tags}')' group-name ''
+
+  zstyle ':completion:*:corrections' format '%F{green}%d:%f'
+  zstyle ':completion:*:original' format '%F{yellow}%d:%f'
+  zstyle ':completion:*:warnings' format '%F{red}%D%f'
+
+  zstyle ':completion:*' add-space true
   zstyle ':completion:*' use-cache true
 
-  zstyle ':completion:*:brew*:*' show-completer true
+  zstyle ':completion:(complete-word|menu-select):*' old-list always
+
+  zstyle -e ':completion:(correct-word|list-choices):*' tag-order '
+    if [[ $PREFIX == "-" ]]
+    then
+      reply=( "options" "-" )
+    else
+      reply=( "! *remote*" "-" )
+    fi'
+  zstyle ':completion:(correct-word|list-choices):*:brew-*:argument-rest:*' tag-order \
+    "! argument-rest" "-"
 
   zstyle ':completion:correct-word:*' accept-exact true
-  zstyle ':completion:correct-word:*' accept-exact-dirs true
   zstyle ':completion:correct-word:*' completer _correct
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
-  zstyle ':completion:correct-word:*' tag-order "! $zsh_autocomplete_slow_tags" "-"
 
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
 
-  zstyle ':completion:list-choices:*' tag-order \
-    "! $zsh_autocomplete_long_tags $zsh_autocomplete_slow_tags" \
-    "$zsh_autocomplete_long_tags" \
-    "-"
-  zstyle -e ':completion:list-choices:*:zle:*' tag-order '
-    if [[ $PREFIX$SUFFIX == -* ]]
-    then
-      reply=( "! widgets" "-" )
-    fi'
+  zstyle ':completion:expand-word:*' completer _expand_alias _expand
+  zstyle ':completion:expand-word:*' tag-order ''
+  zstyle ':completion:expand-word:*' format '%F{yellow}%d:%f'
+  zstyle ':completion:expand-word:*' group-name ''
 
+  zstyle ':completion:list-more:*' completer _expand _complete _match _ignored _approximate
+  zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
+  zstyle ':completion:list-more:*' list-suffixes true
+  zstyle ':completion:list-more:*' path-completion true
   zstyle ':completion:list-more:*' format '%F{yellow}%d:%f'
   zstyle ':completion:list-more:*' group-name ''
-  zstyle ':completion:list-more:*' matcher-list 'r:|?=** m:{[:lower:]}={[:upper:]}'
 }
 
 _zsh_autocomplete__key_bindings() {
@@ -178,22 +177,23 @@ _zsh_autocomplete__key_bindings() {
 
   zle -N complete-word _zsh_autocomplete__w__complete-word
   zle -C _complete_word complete-word _zsh_autocomplete__c__complete_word
+  bindkey -M menuselect $key[Tab] accept-and-hold
+
+  zle -C _correct_word menu-select _zsh_autocomplete__c__correct_word
 
   bindkey ' ' magic-space
   bindkey -M menuselect -s ' ' '^[ '
   zle -N magic-space _zsh_autocomplete__w__magic-space
-  zle -C _correct_word menu-select _zsh_autocomplete__c__correct_word
 
-  bindkey '^[ ' menu-space
-  zle -N menu-space _zsh_autocomplete__w__menu-space
-
-  bindkey -M menuselect $key[Tab] accept-and-hold
+  bindkey '/' magic-slash
+  zle -N magic-slash _zsh_autocomplete__w__magic-slash
 
   bindkey $key[BackTab] list-more
   zle -C list-more list-choices _zsh_autocomplete__c__list-more
 
   bindkey $key[ControlSpace] expand-or-fuzzy-find
   zle -N expand-or-fuzzy-find _zsh_autocomplete__w__expand-or-fuzzy-find
+  zle -C expand-word complete-word _zsh_autocomplete__c__expand-word
   bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
 
   # Make `terminfo` codes work.
@@ -386,6 +386,32 @@ _zsh_autocomplete__w__magic-space() {
   return 0
 }
 
+_zsh_autocomplete__w__magic-slash() {
+  setopt localoptions $zsh_autocomplete_options
+
+  local lbuffer=$LBUFFER
+
+  LBUFFER=$LBUFFER'/'
+  if [[ $LBUFFER[-2] == [\ \/]# ]]
+  then
+    return 0
+  fi
+
+  zle .split-undo
+
+  LBUFFER=$LBUFFER[1,-2]
+  zle _correct_word
+  if [[ $LBUFFER[-1] == '/' ]]
+  then
+    zle .auto-suffix-retain
+  else
+    zle .auto-suffix-remove
+    LBUFFER=$LBUFFER'/'
+  fi
+
+  [[ $lbuffer != $LBUFFER ]]
+}
+
 _zsh_autocomplete__w__menu-space() {
   setopt localoptions $zsh_autocomplete_options
 
@@ -469,7 +495,18 @@ _zsh_autocomplete__c__expand-word() {
 
   local curcontext
   _zsh_autocomplete__curcontext expand-word
-  _zsh_autocomplete__menu_complete $@
+  _main_complete $@
+
+  if _zsh_autocomplete__is_too_long_list
+  then
+    compstate[insert]='menu'
+
+  elif (( compstate[nmatches] > 1 ))
+  then
+    compstate[insert]=''
+  fi
+
+  (( compstate[nmatches] > 0 ))
 }
 
 _zsh_autocomplete__c__list-choices() {
