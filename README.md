@@ -78,8 +78,6 @@ Prezto's built-in `completion` module.
    source path/to/zsh-autocomplete.plugin.zsh
    ```
 
-If you use any form of syntax highlighting, you have to source that _after_ `zsh-autocomplete`.
-
 To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 
 
