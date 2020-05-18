@@ -104,13 +104,6 @@ _autocomplete.init.completion-styles() {
 
   zstyle ':completion:(complete-word|menu-select):*' old-list always
 
-  zstyle -e ':completion:(correct-word|list-choices):*' tag-order '
-    if [[ $PREFIX == "-" ]]
-    then
-      reply=( "options" "-" )
-    else
-      reply=( "! *remote*" "-" )
-    fi'
   zstyle ':completion:(correct-word|list-choices):*:brew-*:argument-rest:*' tag-order \
     "! argument-rest" "-"
 
@@ -118,9 +111,23 @@ _autocomplete.init.completion-styles() {
   zstyle ':completion:correct-word:*' completer _correct
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle -e ':completion:correct-word:*' tag-order '
+    if [[ $PREFIX == "-" ]]
+    then
+      reply=( "options" "-" )
+    else
+      reply=( "! *remote*" "-" )
+    fi'
 
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
+  zstyle -e ':completion:list-choices:*' tag-order '
+    if [[ $PREFIX == "-" ]]
+    then
+      reply=( "options" "-" )
+    else
+      reply=( "! commit-tags *remote*" )
+    fi'
 
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
   zstyle ':completion:expand-word:*' tag-order ''
@@ -516,9 +523,20 @@ _autocomplete.completion-widget.list-choices() {
 
   if (( (PENDING + KEYS_QUEUED_COUNT) > 0 ))
   then
+    compadd -x "$_autocomplete__lastwarning"
     return 1
   fi
 
+  if [[ $_lastcomp[nmatches] -eq 0
+     && -n $_lastcomp[prefix]$_lastcomp[suffix]
+     && $PREFIX$SUFFIX == $_lastcomp[prefix]*$_lastcomp[suffix] ]]
+  then
+    compadd -x "$_autocomplete__lastwarning"
+    return 1
+  fi
+  _autocomplete__lastwarning=
+
+  local +h comppostfuncs=( _autocomplete.completion.warning )
   _main_complete $@
   local ret=$?
 
@@ -583,4 +601,12 @@ _autocomplete.completion.is_too_long_list() {
 
   (( (compstate[list_lines] + BUFFERLINES + 1) > LINES
   || (compstate[list_max] != 0 && compstate[nmatches] >= compstate[list_max]) ))
+}
+
+_autocomplete.completion.warning() {
+  if [[ nm -eq 0 && -z "$_comp_mesg" && $#_lastdescr -ne 0 && $compstate[old_list] != keep ]] \
+     && zstyle -s ":completion:${curcontext}:warnings" format format
+  then
+    _autocomplete__lastwarning=$mesg
+  fi
 }
