@@ -203,22 +203,6 @@ _autocomplete.key-bindings.init() {
   add-zsh-hook precmd _autocomplete.key-bindings.zsh-hook
 }
 
-_autocomplete.list-choices.init() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
-
-  typeset -g _autocomplete__lastbuffer _autocomplete__lastwarning
-  zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
-  add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.zle-hook-widget
-}
-
-_autocomplete.application-mode.zle-hook-widget() {
-  echoti smkx
-}
-
-_autocomplete.raw-mode.zle-hook-widget() {
-  echoti rmkx
-}
-
 _autocomplete.key-bindings.zsh-hook() {
   emulate -LR zsh -o noshortloops -o warncreateglobal
 
@@ -280,6 +264,23 @@ _autocomplete.key-bindings.zsh-hook() {
   add-zsh-hook -d precmd _autocomplete.key-bindings.zsh-hook
 }
 
+_autocomplete.application-mode.zle-hook-widget() {
+  echoti smkx
+}
+
+_autocomplete.raw-mode.zle-hook-widget() {
+  echoti rmkx
+}
+
+_autocomplete.list-choices.init() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal
+
+  typeset -g _autocomplete__lastbuffer _autocomplete__lastwarning
+
+  zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
+  add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.zle-hook-widget
+}
+
 _autocomplete.list-choices.zle-hook-widget() {
   setopt localoptions $_autocomplete__options
 
@@ -290,6 +291,24 @@ _autocomplete.list-choices.zle-hook-widget() {
   fi
 
   zle list-choices 2> /dev/null
+}
+
+_autocomplete.list-choices.completion-widget() {
+  setopt localoptions $_autocomplete__options
+  unsetopt GLOB_COMPLETE
+
+  if [[ $_lastcomp[nmatches] -eq 0
+     && -n $_lastcomp[prefix]$_lastcomp[suffix]
+     && $PREFIX$SUFFIX == $_lastcomp[prefix][[:IDENT:]]#$_lastcomp[suffix] ]]
+  then
+    compadd -x "$_autocomplete__lastwarning"
+    return 1
+  fi
+
+  _autocomplete__lastwarning=
+  local +h -a comppostfuncs=( _autocomplete.completion.save_warning )
+  _autocomplete.completion.main_complete list-choices
+  compstate[insert]=''
 }
 
 _autocomplete.down-line-or-menu-select.zle-widget() {
@@ -305,6 +324,11 @@ _autocomplete.down-line-or-menu-select.zle-widget() {
     zle -M ''
     zle .down-line || zle .end-of-line
   fi
+}
+
+_autocomplete.menu-select.completion-widget() {
+  setopt localoptions $_autocomplete__options
+  _autocomplete.completion.main_complete menu-select
 }
 
 _autocomplete.expand-or-complete.zle-widget() {
@@ -335,6 +359,13 @@ _autocomplete.expand-or-complete.zle-widget() {
   fi
 
   zle fzf-completion
+}
+
+_autocomplete.expand-word.completion-widget() {
+  setopt localoptions $_autocomplete__options
+
+  _autocomplete.completion.main_complete expand-word
+  (( compstate[nmatches] > 0 ))
 }
 
 _autocomplete.magic-space.zle-widget() {
@@ -377,21 +408,6 @@ _autocomplete.magic-slash.zle-widget() {
   zle correct-word
   zle .auto-suffix-remove
   zle .self-insert
-}
-
-_autocomplete.up-line-or-history-search.zle-widget() {
-  setopt localoptions $_autocomplete__options
-
-  local curcontext
-  _autocomplete.completion.curcontext up-line-or-history-search
-
-  if (( ${#LBUFFER} == 0 || BUFFERLINES == 1 ))
-  then
-    zle fzf-history-widget
-  else
-    zle -M ''
-    zle .up-line || zle .beginning-of-line
-  fi
 }
 
 _autocomplete.complete-word.completion-widget() {
@@ -450,39 +466,24 @@ _autocomplete.correct-word.completion-widget() {
   return 0
 }
 
-_autocomplete.expand-word.completion-widget() {
-  setopt localoptions $_autocomplete__options
-
-  _autocomplete.completion.main_complete expand-word
-  (( compstate[nmatches] > 0 ))
-}
-
-_autocomplete.list-choices.completion-widget() {
-  setopt localoptions $_autocomplete__options
-  unsetopt GLOB_COMPLETE
-
-  if [[ $_lastcomp[nmatches] -eq 0
-     && -n $_lastcomp[prefix]$_lastcomp[suffix]
-     && $PREFIX$SUFFIX == $_lastcomp[prefix][[:IDENT:]]#$_lastcomp[suffix] ]]
-  then
-    compadd -x "$_autocomplete__lastwarning"
-    return 1
-  fi
-
-  _autocomplete__lastwarning=
-  local +h -a comppostfuncs=( _autocomplete.completion.save_warning )
-  _autocomplete.completion.main_complete list-choices
-  compstate[insert]=''
-}
-
 _autocomplete.menu-expand-or-complete.completion-widget() {
   setopt localoptions $_autocomplete__options
   _autocomplete.completion.main_complete menu-exand-or-complete
 }
 
-_autocomplete.menu-select.completion-widget() {
+_autocomplete.up-line-or-history-search.zle-widget() {
   setopt localoptions $_autocomplete__options
-  _autocomplete.completion.main_complete menu-select
+
+  local curcontext
+  _autocomplete.completion.curcontext up-line-or-history-search
+
+  if (( ${#LBUFFER} == 0 || BUFFERLINES == 1 ))
+  then
+    zle fzf-history-widget
+  else
+    zle -M ''
+    zle .up-line || zle .beginning-of-line
+  fi
 }
 
 _autocomplete.completion.curcontext() {
