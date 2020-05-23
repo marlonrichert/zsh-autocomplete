@@ -13,6 +13,15 @@ _autocomplete.main() {
     no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
   )
 
+  typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=1
+  typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+  [[ ! -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] \
+  && typeset -g -a ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=(
+    forward-char vi-forward-char vi-find-next-char vi-find-next-char-skip
+    forward-word emacs-forward-word
+    vi-forward-word vi-forward-word-end vi-forward-blank-word vi-forward-blank-word-end
+	)
+
   [[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
   [[ ! -v fzf_default_completion ]] && export fzf_default_completion='menu-exand-or-complete'
   [[ ! -v FZF_DEFAULT_OPTS ]] && export FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
@@ -36,6 +45,17 @@ _autocomplete.main() {
   [[ ! -v functions[min] ]] && autoload -Uz zmathfunc && zmathfunc
   [[ ! -v functions[zstyle] ]] && zmodload zsh/zutil
 
+  functions[_original.add-zsh-hook]=$functions[add-zsh-hook]
+}
+
+add-zsh-hook() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal
+
+  # Intercept `_zsh_autosuggest_start`.
+  if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]
+  then
+    _original.add-zsh-hook $@ > /dev/null
+  fi
 }
 
 _autocomplete.completion-styles() {
@@ -252,11 +272,20 @@ _autocomplete.key-bindings.zsh-hook() {
     zle -N expand-or-complete _autocomplete.expand-or-complete.zle-widget
   fi
 
+  add-zsh-hook -d precmd _zsh_autosuggest_start
+  [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
+
   if zle -l fzf-history-widget
   then
     bindkey $key[Tab] complete-word
 
-    zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
+    if [[ -v functions[_zsh_autosuggest_invoke_original_widget] ]]
+    then
+      zle -N complete-word _autocomplete.complete-word.zle-widget
+      zle -C _complete_word complete-word _autocomplete.complete-word.completion-widget
+    else
+      zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
+    fi
   fi
   _autocomplete.list-choices.init
 
@@ -277,6 +306,19 @@ _autocomplete.list-choices.init() {
 
   typeset -g _autocomplete__lastbuffer _autocomplete__lastwarning
 
+  if [[ -v functions[_zsh_highlight] ]]
+  then
+    functions[_autocomplete._zsh_highlight]=$functions[_zsh_highlight]
+    functions[_zsh_highlight]=$functions[_autocomplete.no-op]
+  else
+    functions[_autocomplete._zsh_highlight]=$functions[_autocomplete.no-op]
+  fi
+
+  if [[ ! -v functions[_zsh_autosuggest_fetch] ]]
+  then
+    functions[_zsh_autosuggest_fetch]=$functions[_autocomplete.no-op]
+  fi
+
   zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
   add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.zle-hook-widget
 }
@@ -291,6 +333,8 @@ _autocomplete.list-choices.zle-hook-widget() {
   fi
 
   zle list-choices 2> /dev/null
+  _zsh_autosuggest_fetch
+  _autocomplete._zsh_highlight
 }
 
 _autocomplete.list-choices.completion-widget() {
@@ -309,6 +353,32 @@ _autocomplete.list-choices.completion-widget() {
   local +h -a comppostfuncs=( _autocomplete.completion.save_warning )
   _autocomplete.completion.main_complete list-choices
   compstate[insert]=''
+}
+
+_autocomplete.no-op() {}
+
+_autocomplete.complete-word.zle-widget() {
+  setopt localoptions $_autocomplete__options
+
+  local lbuffer=$LBUFFER
+  if [[ $POSTDISPLAY != \0# ]]
+  then
+    {
+      functions[_autocomplete.tmp]=$functions[_zsh_autosuggest_invoke_original_widget]
+      _zsh_autosuggest_invoke_original_widget() {
+        zle .forward-word
+      }
+      _zsh_autosuggest_partial_accept
+    } always {
+      unfunction _zsh_autosuggest_invoke_original_widget
+      functions[_zsh_autosuggest_invoke_original_widget]=$functions[_autocomplete.tmp]
+      return 0
+    }
+  fi
+  if [[ $lbuffer == $LBUFFER ]]
+  then
+    zle _complete_word
+  fi
 }
 
 _autocomplete.down-line-or-menu-select.zle-widget() {
