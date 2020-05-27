@@ -133,8 +133,11 @@ _autocomplete.main.hook() {
   zstyle ':completion:*:('${(j:|:)directory_tags}')' group-name 'directories'
   zstyle ':completion:*:('${(j:|:)directory_tags}')' matcher 'm:{[:lower:]}={[:upper:]}'
 
+  # if zstyle -t ':autocomplete:' groups 'always'
+  # then
   zstyle ':completion:*' format '%F{yellow}%d:%f'
   zstyle ':completion:*' group-name ''
+  # fi
 
   zstyle ':completion:*:aliases' format '%F{yellow}%d:%f'
   zstyle ':completion:*:aliases' group-name ''
@@ -213,12 +216,32 @@ _autocomplete.main.hook() {
   if [[ -z $key[ControlSpace] ]]; then key[ControlSpace]='^@'; fi
   if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 
+  # local magic
 
   bindkey ' ' magic-space
+  # zstyle -s ":autocomplete:space:" magic magic || magic='correct-word'
+  # case $magic in
+  #   'correct-word')
   zle -N magic-space _autocomplete.magic-space.zle-widget
+  #     ;;
+  #   'expand-history')
+  #     zle -N magic-space .magic-space
+  #     ;;
+  #   *)
+  #     bindkey ' ' self-insert
+  #     ;;
+  # esac
 
   bindkey '/' magic-slash
+  # zstyle -s ":autocomplete:slash:" magic magic || magic='correct-word'
+  # case $magic in
+  #   'spelling')
   zle -N magic-slash _autocomplete.magic-slash.zle-widget
+  #     ;;
+  #   *)
+  #     bindkey '/' .self-insert
+  #     ;;
+  # esac
 
   zle -C correct-word menu-select _autocomplete.correct-word.completion-widget
   zle -C expand-word menu-select _autocomplete.expand-word.completion-widget
@@ -249,6 +272,19 @@ _autocomplete.main.hook() {
     bindkey $key[ControlSpace] menu-select
   fi
 
+  # local tab_completion
+  # zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'
+  # case $tab_completion in
+  #   'cycle')
+  #     bindkey $key[Tab] menu-complete
+  #     bindkey $key[BackTab] reverse-menu-complete
+  #     ;;
+  #   'select')
+  #     bindkey $key[Tab] menu-select
+  #     bindkey $key[BackTab] reverse-menu-complete
+  #     zle -C reverse-menu-complete menu-select _main_complete
+  #     ;;
+  #   *)
   bindkey $key[BackTab] list-expand
   zle -C list-expand menu-select _autocomplete.list-expand.completion-widget
 
@@ -265,9 +301,13 @@ _autocomplete.main.hook() {
     bindkey -M menuselect $key[Tab] accept-and-hold
     bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
   fi
+  #     ;;
+  # esac
 
   [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
 
+  # if [[ $tab_completion == 'accept' ]]
+  # then
   bindkey $key[Tab] complete-word
   if [[ -v functions[_zsh_autosuggest_invoke_original_widget] ]]
   then
@@ -276,6 +316,7 @@ _autocomplete.main.hook() {
   else
     zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
   fi
+  # fi
 
   zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
   add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.hook

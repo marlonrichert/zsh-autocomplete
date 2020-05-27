@@ -94,61 +94,55 @@ Prezto's built-in `completion` module.
 To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 
 
-## Customization
+## Configuration
+The behavior of `zsh-autocomplete` can be customzied through the `zstyle` system.
 
-The behavior of `zsh-autocomplete` is highly configurable. Here are just some of the modifications
-that are commonly requested.
+### Always show matches in named groups
+By default, completion groups and duplicates matches are shown only when you press
+[<kbd>⇤</kbd>](# "shift-tab") or [<kbd>⌃␣</kbd>](# "ctrl-space"). This allows the automatic listing
+of completion matches to be as compact as possible.
 
-**Note:** To use these, add them in your `.zshrc` file **after** sourcing `zsh-autocomplete`.
-
-### Always show group names
-By default, group names and duplicate entries are shown only when you press
-[<kbd>⇤</kbd>](# "shift-tab"). This allows the automatic listing of completion matches to be as
-compact as possible.
-
-If instead, you want group names (and thus duplicate entries) to always be shown, use the
-following:
+To always show matches in groups (and thus show duplicate matches):
 ```shell
-zstyle ':completion:*' format '%F{yellow}%d:%f'
-zstyle ':completion:*' group-name ''
-```
-You can replace `yellow` with `black`, `red`, `green`, `blue`, `magenta`, `cyan`, `white` or a
-3-digit `#hex` value.
-
-### Turn off automatic spelling correction
-By default, [<kbd>␣</kbd>](# "space") corrects your spelling and does history expansions.
-
-To remove the spell-checking part, use this:
-```shell
-zstyle ':completion:correct-word:*' max-errors 0
+zstyle ':autocomplete:*' groups 'always'
 ```
 
-### Use [<kbd>⇥</kbd>](# "tab") to cycle matches
-If you have [`fzf`'s shell extensions installed](#requirements), then `zsh-autocomplete` makes
-[<kbd>⇥</kbd>](# "tab") insert the top match. The idea is that you just keep typing until the match
-you want is
-* at the top, at which point you press [<kbd>⇥</kbd>](# "tab") to insert it, or
-* _near_ the top, at which point you press [<kbd>↓</kbd>](# "down") to enter the menu, navigate to it
-  with [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") and press [<kbd>↩︎</kbd>](# "enter") to insert it.
+### Turn off automatic corrections
+By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both correct your spelling,
+while [<kbd>␣</kbd>](# "space") also does history expansions.
 
-If instead you want [<kbd>⇥</kbd>](# "tab") to cycle between matches _without_ entering the menu,
-use this:
+To have space do history expansion, but no spelling correction:
 ```shell
-zle -N complete-word && complete-word() { zle .complete-word; }
+zstyle ':autocomplete:space:*' magic 'expand-history'
 ```
 
-### Use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to navigate the menu
-By default,
-* [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") navigate the menu,
-* [<kbd>⇥</kbd>](# "tab") does multi-selection and
-* [<kbd>⇤</kbd>](# "shift-tab") shows you more matches and/or more info.
-
-If you want to use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to navigate the menu,
-use this:
+To disable all automatic corrections, including history expansion:
 ```shell
-add-zsh-hook -d precmd _zsh_autocomplete__h__keymap-specific_keys
-bindkey -M menuselect $key[Tab] menu-complete
-bindkey -M menuselect $key[BackTab] reverse-menu-complete
+zstyle ':autocomplete:(slash|space):*' magic 'off'
+```
+
+### Change [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") behavior
+By default, [<kbd>⇥</kbd>](# "tab") insert the top match. The idea is that you just keep typing
+until the match you want is
+* _at_ the top, at which point you press [<kbd>⇥</kbd>](# "tab") to insert it immediately, or
+* _near_ the top, at which point you press [<kbd>↓</kbd>](# "down") to start menu selection. Then,
+  inside the menu:
+  * [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") navigate the menu,
+  * [<kbd>↩︎</kbd>](# "enter") does single selection,
+  * [<kbd>⇥</kbd>](# "tab") does multi-selection and
+  * [<kbd>⇤</kbd>](# "shift-tab") shows you more matches and/or more info (which also works from
+    the command line).
+
+To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_
+  starting menu selection):
+```shell
+zstyle ':autocomplete:tab:*' completion 'cycle'
+```
+
+To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start menu
+selection:
+```shell
+zstyle ':autocomplete:tab:*' completion 'select'
 ```
 
 
