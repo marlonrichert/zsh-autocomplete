@@ -80,7 +80,7 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:*' completer _oldlist _list _expand_alias _expand _complete _match _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
-  zstyle ':completion:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=?'
+  zstyle ':completion:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local currentword=$PREFIX$SUFFIX
     if (( ${#currentword} == 0 ))
