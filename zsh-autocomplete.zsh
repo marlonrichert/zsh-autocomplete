@@ -222,7 +222,7 @@ _autocomplete.main.hook() {
   zstyle -s ":autocomplete:space:" magic magic || magic='correct-word'
   case $magic in
     'correct-word')
-  zle -N magic-space _autocomplete.magic-space.zle-widget
+      zle -N magic-space _autocomplete.magic-space.zle-widget
       ;;
     'expand-history')
       zle -N magic-space .magic-space
@@ -236,7 +236,7 @@ _autocomplete.main.hook() {
   zstyle -s ":autocomplete:slash:" magic magic || magic='correct-word'
   case $magic in
     'spelling')
-  zle -N magic-slash _autocomplete.magic-slash.zle-widget
+      zle -N magic-slash _autocomplete.magic-slash.zle-widget
       ;;
     *)
       bindkey '/' .self-insert
@@ -541,7 +541,7 @@ _autocomplete.correct-word.completion-widget() {
   local curcontext
   _autocomplete.curcontext correct-word
 
-  if [[ $PREFIX[-1] != [[:IDENT:]] || $SUFFIX[1] != [[:IFS:]]# ]]
+  if [[ $LBUFFER[-1] != [[:IDENT:]] || $RBUFFER[1] != [[:IFS:]]# ]]
   then
     return 1
   fi
