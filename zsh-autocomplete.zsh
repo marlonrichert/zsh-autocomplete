@@ -82,18 +82,20 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' menu 'yes select=long-list'
   zstyle ':completion:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
-    local currentword=$PREFIX$SUFFIX
-    if (( ${#currentword} == 0 ))
+    local word=$PREFIX$SUFFIX
+    local prefix=${(M)word##*/}
+    local suffix=${word##*/}
+    if (( ${#suffix} == 0 ))
     then
-      reply=( "[[:punct:]]*" )
+      reply=( "${prefix}[[:punct:]]*" )
     else
-      if [[ $currentword == [[:punct:]]* ]]
+      if [[ $suffix == [[:punct:]]* ]]
       then
-        local punct=${(M)currentword##[[:punct:]]##}
-        local nextchar=${currentword[${#punct}+1]}
-        reply=( "[[:punct:]]${punct}*" "^(*${punct}${nextchar}*)" )
+        local punct=${(M)suffix##[[:punct:]]##}
+        local nextchar=${suffix[${#punct}+1]}
+        reply=( "${prefix}[[:punct:]]${punct}*" "^(${prefix}*${punct}${nextchar}*)" )
       else
-        reply=( "(?~${currentword[1]})*" )
+        reply=( "${prefix}(?~${suffix[1]})*" )
       fi
     fi'
   zstyle -e ':completion:*' glob '
@@ -139,8 +141,6 @@ _autocomplete.main.hook() {
     zstyle ':completion:*' group-name ''
   fi
 
-  zstyle ':completion:*:aliases' format '%F{yellow}%d:%f'
-  zstyle ':completion:*:aliases' group-name ''
   zstyle ':completion:*:corrections' format '%F{green}%d:%f'
   zstyle ':completion:*:expansions' format '%F{yellow}%d:%f'
   zstyle ':completion:*:expansions' group-name ''
@@ -170,7 +170,7 @@ _autocomplete.main.hook() {
   zstyle ':completion:list-expand:complete:*' ignored-patterns ''
   zstyle ':completion:list-expand:*' tag-order ''
   zstyle -e ':completion:list-expand:*' max-errors '
-    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 3) )) numeric"'
+    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric"'
   zstyle ':completion:list-expand:*' list-suffixes true
   zstyle ':completion:list-expand:*' path-completion true
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
@@ -235,7 +235,7 @@ _autocomplete.main.hook() {
   bindkey '/' magic-slash
   zstyle -s ":autocomplete:slash:" magic magic || magic='correct-word'
   case $magic in
-    'spelling')
+    'correct-word')
       zle -N magic-slash _autocomplete.magic-slash.zle-widget
       ;;
     *)
