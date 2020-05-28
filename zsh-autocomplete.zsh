@@ -345,6 +345,7 @@ _autocomplete.list-choices.hook() {
   [[ $buffer != $BUFFER ]] && zle .undo
   _zsh_autosuggest_fetch
   _autocomplete._zsh_highlight
+  zle -R
 }
 
 _autocomplete.list-choices.completion-widget() {
