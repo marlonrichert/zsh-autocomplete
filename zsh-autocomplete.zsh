@@ -1,7 +1,7 @@
 () {
   emulate -LR zsh -o noshortloops -o warncreateglobal
 
-  typeset -g _autocomplete__lastwarning
+  typeset -g _autocomplete__lastbuffer _autocomplete__lastwarning
   [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
     ALWAYS_TO_END COMPLETE_ALIASES EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS LIST_PACKED
     no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
@@ -78,7 +78,7 @@ _autocomplete.main.hook() {
   # Remove incompatible styles.
   zstyle -d '*' single-ignored
 
-  zstyle ':completion:*' completer _oldlist _list _expand_alias _expand _complete _match _ignored
+  zstyle ':completion:*' completer _oldlist _list _expand _complete _match _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
   zstyle ':completion:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
@@ -112,7 +112,7 @@ _autocomplete.main.hook() {
 
   [[ ! -v functions[min] ]] && autoload -Uz zmathfunc && zmathfunc
   zstyle -e ':completion:*' max-errors '
-    reply=( $(( min(2, (${#PREFIX} + ${#SUFFIX}) / 3) )) numeric )'
+    reply=( $(( min(2, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
   zstyle ':completion:*' expand prefix suffix
   zstyle ':completion:*' list-suffixes false
@@ -160,7 +160,7 @@ _autocomplete.main.hook() {
   zstyle ':completion:correct-word:*' matcher-list ''
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order '-'
 
-  zstyle ':completion:list-choices:*' old-list never
+  zstyle ':completion:list-choices:*' completer _expand _complete _ignored
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
 
@@ -335,17 +335,21 @@ _autocomplete.raw-mode.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal $_autocomplete__options
 
-  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 ))
+  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 || ${#BUFFER//[[:IFS:]]/} == 0 )) \
+  || [[ "$BUFFER" == "$_autocomplete__lastbuffer" ]]
   then
-    return 0
+    return
   fi
 
   local buffer=$BUFFER
-  zle list-choices 2> /dev/null
-  [[ $buffer != $BUFFER ]] && zle .undo
-  _zsh_autosuggest_fetch
-  _autocomplete._zsh_highlight
   zle -R
+  if zle list-choices 2> /dev/null
+  then
+    [[ $buffer != $BUFFER ]] && zle .undo
+    _zsh_autosuggest_fetch
+    _autocomplete._zsh_highlight
+    _autocomplete__lastbuffer="$BUFFER"
+  fi
 }
 
 _autocomplete.list-choices.completion-widget() {
@@ -357,12 +361,12 @@ _autocomplete.list-choices.completion-widget() {
      && $PREFIX$SUFFIX == $_lastcomp[prefix][[:IDENT:]]#$_lastcomp[suffix] ]]
   then
     compadd -x "$_autocomplete__lastwarning"
-    return 0
+    return
   fi
 
   _autocomplete__lastwarning=
-  local +h -a comppostfuncs=( _autocomplete.save_warning )
   local curcontext
+  local +h -a comppostfuncs=( _autocomplete.save_warning )
   _autocomplete._main_complete list-choices
 }
 
@@ -373,6 +377,8 @@ _autocomplete.save_warning() {
      && zstyle -s ":completion:${curcontext}:warnings" format format
   then
     _autocomplete__lastwarning=$mesg
+  else
+    _autocomplete.handle_long_list
   fi
 }
 
@@ -423,6 +429,8 @@ _autocomplete.insert_first_match() {
     then
       compstate[insert]+=' '
     fi
+  else
+    _autocomplete.handle_long_list
   fi
 }
 
@@ -573,9 +581,8 @@ _autocomplete._main_complete() {
 
   _autocomplete.curcontext $1
   shift
-  local +h -a comppostfuncs=( _autocomplete.handle_long_list $comppostfuncs )
+  (( $#comppostfuncs == 0 )) && local +h -a comppostfuncs=( _autocomplete.handle_long_list )
   _main_complete "$@"
-
   (( compstate[nmatches] > 0 ))
 }
 
@@ -587,7 +594,7 @@ _autocomplete.handle_long_list() {
   if (( (compstate[list_lines] + BUFFERLINES + 1) > LINES ))
   then
     compstate[list]=''
-    if zstyle -m ":completion:${curcontext}" menu "*=long-list"
+    if [[ $WIDGETSTYLE == menu-select ]]
     then
       compstate[insert]='menu'
     else
