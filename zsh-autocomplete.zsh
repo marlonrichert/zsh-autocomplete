@@ -1,8 +1,8 @@
 () {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
-    ALWAYS_TO_END COMPLETE_ALIASES EXTENDED_GLOB GLOB_COMPLETE GLOB_DOTS LIST_PACKED
+    ALWAYS_TO_END COMPLETE_ALIASES GLOB_COMPLETE GLOB_DOTS LIST_PACKED
     no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
   )
 
@@ -11,7 +11,7 @@
 
   functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
   add-zsh-hook() {
-    emulate -LR zsh -o noshortloops -o warncreateglobal
+    emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
     # Prevent `_zsh_autosuggest_start` from being added.
     if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]
@@ -24,7 +24,7 @@
 }
 
 _autocomplete.main.hook() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   # Remove itself after being called.
   add-zsh-hook -d precmd _autocomplete.main.hook
@@ -324,7 +324,8 @@ _autocomplete.main.hook() {
 }
 
 _autocomplete.list-choices.hook() {
-  setopt localoptions nobanghist noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt nobanghist
 
   if (( (PENDING + KEYS_QUEUED_COUNT) == 0 ))
   then
@@ -336,7 +337,8 @@ _autocomplete.list-choices.hook() {
 }
 
 _autocomplete.async-list-choices.completion-widget() {
-  setopt localoptions nobanghist noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt nobanghist
 
 	# If we've got a pending request, cancel it
 	if [[ -n "$_AUTOCOMPLETE__ASYNC_FD" ]] && { true <&$_AUTOCOMPLETE__ASYNC_FD } 2>/dev/null; then
@@ -386,7 +388,8 @@ _autocomplete.async-list-choices.completion-widget() {
 # First arg will be fd ready for reading
 # Second arg will be passed in case of error
 _autocomplete.async_callback() {
-  setopt localoptions nobanghist noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt nobanghist
 
   {
   	if [[ -z "$2" || "$2" == "hup" ]]; then
@@ -447,8 +450,8 @@ _autocomplete.async_callback() {
 }
 
 _autocomplete.list-choices.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
-  unsetopt GLOB_COMPLETE
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt noglobcomplete
 
   local curcontext
   _autocomplete.curcontext list-choices
@@ -477,7 +480,7 @@ _autocomplete.list-choices.completion-widget() {
 }
 
 _autocomplete.warning() {
-  setopt localoptions noshortloops nowarncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops nowarncreateglobal extendedglob $_autocomplete__options
 
   local format
   zstyle -s ":completion:${curcontext}:warnings" format format
@@ -488,7 +491,7 @@ _autocomplete.warning() {
 }
 
 _autocomplete.correct-word.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
   unsetopt GLOB_COMPLETE
 
   if [[ ${LBUFFER[-1]} != [[:IDENT:]] || ${RBUFFER[1]} != [[:IFS:]]# ]]
@@ -507,14 +510,14 @@ _autocomplete.correct-word.completion-widget() {
 }
 
 _autocomplete.list-expand.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete._main_complete list-expand
 }
 
 _autocomplete.complete-word.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local lbuffer=$LBUFFER
   if [[ $POSTDISPLAY != \0# ]]
@@ -538,7 +541,7 @@ _autocomplete.complete-word.zle-widget() {
 }
 
 _autocomplete.complete-word.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   local +h -a comppostfuncs=( _autocomplete.insert_first_match )
@@ -559,7 +562,7 @@ _autocomplete.insert_first_match() {
 }
 
 _autocomplete.down-line-or-menu-select.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete.curcontext down-line-or-menu-select
@@ -573,7 +576,7 @@ _autocomplete.down-line-or-menu-select.zle-widget() {
 }
 
 _autocomplete.menu-select.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete._main_complete menu-select
@@ -581,7 +584,7 @@ _autocomplete.menu-select.completion-widget() {
 }
 
 _autocomplete.up-line-or-history-search.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete.curcontext up-line-or-history-search
@@ -595,7 +598,7 @@ _autocomplete.up-line-or-history-search.zle-widget() {
 }
 
 _autocomplete.expand-or-complete.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
@@ -625,7 +628,7 @@ _autocomplete.expand-or-complete.zle-widget() {
 }
 
 _autocomplete.expand-word.completion-widget() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete._main_complete expand-word
@@ -634,7 +637,7 @@ _autocomplete.expand-word.completion-widget() {
 }
 
 _autocomplete.curcontext() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   typeset -g curcontext
   curcontext="${curcontext:-}"
@@ -646,7 +649,7 @@ _autocomplete.curcontext() {
 }
 
 _autocomplete._main_complete() {
-  setopt localoptions noshortloops warncreateglobal $_autocomplete__options
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   _autocomplete.curcontext $1
   shift
@@ -656,7 +659,7 @@ _autocomplete._main_complete() {
 }
 
 _autocomplete.handle_long_list() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   compstate[insert]=''
   compstate[list_max]=0
@@ -674,7 +677,7 @@ _autocomplete.handle_long_list() {
 }
 
 _autocomplete.max_lines() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   typeset -g REPLY
   zstyle -s ":autocomplete:$curcontext" max-lines REPLY || REPLY=$LINES
