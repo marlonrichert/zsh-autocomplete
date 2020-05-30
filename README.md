@@ -1,12 +1,10 @@
 # zsh-autocomplete
-IntelliSense-like find-as-you-type completion for the Z Shell!
-* Automatically lists completions as you type.
-* Press [<kbd>⇥</kbd>](# "tab") to insert the top match…
-* …or [<kbd>↓</kbd>](# "down") to select a different one.
-* Press [<kbd>⇤</kbd>](# "shift-tab") to list more choices/info.
-* Press [<kbd>␣</kbd>](# "space") to correct the last word or do history expansion.
-* Press [<kbd>↑</kbd>](# "up") to search history.
-* Press [<kbd>⌃␣</kbd>](# "ctrl-space") to change dir, do expansion or search dirs/files.
+Find-as-you-type completion for the Z Shell!
+* **Asynchronously** shows completions **as you type**.
+  * With [IDE-like keybindings](#key-bindings) to choose and insert them.
+* Automatically corrects misspelled words.
+  * Don't like a correction? Press Undo to revert it.
+* Integrates seamlessly with `fzf`, `zsh-autosuggestions` and `zsh-syntaxhighlighting`.
 
 
 ## Demo
@@ -14,40 +12,41 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 
 
 ## Key Bindings
-`zsh-autocomplete` adds intuitive key bindings for Zsh completions, `zsh-autosuggestions` and
-`fzf`.
+Here's a list of key bindings that `zsh-autocomplete` adds to the command line.
 
-### Command Line
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
-| [<kbd>⇥</kbd>](# "tab") | Insert top completion |
+| [<kbd>⇥</kbd>](# "tab") | Insert top completion[<sup>note</sup>](#with-zsh-autosuggestions) |
+| [<kbd>⌃␣</kbd>](# "down") | Enter completion menu[<sup>note</sup>](#with-fzf) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
-| [<kbd>␣</kbd>](# "space") | Correct spelling + history expansion + insert space |
-| [<kbd>⌥␣</kbd>](# "alt-space") | Insert space (no correction or expansion) |
+| [<kbd>␣</kbd>](# "space") | Insert space and correct spelling or do history expansion |
 
-#### With `zsh-autosuggestions`
-`zsh-autocomplete` adds these key binding when you source
-[`zsh-autosuggestions`](https://github.com/zsh-users/zsh-autosuggestions) in your `.zshrc` file:
+### With `zsh-autosuggestions`
+When you source
+[`zsh-autosuggestions`](https://github.com/zsh-users/zsh-autosuggestions) in your `.zshrc` file,
+`zsh-autocomplete` modifies the following key binding:
 
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (when available) or insert top completion |
 
-
-#### With `fzf`
-`zsh-autocomplete` adds these key bindings when you source
-[`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation) in your `.zshrc` file:
+### With `fzf`
+When you source
+[`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation) in your `.zshrc` file,
+`zsh-autocomplete` adds and modifies the following key bindings:
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>⌃␣</kbd>](# "ctrl-space") | Do expansion, change directory (in empty buffer) or do [fuzzy file search](#requirements) |
 | [<kbd>↓</kbd>](# "down") | Enter completion menu or (in multi-line buffer) move cursor down |
 | [<kbd>↑</kbd>](# "up") | Do [fuzzy history search](#requirements) or (in multi-line buffer) move cursor up |
+| [<kbd>⌃␣</kbd>](# "ctrl-space") | Do expansion, change directory (in empty buffer) or do [fuzzy file search](#requirements) |
 | [<kbd>⌥↓</kbd>](# "alt-down") | Enter completion menu (also in multi-line buffer) |
 | [<kbd>⌥↑</kbd>](# "alt-up") | Do [fuzzy history search](#requirements) (also in multi-line buffer) |
 
 ### Completion Menu
+`zsh-autocomplete` adds the following key bindings to the completion menu:
+
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
@@ -62,13 +61,10 @@ IntelliSense-like find-as-you-type completion for the Z Shell!
 Mandatory:
 * [**Zsh**](http://zsh.sourceforge.net) needs to be your shell.
 
-Recommended:
-* [**Fzf**](https://github.com/junegunn/fzf) and
-  [its **shell extensions**](https://github.com/junegunn/fzf#installation) are required for
-  [<kbd>↑</kbd> fuzzy history search](#key-bindings) and
-  [<kbd>⌃␣</kbd> fuzzy file search](#key-bindings).
-  * **Note:** It's _not_ enough for `fzf` to be in your path! You will also need to source its
-    shell extensions in your `.zshrc` file.
+Fzf integration:
+* You  need to source `fzf`'s [**shell extensions**](https://github.com/junegunn/fzf#installation)
+  in your `.zshrc` file to get the [full integration](#with-fzf). It's _not_ enough for `fzf` to be
+  in your path!
 
 
 ## Installation
@@ -82,10 +78,6 @@ Prezto's built-in `completion` module.
 
 ### Manually
 1. `git clone` this repo.
-1. If you want to use [<kbd>↑</kbd> fuzzy history search](#key-bindings) and
-   [<kbd>⌃␣</kbd> fuzzy file search](#key-bindings):
-   1. Make sure you have [`fzf`](https://github.com/junegunn/fzf) installed.
-   1. Source [`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation).
 1. Add the following to your `.zshrc` file:
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
@@ -95,7 +87,7 @@ To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 
 
 ## Configuration
-The behavior of `zsh-autocomplete` can be customzied through the `zstyle` system.
+The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
 
 ### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only when you press
@@ -104,21 +96,21 @@ of completion matches to be as compact as possible.
 
 To always show matches in groups (and thus show duplicate matches):
 ```shell
-zstyle ':autocomplete:*' groups 'always'
+zstyle ':autocomplete:*' groups always
 ```
 
-### Turn off automatic corrections
+### Tune automatic corrections
 By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both correct your spelling,
 while [<kbd>␣</kbd>](# "space") also does history expansions.
 
 To have space do history expansion, but no spelling correction:
 ```shell
-zstyle ':autocomplete:space:*' magic 'expand-history'
+zstyle ':autocomplete:space:*' magic expand-history
 ```
 
 To disable all automatic corrections, including history expansion:
 ```shell
-zstyle ':autocomplete:(slash|space):*' magic 'off'
+zstyle ':autocomplete:*' magic off
 ```
 
 ### Change [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") behavior
@@ -136,13 +128,13 @@ until the match you want is
 To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_
   starting menu selection):
 ```shell
-zstyle ':autocomplete:tab:*' completion 'cycle'
+zstyle ':autocomplete:tab:*' completion cycle
 ```
 
 To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start menu
 selection:
 ```shell
-zstyle ':autocomplete:tab:*' completion 'select'
+zstyle ':autocomplete:tab:*' completion select
 ```
 
 
