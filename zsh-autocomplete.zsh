@@ -42,6 +42,8 @@ _autocomplete.main.hook() {
     compinit
   fi
 
+  [[ ! -v functions[min] ]] && autoload -Uz zmathfunc && zmathfunc
+
   [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
   export ZSH_AUTOSUGGEST_USE_ASYNC=1
   export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
@@ -94,7 +96,6 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:*:expand:*' tag-order '! all-expansions original'
 
-  [[ ! -v functions[min] ]] && autoload -Uz zmathfunc && zmathfunc
   zstyle -e ':completion:*' max-errors '
     reply=( $(( min(2, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
@@ -449,14 +450,26 @@ _autocomplete.list-choices.completion-widget() {
   setopt localoptions noshortloops warncreateglobal $_autocomplete__options
   unsetopt GLOB_COMPLETE
 
+  local curcontext
+  _autocomplete.curcontext list-choices
+  _autocomplete.max_lines
+  local max_lines=REPLY
+
   if [[ -v 1 ]] && (( $1 == 0 ))
   then
     _autocomplete.warning 'No matching completions found.'
-  elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > LINES ))
+  elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > max_lines ))
   then
-    _autocomplete.warning 'Too many completions to fit on screen. Type more to filter.'
+    local warning='Too many completions to fit on screen. Press '
+    if zle -l fzf-history-widget
+    then
+      warning+='Down Arrow'
+    else
+      warning+='Ctrl-Space'
+    fi
+    warning+=' to open the menu or type more to filter.'
+    _autocomplete.warning $warning
   else
-    local curcontext
     _autocomplete._main_complete list-choices
   fi
   compstate[list]='list force'
@@ -621,8 +634,9 @@ _autocomplete.expand-word.completion-widget() {
 }
 
 _autocomplete.curcontext() {
-  emulate -LR zsh -o noshortloops
+  emulate -LR zsh -o noshortloops -o warncreateglobal
 
+  typeset -g curcontext
   curcontext="${curcontext:-}"
   if [[ -z "$curcontext" ]]; then
     curcontext="$1:::"
@@ -646,7 +660,9 @@ _autocomplete.handle_long_list() {
 
   compstate[insert]=''
   compstate[list_max]=0
-  if (( (compstate[list_lines] + BUFFERLINES + 1) > LINES ))
+  _autocomplete.max_lines
+  local max_lines=REPLY
+  if (( (compstate[list_lines] + BUFFERLINES + 1) > max_lines ))
   then
     compstate[list]=''
     if [[ $WIDGETSTYLE == menu-select ]]
@@ -655,4 +671,13 @@ _autocomplete.handle_long_list() {
     fi
   fi
   return 0
+}
+
+_autocomplete.max_lines() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal
+
+  typeset -g REPLY
+  zstyle -s ":autocomplete:$curcontext" max-lines REPLY || REPLY=$LINES
+  [[ $REPLY == *% ]] && (( REPLY=(LINES * ${REPLY%%\%} / 100) ))
+  (( REPLY=min(LINES, REPLY) ))
 }

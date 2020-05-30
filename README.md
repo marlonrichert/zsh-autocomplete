@@ -99,7 +99,7 @@ To always show matches in groups (and thus show duplicate matches):
 zstyle ':autocomplete:*' groups always
 ```
 
-### Tune automatic corrections
+### Turn off automatic corrections
 By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both correct your spelling,
 while [<kbd>␣</kbd>](# "space") also does history expansions.
 
@@ -136,6 +136,16 @@ selection:
 ```shell
 zstyle ':autocomplete:tab:*' completion select
 ```
+
+### Shorten the automatic completions list
+By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on the
+screen.
+
+To limit the list to a smaller height, use the following:
+```shell
+zstyle ':autocomplete:list-choices:*' max-lines 40%
+```
+You can set this to percentage of the total screen height or to a fixed number of lines. Both work.
 
 
 ## Author
