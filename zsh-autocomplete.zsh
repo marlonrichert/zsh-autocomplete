@@ -68,9 +68,9 @@ _autocomplete.main.hook() {
   zstyle -d ':completion:*:functions' ignored-patterns
   zstyle -d '*' single-ignored
 
-  zstyle ':completion:*' completer _oldlist _list _expand _complete _match _ignored
+  zstyle ':completion:*' completer _oldlist _list _expand _complete _complete:-fuzzy _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
-  zstyle ':completion:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
+  zstyle ':completion:*:complete:*' matcher-list 'l:|=*'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
@@ -79,13 +79,27 @@ _autocomplete.main.hook() {
     then
       reply=( "${prefix}[[:punct:]]*" )
     else
-      if [[ $suffix == [[:punct:]]* ]]
+      local punct=${(M)suffix##[[:punct:]]##}
+      suffix=${suffix##[[:punct:]]##}
+      reply=( "[[:punct:]]*~${punct}[^[:punct:]]*"
+              "[[:upper:]]*~${suffix[1]}*")
+    fi'
+  zstyle ':completion:*:complete-fuzzy:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
+  zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
+    local word=$PREFIX$SUFFIX
+    local prefix=${(M)word##*/}
+    local suffix=${word##*/}
+    if (( ${#suffix} == 0 ))
+    then
+      reply=( "${prefix}[[:punct:]]*" )
+    else
+      if [[ $suffix == .* ]]
       then
-        local punct=${(M)suffix##[[:punct:]]##}
-        local nextchar=${suffix[${#punct}+1]}
-        reply=( "${prefix}[[:punct:]]${punct}*" "^(${prefix}*${punct}${nextchar}*)" )
+        reply=( "^(${prefix}*${suffix[1,2]}*)" )
       else
-        reply=( "${prefix}(?~${suffix[1]})*" )
+        local punct=${(M)suffix##[[:punct:]]##}
+        suffix=${suffix##[[:punct:]]##}
+        reply=( "^(${prefix}${punct}${suffix[1]}*)" )
       fi
     fi'
   zstyle -e ':completion:*' glob '
@@ -159,13 +173,26 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
 
-  zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
-  zstyle ':completion:list-expand:complete:*' ignored-patterns ''
-  zstyle ':completion:list-expand:*' tag-order ''
+  zstyle ':completion:list-expand:*' completer _expand _complete:-fuzzy _ignored _approximate
+  zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
+    local word=$PREFIX$SUFFIX
+    local prefix=${(M)word##*/}
+    local suffix=${word##*/}
+    local punct=${(M)suffix##[[:punct:]]##}
+    if (( ${#punct} == 0 ))
+    then
+      reply=( "${prefix}[[:punct:]]*" )
+    else
+      reply=( "${prefix}([[:punct:]]*~${punct}*)" )
+    fi'
+  zstyle ':completion:list-expand:*' tag-order '*'
   zstyle ':completion:list-expand:*' list-suffixes true
   zstyle ':completion:list-expand:*' path-completion true
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
   zstyle ':completion:list-expand:*' group-name ''
+  zstyle ':completion:list-expand:*' extra-verbose true
+  zstyle ':completion:list-expand:*' list-separator '-'
+
 
   if [[ ! -v key ]]
   then
