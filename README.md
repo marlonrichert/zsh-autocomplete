@@ -89,26 +89,42 @@ To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 ## Configuration
 The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
 
-### Always show matches in named groups
-By default, completion groups and duplicates matches are shown only when you press
-[<kbd>⇤</kbd>](# "shift-tab") or [<kbd>⌃␣</kbd>](# "ctrl-space"). This allows the automatic listing
-of completion matches to be as compact as possible.
+### Shorten the automatic completions list
+By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on the
+screen.
 
-To always show matches in groups (and thus show duplicate matches):
+To limit the list to a smaller height, use the following:
+```shell
+zstyle ':autocomplete:list-choices:*' max-lines 40%
+```
+You can set this to percentage of the total screen height or to a fixed number of lines. Both work.
+
+### Always show matches in named groups
+By default, completion groups and duplicates matches are shown only in certain circumstances or
+when you press [<kbd>⇤</kbd>](# "shift-tab"). This allows the automatic listing of completion
+matches to be as compact and fast as possible.
+
+To always show matches in groups (and thus show duplicate matches, too):
 ```shell
 zstyle ':autocomplete:*' groups always
 ```
+**WARNING:** Enabling this setting can noticeably decrease autocompletion performance.
 
-### Turn off automatic corrections
-By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both correct your spelling,
-while [<kbd>␣</kbd>](# "space") also does history expansions.
+### Tweak or disable automagic corrections
+By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
+your spelling.
 
-To have space do history expansion, but no spelling correction:
+To have space do history expansion, instead of spelling correction:
 ```shell
 zstyle ':autocomplete:space:*' magic expand-history
 ```
 
-To disable all automatic corrections, including history expansion:
+To make it do both:
+```shell
+zstyle ':autocomplete:space:*' magic correct-word expand-history
+```
+
+To disable all automagic corrections, including history expansion:
 ```shell
 zstyle ':autocomplete:*' magic off
 ```
@@ -136,16 +152,6 @@ selection:
 ```shell
 zstyle ':autocomplete:tab:*' completion select
 ```
-
-### Shorten the automatic completions list
-By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on the
-screen.
-
-To limit the list to a smaller height, use the following:
-```shell
-zstyle ':autocomplete:list-choices:*' max-lines 40%
-```
-You can set this to percentage of the total screen height or to a fixed number of lines. Both work.
 
 
 ## Author

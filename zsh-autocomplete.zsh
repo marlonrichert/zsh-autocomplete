@@ -152,7 +152,7 @@ _autocomplete.main.hook() {
   zstyle ':completion:*:corrections' format '%F{green}%d:%f'
   zstyle ':completion:*:expansions' format '%F{yellow}%d:%f'
   zstyle ':completion:*:expansions' group-name ''
-  zstyle ':completion:*:messages' format '%F{yellow}%d%f'
+  zstyle ':completion:*:messages' format '%F{blue}%d%f'
   zstyle ':completion:*:original' format '%F{yellow}%d:%f'
   zstyle ':completion:*:warnings' format '%F{red}%d%f'
   zstyle ':completion:*' auto-description '%F{yellow}%d%f'
@@ -353,7 +353,6 @@ _autocomplete.main.hook() {
 
   [[ ! -v sysparams ]] && zmodload -i zsh/system
   typeset -g _AUTOCOMPLETE__ASYNC_FD _AUTOCOMPLETE__CHILD_PID
-  zle -C async-list-choices list-choices _autocomplete.async-list-choices.completion-widget
   zle -N _autocomplete.async_callback
   zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
   add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.hook
@@ -366,13 +365,16 @@ _autocomplete.list-choices.hook() {
   if (( (PENDING + KEYS_QUEUED_COUNT) == 0 ))
   then
     _autocomplete._zsh_autosuggest_fetch
-    zle async-list-choices ${KEYS[-1]} 2> /dev/null
-    _autocomplete._zsh_highlight
-    _zsh_autosuggest_highlight_apply
+    if [[ $KEYS != *${key[BackTab]} ]]
+    then
+      _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
+    fi
   fi
+  _autocomplete._zsh_highlight
+  _zsh_autosuggest_highlight_apply
 }
 
-_autocomplete.async-list-choices.completion-widget() {
+_autocomplete.async-list-choices() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
   setopt nobanghist
 
@@ -384,16 +386,13 @@ _autocomplete.async-list-choices.completion-widget() {
 
 		# We won't know the pid unless the user has zsh/system module installed
 		if [[ -n "$_AUTOCOMPLETE__CHILD_PID" ]]; then
-			# Zsh will make a new process group for the child process only if job
-			# control is enabled (MONITOR option)
+			# Zsh will make a new process group for the child process only if job control is enabled
+      # (MONITOR option)
 			if [[ -o MONITOR ]]; then
-				# Send the signal to the process group to kill any processes that may
-				# have been forked by the suggestion strategy
+				# Send the signal to the process group to kill any processes that may have been forked
 				kill -TERM -$_AUTOCOMPLETE__CHILD_PID 2>/dev/null
 			else
-				# Kill just the child process since it wasn't placed in a new process
-				# group. If the suggestion strategy forked any child processes they may
-				# be orphaned and left behind.
+				# Kill just the child process since it wasn't placed in a new process group.
 				kill -TERM $_AUTOCOMPLETE__CHILD_PID 2>/dev/null
 			fi
 		fi
@@ -404,13 +403,18 @@ _autocomplete.async-list-choices.completion-widget() {
 		# Tell parent process our pid
 		echo $sysparams[pid]
 
-    local curcontext
-    _autocomplete._main_complete list-choices
-    echo -E $'\0'$1$'\0'
-    echo -E $'\0'$LBUFFER$'\0'
-    echo -E $'\0'$RBUFFER$'\0'
-    echo "${compstate[nmatches]}"
-    echo "${compstate[list_lines]}"
+    local REPLY
+    zpty _autocomplete__zpty _autocomplete.query-list-choices "\$1" "\$2" "\$3"
+  	zpty -w _autocomplete__zpty $'\t'
+
+    local line lines
+    while zpty -r _autocomplete__zpty line
+    do
+      lines+=$line
+    done
+    echo -nE $lines
+
+    zpty -d _autocomplete__zpty
   )
 
 	# Read the pid from the child process
@@ -418,6 +422,33 @@ _autocomplete.async-list-choices.completion-widget() {
 
 	# Install a widget to handle input from the fd
 	zle -F -w "$_AUTOCOMPLETE__ASYNC_FD" _autocomplete.async_callback
+}
+
+_autocomplete.query-list-choices() {
+  typeset -g __keys=${1} __lbuffer=${2} __rbuffer=${3}
+  zle-widget() {
+    RBUFFER=$__rbuffer
+    zle completion-widget
+  }
+  completion-widget() {
+    echo -nE $'\0'
+    print_comp_mesg() {
+      echo -nE "${_comp_mesg}"$'\0'
+      compstate[insert]=''
+      compstate[list_max]=0
+      compstate[list]=''
+    }
+    local curcontext
+    local -a +h comppostfuncs=( print_comp_mesg )
+    unset 'compstate[vared]'
+    _autocomplete._main_complete list-choices
+    echo -nE "${__keys}"$'\0'"${__lbuffer}"$'\0'"${__rbuffer}"$'\0'
+    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'
+  }
+  zle -N zle-widget
+  zle -C completion-widget list-choices completion-widget
+  bindkey '^I' zle-widget
+  vared __lbuffer
 }
 
 # Called when new data is ready to be read from the pipe
@@ -432,42 +463,39 @@ _autocomplete.async_callback() {
 
       (( $#BUFFER == 0 )) && return
 
-      local lastkey lbuffer rbuffer
+      local garbage comp_mesg keys lbuffer rbuffer
       local -i nmatches list_lines
-      read -r -u $1 lastkey
-      read -r -u $1 lbuffer
-      read -r -u $1 rbuffer
-      read -r -u $1 nmatches
-      read -r -u $1 list_lines
+      IFS=$'\0' read -r -u $1 garbage comp_mesg keys lbuffer rbuffer nmatches list_lines garbage
 
-      [[ $'\0'$LBUFFER$'\0' != $lbuffer || $'\0'$RBUFFER$'\0' != $rbuffer ]] && return
-
-      if [[ ${LBUFFER[-2]} != [\ \/] ]]
+      if [[ "${LBUFFER}" != "${lbuffer}" || "${RBUFFER}" != "${rbuffer}" ]]
       then
-        case $lastkey in
-          $'\0'' '$'\0')
-            if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]
-            then
-              zle .backward-delete-char
-              zle correct-word
-              if [[ ${LBUFFER[-1]} != ' ' ]]
-              then
-                LBUFFER=$LBUFFER' '
-              fi
-            fi
-            ;;
-          $'\0''/'$'\0')
-            if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]
-            then
-              zle .backward-delete-char
-              zle correct-word
-              zle .auto-suffix-remove
-              LBUFFER=$LBUFFER'/'
-            fi
-            ;;
-        esac
+        return
       fi
-      zle list-choices $nmatches $list_lines
+
+      case ${keys} in
+        ' ')
+          if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]
+          then
+            zle .backward-delete-char
+            zle correct-word
+            if [[ ${LBUFFER[-1]} != ' ' ]]
+            then
+              LBUFFER=$LBUFFER' '
+            fi
+          fi
+          ;;
+        '/')
+          if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]
+          then
+            zle .backward-delete-char
+            zle correct-word
+            zle .auto-suffix-remove
+            LBUFFER=$LBUFFER'/'
+          fi
+          ;;
+      esac
+
+      zle list-choices $nmatches $list_lines $comp_mesg
   	fi
   } always {
     _autocomplete._zsh_highlight
@@ -496,23 +524,32 @@ _autocomplete.list-choices.completion-widget() {
 
   if [[ -v 1 ]] && (( $1 == 0 ))
   then
-    _autocomplete.warning 'No matching completions found.'
+    if [[ $PREFIX$SUFFIX == '' ]]
+    then
+      if [[ $3 == 'yes' ]] && (( $2 > 0 ))
+      then
+        _autocomplete._main_complete list-choices
+      else
+        local reply _comp_mesg
+        _message "Type more..."
+      fi
+    else
+      _autocomplete.warning "No matching completions found."
+    fi
   elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > max_lines ))
   then
-    local warning='Too many completions to fit on screen. Press '
+    local warning='Too many completions to fit on screen. Type more to filter or press '
     if zle -l fzf-history-widget
     then
       warning+='Down Arrow'
     else
       warning+='Ctrl-Space'
     fi
-    warning+=' to open the menu or type more to filter.'
+    warning+=' to open the menu.'
     _autocomplete.warning $warning
   else
     _autocomplete._main_complete list-choices
   fi
-  compstate[list]='list force'
-  compstate[insert]=''
 }
 
 _autocomplete.warning() {
@@ -524,6 +561,8 @@ _autocomplete.warning() {
   local mesg
   zformat -f mesg "$format" "d:$1" "D:$1"
   compadd -x "$mesg"
+  compstate[list]='list force'
+  compstate[insert]=''
 }
 
 _autocomplete.correct-word.completion-widget() {
