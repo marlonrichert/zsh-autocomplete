@@ -269,6 +269,7 @@ _autocomplete.main.hook() {
       then
         bindkey -M menuselect $key[Tab] accept-and-hold
         bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+        bindkey -M menuselect -s $key[Undo] $key[DeleteList]$key[Undo]
       fi
       ;;
   esac
