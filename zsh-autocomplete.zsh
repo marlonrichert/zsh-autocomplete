@@ -62,6 +62,10 @@ _autocomplete.main.hook() {
   local -a option_tags=( '(|*-)argument-* (|*-)option[-+]* values' 'options' )
 
   # Remove incompatible styles.
+  zstyle -d ':completion:*' format
+  zstyle -d ':completion:*:descriptions' format
+  zstyle -d ':completion:*' group-name
+  zstyle -d ':completion:*:functions' ignored-patterns
   zstyle -d '*' single-ignored
 
   zstyle ':completion:*' completer _oldlist _list _expand _complete _match _ignored
@@ -92,12 +96,18 @@ _autocomplete.main.hook() {
     if [[ $PREFIX$SUFFIX == [-+]* ]]
     then
       reply+=( "-" )
+    else
+      reply+=( "! *remote*" )
     fi'
+  zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
+
 
   zstyle ':completion:*:expand:*' tag-order '! all-expansions original'
 
-  zstyle -e ':completion:*' max-errors '
+  zstyle -e ':completion:*:correct:*' max-errors '
     reply=( $(( min(2, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
+  zstyle -e ':completion:*:approximate:*' max-errors '
+    reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
   zstyle ':completion:*' expand prefix suffix
   zstyle ':completion:*' list-suffixes false
@@ -113,8 +123,9 @@ _autocomplete.main.hook() {
 
   local directory_tags=( local-directories directory-stack named-directories directories )
   zstyle ':completion:*' group-order all-files directories globbed-files
-  zstyle ':completion:*:-command-:*' group-order globbed-files directories all-files
+  zstyle ':completion:*:(-command-|cd|z):*' group-order globbed-files directories all-files
   zstyle ':completion:*:(all-files|globbed-files)' group-name ''
+  zstyle ':completion:*:cd|z:*:globbed-files' group-name 'directories'
   zstyle ':completion:*:('${(j:|:)directory_tags}')' group-name 'directories'
   zstyle ':completion:*:('${(j:|:)directory_tags}')' matcher 'm:{[:lower:]}={[:upper:]}'
 
@@ -143,7 +154,6 @@ _autocomplete.main.hook() {
   zstyle ':completion:correct-word:*' matcher-list ''
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order '-'
 
-  zstyle ':completion:list-choices:*' completer _expand _complete _ignored
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
 
@@ -152,8 +162,6 @@ _autocomplete.main.hook() {
   zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
   zstyle ':completion:list-expand:complete:*' ignored-patterns ''
   zstyle ':completion:list-expand:*' tag-order ''
-  zstyle -e ':completion:list-expand:*' max-errors '
-    reply="$(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric"'
   zstyle ':completion:list-expand:*' list-suffixes true
   zstyle ':completion:list-expand:*' path-completion true
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
@@ -507,6 +515,7 @@ _autocomplete.correct-word.completion-widget() {
     _main_complete _complete
     compstate[exact]='accept'
   fi
+  compstate[list]=''
 }
 
 _autocomplete.list-expand.completion-widget() {
