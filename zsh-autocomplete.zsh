@@ -580,21 +580,17 @@ _autocomplete.complete-word.zle-widget() {
 _autocomplete.complete-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
-  local +h -a comppostfuncs=( _autocomplete.insert_first_match )
-  _autocomplete._main_complete complete-word
-}
-
-_autocomplete.insert_first_match() {
   if [[ -v compstate[old_list] ]]
   then
+    compstate[old_list]='keep'
     compstate[insert]='1'
-    if [[ $compstate[context] == (command|redirect) ]]
+    if [[ ${compstate[context]} == (command|redirect) ]]
     then
       compstate[insert]+=' '
     fi
   else
-    _autocomplete.handle_long_list
+    local curcontext
+    _autocomplete._main_complete complete-word
   fi
 }
 
