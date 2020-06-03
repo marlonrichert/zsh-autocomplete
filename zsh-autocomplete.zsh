@@ -352,6 +352,7 @@ _autocomplete.main.hook() {
   fi
 
   [[ ! -v sysparams ]] && zmodload -i zsh/system
+  ! zmodload -e zsh/zpty && zmodload -i zsh/zpty
   typeset -g _AUTOCOMPLETE__ASYNC_FD _AUTOCOMPLETE__CHILD_PID
   zle -N _autocomplete.async_callback
   zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
