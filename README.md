@@ -12,7 +12,7 @@ Find-as-you-type completion for the Z Shell!
 
 
 ## Key Bindings
-Here's a list of key bindings that `zsh-autocomplete` adds to the command line.
+`zsh-autocomplete` adds the following key bindings to your command line:
 
 | Key(s) | Action |
 | --- | --- |
@@ -130,28 +130,35 @@ zstyle ':autocomplete:*' magic off
 ```
 
 ### Change [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") behavior
-By default, [<kbd>⇥</kbd>](# "tab") insert the top match. The idea is that you just keep typing
+By default, [<kbd>⇥</kbd>](# "tab") accepts the top match. The idea is that you just keep typing
 until the match you want is
-* _at_ the top, at which point you press [<kbd>⇥</kbd>](# "tab") to insert it immediately, or
+* _at_ the top, at which point you press [<kbd>⇥</kbd>](# "tab") to accept it immediately, or
 * _near_ the top, at which point you press [<kbd>↓</kbd>](# "down") to start menu selection. Then,
-  inside the menu:
-  * [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") navigate the menu,
-  * [<kbd>↩︎</kbd>](# "enter") does single selection,
-  * [<kbd>⇥</kbd>](# "tab") does multi-selection and
-  * [<kbd>⇤</kbd>](# "shift-tab") shows you more matches and/or more info (which also works from
-    the command line).
+  inside the menu, use
+  * [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") to navigate the menu,
+  * [<kbd>↩︎</kbd>](# "enter") to accept a single match,
+  * [<kbd>⇥</kbd>](# "tab") to accept multiple matches, and
+  * [<kbd>⇤</kbd>](# "shift-tab") to view more matches and/or more info (which also works from the
+    command line).
 
-To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_
-  starting menu selection):
+To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start menu selection:
+```shell
+zstyle ':autocomplete:tab:*' completion select
+```
+
+To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_ 
+starting menu selection):
 ```shell
 zstyle ':autocomplete:tab:*' completion cycle
 ```
 
-To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start menu
-selection:
+To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") insert the longest string that 
+all matches listed have in common (and after that, behave as `cycle`):
 ```shell
-zstyle ':autocomplete:tab:*' completion select
+zstyle ':autocomplete:tab:*' completion insert
 ```
+**Note:** This last option also changes the listings slightly to not do completion to the left of 
+what you've typed (unless that would result in zero matches).
 
 
 ## Author

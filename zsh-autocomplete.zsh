@@ -54,7 +54,6 @@ _autocomplete.main.hook() {
 	)
 
   [[ ! -v functions[zstyle] ]] && zmodload -i zsh/zutil
-
   local -a option_tags=( '(|*-)argument-* (|*-)option[-+]* values' 'options' )
 
   # Remove incompatible styles.
@@ -65,9 +64,16 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
-  zstyle ':completion:*' completer _oldlist _list _expand _complete _complete:-fuzzy _ignored
+  zstyle ':completion:*' completer _list _expand _complete _complete:-fuzzy _correct _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
-  zstyle ':completion:*:complete:*' matcher-list 'l:|=*'
+
+  if zstyle -m ":autocomplete:tab:" completion 'insert'; then
+    zstyle ':completion:*:complete:*' matcher-list ''
+    zstyle ':completion:*:complete:*' show-ambiguity '07'
+  else
+    zstyle ':completion:*:complete:*' matcher-list 'l:|=*'
+  fi
+
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
@@ -158,8 +164,6 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' list-separator ''
   zstyle ':completion:*' use-cache true
 
-  zstyle ':completion:(complete-word|menu-select):*' old-list always
-
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
@@ -170,7 +174,7 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
 
-  zstyle ':completion:list-expand:*' completer _expand _complete:-fuzzy _ignored _approximate
+  zstyle ':completion:list-expand:*' completer _expand _complete:-fuzzy _approximate _ignored
   zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
@@ -265,6 +269,20 @@ _autocomplete.main.hook() {
     bindkey $key[ControlSpace] menu-select
   fi
 
+  bindkey -M menuselect '^['$key[Up] vi-backward-blank-word
+  bindkey -M menuselect '^['$key[Down] vi-forward-blank-word
+
+  if zstyle -t ":autocomplete:space:" magic expand-history
+  then
+    bindkey ' ' magic-space
+    zle -N magic-space
+    magic-space() {
+      zle .expand-history
+      zle .self-insert
+    }
+  fi
+  zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
+  
   local tab_completion
   zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'
   case $tab_completion in
@@ -277,10 +295,34 @@ _autocomplete.main.hook() {
       bindkey $key[BackTab] reverse-menu-complete
       zle -C reverse-menu-complete menu-select _main_complete
       ;;
-    *)
-      bindkey $key[BackTab] list-expand
-      zle -C list-expand menu-select _autocomplete.list-expand.completion-widget
-
+    'insert')
+      bindkey $key[Tab] menu-complete
+      zle -C menu-complete menu-complete menu-complete
+      bindkey $key[BackTab] reverse-menu-complete
+      zle -C reverse-menu-complete reverse-menu-complete menu-complete
+      menu-complete() {
+        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
+        _main_complete
+        local word=$PREFIX$SUFFIX
+        if (( ${#compstate[exact_string]} > 0 ))
+        then
+          case $WIDGETSTYLE in
+            menu-complete)
+              compstate[insert]='menu:2'
+              ;;
+            reverse-menu-complete)
+              compstate[insert]='menu:-1'
+              ;;
+          esac
+        elif (( ${compstate[unambiguous_cursor]} > (${#word} + 1) ))
+        then
+          compstate[insert]='unambiguous'
+        else
+          compstate[insert]='menu'
+        fi
+      }
+      ;;
+    'accept')
       local keymap_main=$( bindkey -lL main )
       if [[ $keymap_main == *emacs* ]]
       then
@@ -297,17 +339,6 @@ _autocomplete.main.hook() {
       fi
       ;;
   esac
-
-  if zstyle -t ":autocomplete:space:" magic expand-history
-  then
-    bindkey ' ' magic-space
-    zle -N magic-space
-    magic-space() {
-      zle .expand-history
-      zle .self-insert
-    }
-  fi
-  zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
 
   # Remove `_zsh_autosuggest_start` in case we failed to prevent it being added.
   add-zsh-hook -d precmd _zsh_autosuggest_start
@@ -689,6 +720,7 @@ _autocomplete.down-line-or-menu-select.zle-widget() {
 _autocomplete.menu-select.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
+  [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
   local curcontext
   _autocomplete._main_complete menu-select
   compstate[insert]='menu'
