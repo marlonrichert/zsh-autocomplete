@@ -431,8 +431,8 @@ _autocomplete.async-list-choices() {
   	zpty -w _autocomplete__zpty $'\t'
 
         local line
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'$'\0'
         echo -nE $line
       } always {
     zpty -d _autocomplete__zpty
@@ -456,7 +456,7 @@ _autocomplete.query-list-choices() {
     zle completion-widget 2>&1
   }
   completion-widget() {
-    echo -nE $'\0'$'\0'
+    echo -nE $'\0'$'\0'$'\0'
 
     print_comp_mesg() {
       echo -nE "${(qq)_comp_mesg}"$'\0'
@@ -474,7 +474,7 @@ _autocomplete.query-list-choices() {
     compstate[list]=''
 
     echo -nE "${(qq)__keys}"$'\0'"${(qq)__lbuffer}"$'\0'"${(qq)__rbuffer}"$'\0'
-    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'$'\0'
+    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'$'\0'$'\0'
   }
   zle -N zle-widget
   zle -C completion-widget list-choices completion-widget
@@ -496,7 +496,7 @@ _autocomplete.async_callback() {
 
       local null comp_mesg keys lbuffer rbuffer
       local -i nmatches list_lines
-      IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null 2> /dev/null
+      IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null
 
       if [[ "${LBUFFER}" != "${(QQ)lbuffer}" || "${RBUFFER}" != "${(QQ)rbuffer}" ]]
       then
@@ -694,7 +694,7 @@ _autocomplete.menu-select.completion-widget() {
 }
 
 _autocomplete.up-line-or-history-search.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt localoptions extendedglob $_autocomplete__options
 
   local curcontext
   _autocomplete.curcontext up-line-or-history-search
@@ -708,6 +708,8 @@ _autocomplete.up-line-or-history-search.zle-widget() {
 }
 
 _autocomplete.history-search.zle-widget() {
+  setopt localoptions extendedglob $_autocomplete__options
+
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
   local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
@@ -716,7 +718,7 @@ _autocomplete.history-search.zle-widget() {
 }
 
 _autocomplete.expand-or-complete.zle-widget() {
-  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt localoptions extendedglob $_autocomplete__options
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
@@ -732,18 +734,15 @@ _autocomplete.expand-or-complete.zle-widget() {
   fi
 
   if [[ ${LBUFFER[-1]} != [[:IFS:]]#
-    || ${RBUFFER[1]} != [[:IFS:]]# ]]
+     || ${RBUFFER[1]} != [[:IFS:]]# ]]
   then
     zle .select-in-shell-word
     local lbuffer=$LBUFFER
-    if zle expand-word
-    then
-      return 0
-    elif [[ $lbuffer != $LBUFFER ]]
+    if ! zle expand-word && [[ $lbuffer != $LBUFFER ]]
     then
       zle .auto-suffix-remove
-      return 0
     fi
+    return 0
   fi
 
   zle fzf-completion
