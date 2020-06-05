@@ -118,7 +118,6 @@ _autocomplete.main.hook() {
     fi'
   zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
 
-
   zstyle ':completion:*:expand:*' tag-order '! all-expansions original'
 
   zstyle -e ':completion:*:correct:*' max-errors '
@@ -414,8 +413,8 @@ _autocomplete.list-choices.hook() {
 
   if [[ "$BUFFER" != "$_autocomplete__last_buffer" ]]
   then
-  _autocomplete._zsh_highlight
-  _zsh_autosuggest_highlight_apply
+    _autocomplete._zsh_highlight
+    _zsh_autosuggest_highlight_apply
     _autocomplete__last_buffer=$BUFFER
   fi
 }
@@ -821,7 +820,7 @@ _autocomplete.handle_long_list() {
   if (( (compstate[list_lines] + BUFFERLINES + 1) > max_lines ))
   then
     compstate[list]=''
-    if [[ $WIDGETSTYLE == menu-select ]]
+    if [[ $WIDGET != list-choices ]]
     then
       compstate[insert]='menu'
     fi

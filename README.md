@@ -50,6 +50,8 @@ When you source
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
+| [<kbd>⌥↓</kbd>](# "alt-down") | Jump to the next group of matches (if groups are shown) |
+| [<kbd>⌥↑</kbd>](# "alt-up") | Jump to the previous group of matches (if groups are shown)  |
 | [<kbd>↩︎</kbd>](# "enter") | Insert single match (exit menu) |
 | [<kbd>⇥</kbd>](# "tab") | Insert multiple matches (stay in menu) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info (does not work in "corrections" menu) |
@@ -71,7 +73,7 @@ Fzf integration:
 There are two ways to install `zsh-autocomplete`:
 
 ### As a Plugin
-Please refer to your plugin manager's documentation for instructions.
+Please refer to your framework's/plugin manager's documentation for instructions.
 
 **Note** for Prezto users: You need you load `zsh-autocomplete` _after or instead of_
 Prezto's built-in `completion` module.
