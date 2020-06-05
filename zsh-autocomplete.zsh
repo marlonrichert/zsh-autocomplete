@@ -7,8 +7,7 @@
   )
 
   [[ ! -v functions ]] && zmodload -i zsh/parameter
-  [[ ! -v functions[add-zsh-hook] ]] && autoload -Uz add-zsh-hook
-
+  autoload +X -Uz add-zsh-hook
   functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
   add-zsh-hook() {
     emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
@@ -67,6 +66,7 @@ _autocomplete.main.hook() {
   zstyle -d ':completion:*' group-name
   zstyle -d ':completion:*:functions' ignored-patterns
   zstyle -d '*' single-ignored
+  zstyle -d ':completion:*' special-dirs
 
   zstyle ':completion:*' completer _oldlist _list _expand _complete _complete:-fuzzy _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
@@ -196,7 +196,7 @@ _autocomplete.main.hook() {
 
   if [[ ! -v key ]]
   then
-    # This file can be generated with `autoload -U zkbd && zkbd`.
+    # This file can be generated with `autoload -Uz zkbd && zkbd`.
     # See http://zsh.sourceforge.net/Doc/Release/User-Contributions.html#Keyboard-Definition
     if [[ -r ${ZDOTDIR:-$HOME}/.zkbd/${TERM}-${VENDOR} ]]
     then
@@ -224,7 +224,7 @@ _autocomplete.main.hook() {
   fi
 
   # Make `terminfo` codes work.
-  [[ ! -v functions[add-zle-hook-widget] ]] && autoload -Uz add-zle-hook-widget
+  autoload -Uz add-zle-hook-widget
   add-zle-hook-widget line-init _autocomplete.application-mode.hook
   add-zle-hook-widget line-finish _autocomplete.raw-mode.hook
   _autocomplete.application-mode.hook() {
@@ -319,6 +319,7 @@ _autocomplete.main.hook() {
   _autocomplete.no-op() {}
   if [[ -v functions[_zsh_highlight] ]]
   then
+    autoload +X _zsh_highlight
     functions[_autocomplete._zsh_highlight]=$functions[_zsh_highlight]
     functions[_zsh_highlight]=$functions[_autocomplete.no-op]
   else
@@ -326,6 +327,7 @@ _autocomplete.main.hook() {
   fi
   if [[ -v functions[_zsh_autosuggest_fetch] ]]
   then
+    autoload +X _zsh_autosuggest_fetch
     functions[_autocomplete._zsh_autosuggest_fetch]=$functions[_zsh_autosuggest_fetch]
     functions[_zsh_autosuggest_fetch]=$functions[_autocomplete.no-op]
   else
@@ -630,6 +632,7 @@ _autocomplete.complete-word.zle-widget() {
   if [[ $POSTDISPLAY != \0# ]]
   then
     {
+      autoload +X _zsh_autosuggest_invoke_original_widget
       functions[_autocomplete.tmp]=$functions[_zsh_autosuggest_invoke_original_widget]
       _zsh_autosuggest_invoke_original_widget() {
         zle .forward-word
