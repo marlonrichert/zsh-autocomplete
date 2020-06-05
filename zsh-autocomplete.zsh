@@ -52,9 +52,6 @@ _autocomplete.main.hook() {
     forward-word emacs-forward-word
     vi-forward-word vi-forward-word-end vi-forward-blank-word vi-forward-blank-word-end
 	)
-  [[ ! -v FZF_COMPLETION_TRIGGER ]] && export FZF_COMPLETION_TRIGGER=''
-  [[ ! -v fzf_default_completion ]] && export fzf_default_completion='list-expand'
-  [[ ! -v FZF_DEFAULT_OPTS ]] && export FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
 
   [[ ! -v functions[zstyle] ]] && zmodload -i zsh/zutil
 
@@ -258,7 +255,7 @@ _autocomplete.main.hook() {
     zle -N up-line-or-history-search _autocomplete.up-line-or-history-search.zle-widget
 
     bindkey '^['$key[Up] history-search
-    zle -N history-search fzf-history-widget
+    zle -N history-search _autocomplete.history-search.zle-widget
 
     bindkey $key[Down] down-line-or-menu-select
     zle -N down-line-or-menu-select _autocomplete.down-line-or-menu-select.zle-widget
@@ -499,7 +496,7 @@ _autocomplete.async_callback() {
 
       local null comp_mesg keys lbuffer rbuffer
       local -i nmatches list_lines
-      IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null
+      IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null 2> /dev/null
 
       if [[ "${LBUFFER}" != "${(QQ)lbuffer}" || "${RBUFFER}" != "${(QQ)rbuffer}" ]]
       then
@@ -703,8 +700,20 @@ _autocomplete.up-line-or-history-search.zle-widget() {
   fi
 }
 
+_autocomplete.history-search.zle-widget() {
+  local FZF_COMPLETION_TRIGGER=''
+  local fzf_default_completion='list-expand'
+  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
+
+  zle fzf-history-widget
+}
+
 _autocomplete.expand-or-complete.zle-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+  local FZF_COMPLETION_TRIGGER=''
+  local fzf_default_completion='list-expand'
+  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
@@ -716,7 +725,7 @@ _autocomplete.expand-or-complete.zle-widget() {
   fi
 
   if [[ ${LBUFFER[-1]} != [[:IFS:]]#
-     || ${RBUFFER[1]} != [[:IFS:]]# ]]
+    || ${RBUFFER[1]} != [[:IFS:]]# ]]
   then
     zle .select-in-shell-word
     local lbuffer=$LBUFFER
