@@ -526,10 +526,13 @@ _autocomplete.async_callback() {
           ;;
       esac
 
+      # If a widget can't be called, ZLE always returns 0.
+      # Thus, we return 1 on purpose, so we can check if the widget got called.
       zle list-choices $nmatches $list_lines $comp_mesg
+      local ret=$?
     _autocomplete._zsh_highlight
     _zsh_autosuggest_highlight_apply
-    zle -R
+      (( ret == 1 )) && zle -R
   	fi
   } always {
     if [[ -n "$1" ]] && { true <&$1 } 2>/dev/null
@@ -582,6 +585,10 @@ _autocomplete.list-choices.completion-widget() {
   fi
   compstate[list]='list force'
   compstate[insert]=''
+
+  # If a widget can't be called, ZLE always returns 0.
+  # Thus, we return 1 on purpose, so we can check if the widget got called.
+  return 1
 }
 
 _autocomplete.warning() {
