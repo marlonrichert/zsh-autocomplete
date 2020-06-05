@@ -364,8 +364,6 @@ _autocomplete.main.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  _autocomplete.cancel_async
-
   if (( ${#BUFFER} == 0 ))
   then
     return
@@ -418,6 +416,8 @@ _autocomplete.cancel_async() {
 _autocomplete.async-list-choices() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
   setopt nobanghist
+
+  _autocomplete.cancel_async
 
   {
 	# Fork a process and open a pipe to read from it
