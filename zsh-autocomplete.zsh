@@ -712,7 +712,7 @@ _autocomplete.history-search.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  local FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --bind=ctrl-space:abort,ctrl-k:kill-line'
 
   zle fzf-history-widget
 }
@@ -722,7 +722,7 @@ _autocomplete.expand-or-complete.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  local FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --bind=ctrl-space:abort,ctrl-k:kill-line'
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
