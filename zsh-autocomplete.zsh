@@ -712,7 +712,10 @@ _autocomplete.history-search.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --bind=ctrl-space:abort,ctrl-k:kill-line'
+  if (( ! ${+ZSH_AUTOCOMPLETE_FZF_OPTS_CMD} )); then
+	local ZSH_AUTOCOMPLETE_FZF_OPTS_CMD='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  fi
+  local FZF_DEFAULT_OPTS=$ZSH_AUTOCOMPLETE_FZF_OPTS_CMD
 
   zle fzf-history-widget
 }
@@ -722,7 +725,10 @@ _autocomplete.expand-or-complete.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --bind=ctrl-space:abort,ctrl-k:kill-line'
+  if (( ! ${+ZSH_AUTOCOMPLETE_FZF_OPTS_FILE} )); then
+	local ZSH_AUTOCOMPLETE_FZF_OPTS_FILE='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  fi
+  local FZF_DEFAULT_OPTS=$ZSH_AUTOCOMPLETE_FZF_OPTS_FILE
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
