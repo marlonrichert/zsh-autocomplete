@@ -431,8 +431,8 @@ _autocomplete.async-list-choices() {
   	zpty -w _autocomplete__zpty $'\t'
 
         local line
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'$'\0'
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
         echo -nE $line
       } always {
     zpty -d _autocomplete__zpty
@@ -456,7 +456,7 @@ _autocomplete.query-list-choices() {
     zle completion-widget 2>&1
   }
   completion-widget() {
-    echo -nE $'\0'$'\0'$'\0'
+    echo -nE $'\0'$'\0'
 
     print_comp_mesg() {
       echo -nE "${(qq)_comp_mesg}"$'\0'
@@ -473,8 +473,8 @@ _autocomplete.query-list-choices() {
     compstate[list_max]=0
     compstate[list]=''
 
-    echo -nE "${(qq)__keys}"$'\0'"${(qq)__lbuffer}"$'\0'"${(qq)__rbuffer}"$'\0'
-    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'$'\0'$'\0'
+    echo -nE "${(q)__keys}"$'\0'"${(q)__lbuffer}"$'\0'"${(q)__rbuffer}"$'\0'
+    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'$'\0'
   }
   zle -N zle-widget
   zle -C completion-widget list-choices completion-widget
@@ -495,15 +495,16 @@ _autocomplete.async_callback() {
       (( $#BUFFER == 0 )) && return
 
       local null comp_mesg keys lbuffer rbuffer
-      local -i nmatches list_lines
+      local nmatches list_lines
       IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null
+      # echo -E "comp_mesg=$comp_mesg keys=$keys lbuffer=$lbuffer rbuffer=$rbuffer nmatches=$nmatches list_lines=$list_lines null=$null"
 
-      if [[ "${LBUFFER}" != "${(QQ)lbuffer}" || "${RBUFFER}" != "${(QQ)rbuffer}" ]]
+      if [[ "${LBUFFER}" != "${(Q)lbuffer}" || "${RBUFFER}" != "${(Q)rbuffer}" ]]
       then
         return
       fi
 
-      case ${(QQ)keys} in
+      case ${(Q)keys} in
         ' ')
           if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]
           then
@@ -712,7 +713,7 @@ _autocomplete.history-search.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind=ctrl-space:abort,ctrl-k:kill-line"
 
   zle fzf-history-widget
 }
@@ -722,7 +723,7 @@ _autocomplete.expand-or-complete.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS='--bind=ctrl-space:abort,ctrl-k:kill-line'
+  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind=ctrl-space:abort,ctrl-k:kill-line"
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
