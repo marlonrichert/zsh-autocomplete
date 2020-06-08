@@ -91,15 +91,24 @@ To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 ## Configuration
 The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
 
+### Wait for minimum amount of input
+By default, `zsh-autocomplete` will show completions as soon as you start typing.
+
+To make it stay silent until a minimum number of characters have been typed:
+```shell
+zstyle ':autocomplete:list-choices:*' min-input 3
+```
+
 ### Shorten the automatic completions list
-By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on the
-screen.
+By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on 
+the screen.
 
 To limit the list to a smaller height, use the following:
 ```shell
 zstyle ':autocomplete:list-choices:*' max-lines 40%
 ```
-You can set this to percentage of the total screen height or to a fixed number of lines. Both work.
+You can set this to a percentage of the total screen height or to a fixed number of lines. Both 
+work.
 
 ### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only in certain circumstances or

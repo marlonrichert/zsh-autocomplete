@@ -586,9 +586,16 @@ _autocomplete.list-choices.completion-widget() {
   _autocomplete.max_lines
   local max_lines=REPLY
 
-  if [[ -v 1 ]] && (( $1 == 0 ))
+  local min_input
+  zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
+
+  local word=$PREFIX$SUFFIX
+  if (( CURRENT == 1 && ${#word} < min_input ))
   then
-    if [[ $PREFIX$SUFFIX == '' ]]
+    :
+  elif [[ -v 1 ]] && (( $1 == 0 ))
+  then
+    if [[ $word == '' ]]
     then
       if [[ $3 == 'yes' ]] && (( $2 > 0 ))
       then
