@@ -17,26 +17,29 @@
     fi
   }
 
+  typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=1
+  typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
   zmodload -i zsh/parameter # `functions` array
   autoload -Uz zmathfunc && zmathfunc # `min` function
   autoload -Uz add-zle-hook-widget
+  [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
 
   [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
     ALWAYS_TO_END COMPLETE_ALIASES GLOB_COMPLETE GLOB_DOTS LIST_PACKED
     no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
   )
 
-  [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
-
-  typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=1
-  typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+  # Workaround for issue #43
+  # https://github.com/marlonrichert/zsh-autocomplete/issues/43
+  zle -N zle-line-finish azhw:zle-line-finish
 
   # Make `terminfo` codes work.
   add-zle-hook-widget line-init _autocomplete.application-mode.hook
-  add-zle-hook-widget line-finish _autocomplete.raw-mode.hook
   _autocomplete.application-mode.hook() {
     echoti smkx
   }
+  add-zle-hook-widget line-finish _autocomplete.raw-mode.hook
   _autocomplete.raw-mode.hook() {
     echoti rmkx
   }
@@ -49,31 +52,6 @@ _autocomplete.main.hook() {
 
   # Remove itself after being called.
   add-zsh-hook -d precmd _autocomplete.main.hook
-
-  # Monkeypatch functions from `zsh-autosuggestions` and syntax highlighting.
-  _autocomplete.no-op() {}
-  if [[ -v functions[_zsh_highlight] ]]; then
-    autoload +X _zsh_highlight
-    functions[_autocomplete._zsh_highlight]=$functions[_zsh_highlight]
-    functions[_zsh_highlight]=$functions[_autocomplete.no-op]
-  else
-    functions[_autocomplete._zsh_highlight]=$functions[_autocomplete.no-op]
-  fi
-  if [[ -v functions[_zsh_autosuggest_fetch] ]]; then
-    autoload +X _zsh_autosuggest_fetch
-    functions[_autocomplete._zsh_autosuggest_fetch]=$functions[_zsh_autosuggest_fetch]
-    functions[_zsh_autosuggest_fetch]=$functions[_autocomplete.no-op]
-  else
-    functions[_autocomplete._zsh_autosuggest_fetch]=$functions[_autocomplete.no-op]
-  fi
-  if [[ ! -v functions[_zsh_autosuggest_highlight_apply] ]]; then
-    functions[_zsh_autosuggest_highlight_apply]=$functions[_autocomplete.no-op]
-  fi
-
-  [[ -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] && ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(
-    forward-char 
-    vi-forward-char
-  )
 
   zmodload -i zsh/zutil # `zstyle` builtin
   local -a option_tags=( '(|*-)argument-* (|*-)option[-+]* values' 'options' )
@@ -329,14 +307,13 @@ _autocomplete.main.hook() {
       ;;
     'accept')
       zstyle ':autocomplete:tab:*' completion accept
-      bindkey $key[Tab] complete-word
       if [[ -v functions[_zsh_autosuggest_invoke_original_widget] ]]; then
-        zle -N complete-word _autocomplete.complete-word.zle-widget
-        zle -C _complete_word complete-word _autocomplete.complete-word.completion-widget
-        ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=( complete-word )
+        bindkey $key[Tab] _complete_word
+        zle -N _complete_word _autocomplete.complete-word.zle-widget
       else
-        zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
+        bindkey $key[Tab] complete-word
       fi
+      zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
       bindkey $key[BackTab] list-expand
       zle -C list-expand menu-select _autocomplete.list-expand.completion-widget
 
@@ -354,23 +331,31 @@ _autocomplete.main.hook() {
       ;;
   esac
 
-  if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]]; then
-    ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
-      correct-word
-      list-choices
-      prompt_\*
-      user:_zsh_highlight_widget_\*-zle-line-finish 
-    )
+  [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
+    prompt_\*
+    user:_zsh_highlight_widget_\*-zle-line-finish 
+  )
+  [[ -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] && ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(
+    forward-char 
+    vi-forward-char
+  )
+
+  _autocomplete.no-op() { :; }
+  if [[ ! -v functions[_zsh_highlight] ]]; then 
+    functions[_zsh_highlight]=$functions[_autocomplete.no-op]
   fi
-  
+  if [[ ! -v functions[_zsh_autosuggest_highlight_apply] ]]; then 
+    functions[_zsh_autosuggest_highlight_apply]=$functions[_autocomplete.no-op]
+  fi
+
   [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
 
   zmodload -i zsh/system # `sysparams` array
   zmodload -i zsh/zpty
   typeset -g _autocomplete__last_buffer _autocomplete__async_fd
-  typeset -g -a -U _autocomplete__child_pids=( )
+  typeset -gaU _autocomplete__child_pids=( )
   zle -N _autocomplete.async_callback
-  zle -C list-choices list-choices _autocomplete.list-choices.completion-widget
+  zle -C _list_choices list-choices _autocomplete.list-choices.completion-widget
   add-zle-hook-widget line-pre-redraw _autocomplete.list-choices.hook
   add-zsh-hook preexec _autocomplete.cancel_async
   add-zsh-hook zshexit _autocomplete.cancel_async
@@ -379,22 +364,13 @@ _autocomplete.main.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  if (( ${#BUFFER} == 0 || (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
+  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
     return
   fi
-
-  if [[ "$BUFFER" != "$_autocomplete__last_buffer" ]]; then
-    _autocomplete._zsh_autosuggest_fetch
+  if zstyle -m ":autocomplete:tab:" completion 'accept' && [[ $KEYS == *${key[BackTab]} ]]; then
+    return
   fi
-  if ! (zstyle -m ":autocomplete:tab:" completion 'accept' && [[ $KEYS == *${key[BackTab]} ]]); then
-    _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
-  fi
-
-  if [[ "$BUFFER" != "$_autocomplete__last_buffer" ]]; then
-    _autocomplete._zsh_highlight
-    _zsh_autosuggest_highlight_apply
-    _autocomplete__last_buffer=$BUFFER
-  fi
+  _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
 }
 
 _autocomplete.cancel_async() {
@@ -532,11 +508,13 @@ _autocomplete.async_callback() {
 
       # If a widget can't be called, ZLE always returns 0.
       # Thus, we return 1 on purpose, so we can check if our widget got called.
-      zle list-choices $nmatches $list_lines $comp_mesg
-      local ret=$?
-      _autocomplete._zsh_highlight
-      _zsh_autosuggest_highlight_apply
-      (( ret == 1 )) && zle -R
+      zle _list_choices $nmatches $list_lines $comp_mesg
+      if (( ? == 1 )); then
+        unset _ZSH_HIGHLIGHT_PRIOR_BUFFER
+        _zsh_highlight
+        _zsh_autosuggest_highlight_apply
+        zle -R
+      fi
   	fi
   } always {
     if [[ -n "$1" ]] && { true <&$1 } 2>/dev/null; then
@@ -634,23 +612,12 @@ _autocomplete.list-expand.completion-widget() {
 _autocomplete.complete-word.zle-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local lbuffer=$LBUFFER
-  if [[ $POSTDISPLAY != \0# ]]; then
-    {
-      autoload +X _zsh_autosuggest_invoke_original_widget
-      functions[_autocomplete.tmp]=$functions[_zsh_autosuggest_invoke_original_widget]
-      _zsh_autosuggest_invoke_original_widget() {
-        zle .forward-word
-      }
-      _zsh_autosuggest_partial_accept
-    } always {
-      unfunction _zsh_autosuggest_invoke_original_widget
-      functions[_zsh_autosuggest_invoke_original_widget]=$functions[_autocomplete.tmp]
-      return 0
-    }
+  local lbuffer="$LBUFFER"
+  if (( $#RBUFFER == 0 && $#POSTDISPLAY > 0 )); then
+    zle forward-word
   fi
-  if [[ $lbuffer == $LBUFFER ]]; then
-    zle _complete_word
+  if [[ "$lbuffer" == "$LBUFFER" ]]; then
+    zle complete-word
   fi
 }
 
