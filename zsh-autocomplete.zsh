@@ -270,6 +270,7 @@ _autocomplete.main.hook() {
     }
   fi
   zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
+  bindkey '^[ ' self-insert-unmeta
   
   local tab_completion
   zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'

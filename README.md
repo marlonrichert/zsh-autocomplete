@@ -21,6 +21,7 @@ Find-as-you-type completion for the Z Shell!
 | [<kbd>⌃␣</kbd>](# "down") | Enter completion menu[<sup>note</sup>](#with-fzf) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
 | [<kbd>␣</kbd>](# "space") | Insert space and correct spelling or do history expansion |
+| [<kbd>⌥␣</kbd>](# "alt-space") | Insert space (_without_ correct spelling or history expansion) |
 
 ### With `zsh-autosuggestions`
 When you source
