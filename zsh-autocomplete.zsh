@@ -149,11 +149,9 @@ _autocomplete.main.hook() {
     zstyle ':completion:*' group-name ''
   fi
 
-  zstyle ':completion:*:corrections' format '%F{green}%d:%f'
   zstyle ':completion:*:expansions' format '%F{yellow}%d:%f'
   zstyle ':completion:*:expansions' group-name ''
   zstyle ':completion:*:messages' format '%F{blue}%d%f'
-  zstyle ':completion:*:original' format '%F{yellow}%d:%f'
   zstyle ':completion:*:warnings' format '%F{red}%d%f'
   zstyle ':completion:*' auto-description '%F{yellow}%d%f'
 
@@ -162,8 +160,10 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' use-cache true
 
   zstyle ':completion:correct-word:*' accept-exact true
+  zstyle ':completion:correct-word:*' add-space false
   zstyle ':completion:correct-word:*' glob false
   zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle -e ':completion:correct-word:complete:*' ignored-patterns 'reply=( "^($PREFIX$SUFFIX)" )'
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order '-'
 
   zstyle ':completion:list-choices:*' glob false
@@ -493,16 +493,15 @@ _autocomplete.async_callback() {
       case ${(Q)keys} in
         ' ')
           if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]; then
-            zle .backward-delete-char
+            (( CURSOR-- ))
             zle correct-word
-            if [[ ${LBUFFER[-1]} != ' ' ]]; then
-              LBUFFER=$LBUFFER' '
-            fi
+            zle .auto-suffix-remove
+            (( CURSOR++ ))
           fi
           ;;
         '/')
           if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]; then
-            zle .backward-delete-char
+            LBUFFER=${LBUFFER[1,-2]}
             zle correct-word
             zle .auto-suffix-remove
             LBUFFER=$LBUFFER'/'
@@ -598,12 +597,16 @@ _autocomplete.correct-word.completion-widget() {
 
   local curcontext
   _autocomplete.curcontext correct-word
-  _main_complete _correct
-  if (( compstate[nmatches] > 0 )); then
-    _main_complete _complete
-    compstate[exact]='accept'
+
+  _main_complete _complete
+  if [[ -v compstate[exact_string] || "${compstate[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
+    compstate[insert]=''
+    return 0
   fi
-  compstate[list]=''
+
+  _main_complete _correct
+  compstate[insert]='1'
+  return ${compstate[nmatches]}
 }
 
 _autocomplete.list-expand.completion-widget() {
