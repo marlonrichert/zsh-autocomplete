@@ -64,6 +64,9 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
+  zstyle ':zle:up-line-or-beginning-search' leave-cursor no
+  zstyle ':zle:down-line-or-beginning-search' leave-cursor no
+
   zstyle ':completion:*' completer _list _expand _complete _complete:-fuzzy _correct _ignored
   zstyle ':completion:*' menu 'yes select=long-list'
 
