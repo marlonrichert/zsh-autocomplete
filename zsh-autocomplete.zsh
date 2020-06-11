@@ -67,43 +67,25 @@ _autocomplete.main.hook() {
   zstyle ':zle:up-line-or-beginning-search' leave-cursor no
   zstyle ':zle:down-line-or-beginning-search' leave-cursor no
 
-  zstyle ':completion:*' completer _list _expand _complete _complete:-fuzzy _correct _ignored
+  zstyle ':completion:*' completer _list _expand _complete _ignored _approximate
   zstyle ':completion:*' menu 'yes select=long-list'
 
   if zstyle -m ":autocomplete:tab:" completion 'insert'; then
-    zstyle ':completion:*:complete:*' matcher-list ''
     zstyle ':completion:*:complete:*' show-ambiguity '07'
-  else
-    zstyle ':completion:*:complete:*' matcher-list 'l:|=*'
   fi
 
+  zstyle ':completion:*:complete:*' matcher-list \
+    'r:|?=**' '+m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
     local suffix=${word##*/}
-    if (( ${#suffix} == 0 )); then
-      reply=( "${prefix}[[:punct:]]*" )
+    local punct=${(M)suffix##[[:punct:]]##}
+    if [[ $punct == "." ]]; then
+      reply=( "^(${(b)prefix}*(#i)${(b)suffix}*)" )
     else
-      local punct=${(M)suffix##[[:punct:]]##}
-      suffix=${suffix##[[:punct:]]##}
-      reply=( "[[:punct:]]*~${punct}[^[:punct:]]*"
-              "[[:upper:]]*~${suffix[1]}*")
-    fi'
-  zstyle ':completion:*:complete-fuzzy:*' matcher-list 'm:{[:lower:]-}={[:upper:]_} r:|?=**'
-  zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
-    local word=$PREFIX$SUFFIX
-    local prefix=${(M)word##*/}
-    local suffix=${word##*/}
-    if (( ${#suffix} == 0 )); then
-      reply=( "${prefix}[[:punct:]]*" )
-    else
-      if [[ $suffix == .* ]]; then
-        reply=( "^(${prefix}*${suffix[1,2]}*)" )
-      else
-        local punct=${(M)suffix##[[:punct:]]##}
-        suffix=${suffix##[[:punct:]]##}
-        reply=( "^(${prefix}${punct}${suffix[1]}*)" )
-      fi
+      reply=( "^(${(b)prefix}(#i)${(b)suffix}*)"
+              "${(b)prefix}${punct}[[:punct:]]*" )
     fi'
   zstyle -e ':completion:*' glob '
     [[ $PREFIX$SUFFIX == *[\*\(\|\<\[\?\^\#]* ]] && reply=( "true" ) || reply=( "false" )'
@@ -119,9 +101,7 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:*:expand:*' tag-order '! all-expansions original'
 
-  zstyle -e ':completion:*:correct:*' max-errors '
-    reply=( $(( min(2, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
-  zstyle -e ':completion:*:approximate:*' max-errors '
+  zstyle -e ':completion:*' max-errors '
     reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
   zstyle ':completion:*' expand prefix suffix
@@ -162,7 +142,9 @@ _autocomplete.main.hook() {
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' add-space false
   zstyle ':completion:correct-word:*' glob false
+  zstyle ':completion:correct-word:*' completer _approximate
   zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle ':completion:correct-word:*' ignored-patterns '[[:punct:]]*'
   zstyle -e ':completion:correct-word:complete:*' ignored-patterns 'reply=( "^($PREFIX$SUFFIX)" )'
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order '-'
 
@@ -171,17 +153,15 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
 
-  zstyle ':completion:list-expand:*' completer _expand _complete:-fuzzy _approximate _ignored
-  zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
+  zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
+  zstyle ':completion:list-expand:complete:*' matcher-list \
+  'r:|?=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+  zstyle -e ':completion:list-expand:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
     local suffix=${word##*/}
     local punct=${(M)suffix##[[:punct:]]##}
-    if (( ${#punct} == 0 )); then
-      reply=( "${prefix}[[:punct:]]*" )
-    else
-      reply=( "${prefix}([[:punct:]]*~${punct}*)" )
-    fi'
+    reply=( "${(b)prefix}${punct}[[:punct:]]*" )'
   zstyle ':completion:list-expand:*' tag-order '*'
   zstyle ':completion:list-expand:*' list-suffixes true
   zstyle ':completion:list-expand:*' path-completion true
@@ -613,7 +593,7 @@ _autocomplete.correct-word.completion-widget() {
     return 0
   fi
 
-  _main_complete _correct
+  _main_complete
   compstate[insert]='1'
   return ${compstate[nmatches]}
 }
