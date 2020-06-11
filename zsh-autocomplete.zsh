@@ -189,6 +189,7 @@ _autocomplete.main.hook() {
   zstyle ':completion:list-expand:*' group-name ''
   zstyle ':completion:list-expand:*' extra-verbose true
   zstyle ':completion:list-expand:*' list-separator '-'
+  zstyle ':completion:list-expand:*' menu 'yes select'
 
   # Initialize completion system, if it hasn't been done yet.
   # `zsh/complist` should be loaded _before_ `compinit`.
@@ -748,7 +749,7 @@ _autocomplete._main_complete() {
 _autocomplete.handle_long_list() {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-  compstate[insert]=''
+  # compstate[insert]=''
   compstate[list_max]=0
   _autocomplete.max_lines
   local max_lines=REPLY
