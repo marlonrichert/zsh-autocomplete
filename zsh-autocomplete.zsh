@@ -438,6 +438,14 @@ _autocomplete.async-list-choices() {
 }
 
 _autocomplete.query-list-choices() {
+  local hook_functions=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
+  local f; for f in $hook_functions; do 
+    unset ${f}_functions &> /dev/null
+    unfunction $f &> /dev/null
+  done
+  zle -D zle-isearch-exit zle-isearch-update zle-line-pre-redraw zle-line-init zle-line-finish \
+         zle-history-line-set zle-keymap-select &> /dev/null
+
   typeset -g __keys=${1} __lbuffer=${2} __rbuffer=${3}
   zle-widget() {
     RBUFFER=$__rbuffer
