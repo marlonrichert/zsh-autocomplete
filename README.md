@@ -1,10 +1,12 @@
 # zsh-autocomplete
 Find-as-you-type completion for the Z Shell!
 * **Asynchronously** shows completions **as you type**.
-  * With [IDE-like keybindings](#key-bindings) to choose and insert them.
-* Automatically corrects misspelled words.
-  * Don't like a correction? Press Undo to revert it.
-* Integrates seamlessly with `fzf`, `zsh-autosuggestions` and `zsh-syntaxhighlighting`.
+  * With [IDE-like keybindings](#key-bindings) to choose completions and insert them.
+* Automagically corrects misspellings, expands aliases and does history expansions.
+  * Don't like a correction/expansion? Just press Undo to revert it.
+* Integrates seamlessly with `fzf`, `zsh-autosuggestions` and
+  `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
+* Includes completion results from `zoxide`, `z.lua`, `z.sh`, `autojump` and `fasd`.
 
 
 ## Demo

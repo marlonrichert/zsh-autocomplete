@@ -84,8 +84,7 @@ _autocomplete.main.hook() {
       reply=( "^(${(b)prefix}${punct}(#i)${(b)nonpunct[1]}*)"
               "${(b)prefix}${punct}[[:punct:]]*" )
     fi'
-  zstyle -e ':completion:*' glob '
-    [[ $PREFIX$SUFFIX == *[\*\(\|\<\[\?\^\#]* ]] && reply=( "true" ) || reply=( "false" )'
+  zstyle ':completion:*:complete:*:path-directories' ignored-patterns '/'
 
   zstyle -e ':completion:*' tag-order '
     reply=( "(|*-)argument-* (|*-)option[-+]* values" "options" )
@@ -102,24 +101,12 @@ _autocomplete.main.hook() {
     reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
   zstyle ':completion:*' expand prefix suffix
-  zstyle ':completion:*' list-suffixes false
-  zstyle ':completion:*' path-completion false
-  zstyle ':completion:*:(-command-|cd|z):*' list-suffixes true
-  zstyle ':completion:*:(-command-|cd|z):*' path-completion true
+  zstyle ':completion:*' list-suffixes true
+  zstyle ':completion:*' path-completion true
 
-  zstyle ':completion:*' file-patterns \
-    '*(#q^-/):all-files:file *(-/):directories:directory' '%p:globbed-files:"file or directory"'
-  zstyle ':completion:*:-command-:*' file-patterns \
-    '*(-/):directories:directory %p(#q^-/):globbed-files:executable' '*:all-files:file'
-  zstyle ':completion:*:z:*' file-patterns '%p(-/):directories:directory'
-
-  local directory_tags=( local-directories directory-stack named-directories directories )
-  zstyle ':completion:*' group-order all-files directories globbed-files
-  zstyle ':completion:*:(-command-|cd|z):*' group-order globbed-files directories all-files
-  zstyle ':completion:*:(all-files|globbed-files)' group-name ''
-  zstyle ':completion:*:cd|z:*:globbed-files' group-name 'directories'
-  zstyle ':completion:*:('${(j:|:)directory_tags}')' group-name 'directories'
-  zstyle ':completion:*:('${(j:|:)directory_tags}')' matcher 'm:{[:lower:]}={[:upper:]}'
+  zstyle ':completion:*' list-dirs-first true
+  zstyle ':completion:*:(directories|*-directories|directory-*)' group-name 'directories'
+  zstyle ':completion:*' group-order 'directories'
 
   if zstyle -t ':autocomplete:' groups 'always'; then
     zstyle ':completion:*' format '%F{yellow}%d:%f'
@@ -158,6 +145,7 @@ _autocomplete.main.hook() {
     local suffix=${word##*/}
     local punct=${(M)suffix##[[:punct:]]##}
     reply=( "${(b)prefix}${punct}[[:punct:]]*" )'
+  zstyle ':completion:list-expand:complete:*:path-directories' ignored-patterns '/'
   zstyle ':completion:list-expand:*' tag-order '*'
   zstyle ':completion:list-expand:*' list-suffixes true
   zstyle ':completion:list-expand:*' path-completion true
@@ -248,7 +236,7 @@ _autocomplete.main.hook() {
   fi
   zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
   bindkey '^[ ' self-insert-unmeta
-  
+
   local tab_completion
   zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'
   case $tab_completion in
@@ -294,6 +282,7 @@ _autocomplete.main.hook() {
         bindkey $key[Tab] complete-word
       fi
       zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
+
       bindkey $key[BackTab] list-expand
       zle -C list-expand menu-select _autocomplete.list-expand.completion-widget
 
@@ -313,22 +302,108 @@ _autocomplete.main.hook() {
 
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
     prompt_\*
-    user:_zsh_highlight_widget_\*-zle-line-finish 
+    user:_zsh_highlight_widget_\*-zle-line-finish
   )
   [[ -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] && ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(
-    forward-char 
+    forward-char
     vi-forward-char
   )
 
   _autocomplete.no-op() { :; }
-  if [[ ! -v functions[_zsh_highlight] ]]; then 
+  if [[ ! -v functions[_zsh_highlight] ]]; then
     functions[_zsh_highlight]=$functions[_autocomplete.no-op]
   fi
-  if [[ ! -v functions[_zsh_autosuggest_highlight_apply] ]]; then 
+  if [[ ! -v functions[_zsh_autosuggest_highlight_apply] ]]; then
     functions[_zsh_autosuggest_highlight_apply]=$functions[_autocomplete.no-op]
   fi
 
   [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
+
+  if [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]]; then
+    _autocomplete.zdirs() {
+      reply=( $( zoxide query $1 2> /dev/null ) )
+    }
+  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]]; then
+    _autocomplete.zdirs() {
+      reply=(
+        "${(@)${(f)$( _zlua -l $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
+      )
+    }
+  elif [[ -v functions[_z] && -v functions[_z_precmd] ]]; then
+    _autocomplete.zdirs() {
+      reply=(
+        "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|[[:digit:]]##)[[:space:]]##}"
+      )
+    }
+  elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]]; then
+    _autocomplete.zdirs() {
+      reply=(
+        "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__[[:digit:]]__}"
+      )
+    }
+  elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]]; then
+    _autocomplete.zdirs() {
+      reply=(
+        "${(@)${(f)$( fasd --query d $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
+      )
+    }
+  fi
+  if [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]]; then
+    _autocomplete.zfiles() {
+      reply=(
+        "${(@)${(f)$( fasd --query f $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
+      )
+    }
+  fi
+  if [[ -v functions[_autocomplete.zdirs] ]]; then
+    autoload +X -Uz _path_files
+    functions[_autocomplete._path_files]=$functions[_path_files]
+
+    _path_files() {
+      setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+      _autocomplete._path_files "$@"
+      local ret=$?
+      [[ $_completer != complete ]] && return ret
+
+      local word="$PREFIX$SUFFIX"
+      typeset -gaU reply
+      _autocomplete.zdirs "$word"
+      (( ? != 0 )) && return ret
+
+      word=${word:P}
+      local dir expl prefix
+      local -a display
+      for dir in $reply; do
+        dir=${dir:P}
+        prefix="${dir:h}"
+        [[ "$word" == ("$dir"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
+        prefix="$prefix/"
+        display=( $dir )
+        _wanted path-directories expl 'frequent or recent directory' \
+          compadd -Qf -V path-directories -W $prefix -P $prefix -d display -U - ${dir:t}
+      done
+
+      local mopts tmp1
+      zparseopts -E -a mopts '/=tmp1'
+      [[ -z tmp1 || ! -v functions[_autocomplete.zfiles] ]] && return ret
+
+      word="$PREFIX$SUFFIX"
+      _autocomplete.zfiles "$word"
+      (( ? != 0 )) && return ret
+
+      local file
+      for file in $reply; do
+        file=${file:P}
+        prefix="${file:h}"
+        [[ "$word" == ("$file"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
+        prefix="$prefix/"
+        display=( $file )
+        _wanted files expl 'frequent or recent file' \
+          compadd -Qf -V files -W $prefix -P $prefix -d display -U - ${file:t}
+      done
+    }
+  fi
 
   zmodload -i zsh/system # `sysparams` array
   zmodload -i zsh/zpty
