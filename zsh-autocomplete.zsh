@@ -64,9 +64,6 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
-  zstyle ':zle:up-line-or-beginning-search' leave-cursor no
-  zstyle ':zle:down-line-or-beginning-search' leave-cursor no
-
   zstyle ':completion:*' completer _list _expand _complete _ignored _approximate
   zstyle ':completion:*' menu 'yes select=long-list'
 
@@ -349,12 +346,12 @@ _autocomplete.main.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
+  (( (PENDING + KEYS_QUEUED_COUNT) > 0 )) && return
+  [[ $KEYS == *(${key[Up]}|${key[Down]}) ]] && return
+  if [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept'; then
     return
   fi
-  if zstyle -m ":autocomplete:tab:" completion 'accept' && [[ $KEYS == *${key[BackTab]} ]]; then
-    return
-  fi
+
   _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
 }
 
@@ -419,7 +416,7 @@ _autocomplete.async-list-choices() {
 
 _autocomplete.query-list-choices() {
   local hook_functions=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
-  local f; for f in $hook_functions; do 
+  local f; for f in $hook_functions; do
     unset ${f}_functions &> /dev/null
     unfunction $f &> /dev/null
   done
