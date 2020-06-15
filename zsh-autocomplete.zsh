@@ -54,7 +54,6 @@ _autocomplete.main.hook() {
   add-zsh-hook -d precmd _autocomplete.main.hook
 
   zmodload -i zsh/zutil # `zstyle` builtin
-  local -a option_tags=( '(|*-)argument-* (|*-)option[-+]* values' 'options' )
 
   # Remove incompatible styles.
   zstyle -d ':completion:*' format
@@ -88,7 +87,7 @@ _autocomplete.main.hook() {
     [[ $PREFIX$SUFFIX == *[\*\(\|\<\[\?\^\#]* ]] && reply=( "true" ) || reply=( "false" )'
 
   zstyle -e ':completion:*' tag-order '
-    reply=( '${(qq@)option_tags}' )
+    reply=( "(|*-)argument-* (|*-)option[-+]* values" "options" )
     if [[ $PREFIX$SUFFIX == [-+]* ]]; then
       reply+=( "-" )
     else
@@ -270,7 +269,6 @@ _autocomplete.main.hook() {
       menu-complete() {
         [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
         _main_complete
-        local word=$PREFIX$SUFFIX
         if (( ${#compstate[exact_string]} > 0 )); then
           case $WIDGETSTYLE in
             menu-complete)
@@ -280,7 +278,7 @@ _autocomplete.main.hook() {
               compstate[insert]='menu:-1'
               ;;
           esac
-        elif (( ${compstate[unambiguous_cursor]} > (${#word} + 1) )); then
+        elif (( ${compstate[unambiguous_cursor]} > (${#:-$PREFIX$SUFFIX} + 1) )); then
           compstate[insert]='unambiguous'
         else
           compstate[insert]='menu'
@@ -348,10 +346,10 @@ _autocomplete.list-choices.hook() {
 
   (( (PENDING + KEYS_QUEUED_COUNT) > 0 )) && return
   [[ $KEYS == *(${key[Up]}|${key[Down]}) ]] && return
+  [[ $LASTWIDGET == _complete_help ]] && return
   if [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept'; then
     return
   fi
-
   _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
 }
 
@@ -617,14 +615,15 @@ _autocomplete.complete-word.zle-widget() {
 _autocomplete.complete-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
+  local curcontext
   if [[ -v compstate[old_list] ]]; then
     compstate[old_list]='keep'
     compstate[insert]='1'
     if [[ ${compstate[context]} == (command|redirect) ]]; then
       compstate[insert]+=' '
     fi
+    _autocomplete._main_complete complete-word _oldlist
   else
-    local curcontext
     _autocomplete._main_complete complete-word
   fi
 }
@@ -645,10 +644,14 @@ _autocomplete.down-line-or-menu-select.zle-widget() {
 _autocomplete.menu-select.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
   local curcontext
-  _autocomplete._main_complete menu-select
-  compstate[insert]='menu'
+  if [[ -v compstate[old_list] ]]; then
+    compstate[old_list]='keep'
+    compstate[insert]='menu'
+    _autocomplete._main_complete menu-select _oldlist
+  else
+    _autocomplete._main_complete menu-select
+  fi
 }
 
 _autocomplete.up-line-or-history-search.zle-widget() {
