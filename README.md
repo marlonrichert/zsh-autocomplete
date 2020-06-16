@@ -18,7 +18,7 @@ Find-as-you-type completion for the Z Shell!
 | --- | --- |
 | any | List choices (automatic) |
 | [<kbd>⇥</kbd>](# "tab") | Insert top completion[<sup>note</sup>](#with-zsh-autosuggestions) |
-| [<kbd>⌃␣</kbd>](# "down") | Enter completion menu[<sup>note</sup>](#with-fzf) |
+| [<kbd>⌃␣</kbd>](# "down") | Select another completion[<sup>note</sup>](#with-fzf) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
 | [<kbd>␣</kbd>](# "space") | Insert space and correct spelling or do history expansion |
 | [<kbd>⌥␣</kbd>](# "alt-space") | Insert space (_without_ correct spelling or history expansion) |
@@ -39,11 +39,11 @@ When you source
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↓</kbd>](# "down") | Enter completion menu or (in multi-line buffer) move cursor down |
-| [<kbd>↑</kbd>](# "up") | Do [fuzzy history search](#requirements) or (in multi-line buffer) move cursor up |
-| [<kbd>⌃␣</kbd>](# "ctrl-space") | Do expansion, change directory (in empty buffer) or do [fuzzy file search](#requirements) |
+| [<kbd>↓</kbd>](# "down") | Select a completion or (in multi-line buffer) move cursor down |
+| [<kbd>↑</kbd>](# "up") | Do fuzzy history search or (in multi-line buffer) move cursor up |
+| [<kbd>⌃␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert longest common prefix (on glob expression) or do fuzzy file search |
 | [<kbd>⌥↓</kbd>](# "alt-down") | Enter completion menu (also in multi-line buffer) |
-| [<kbd>⌥↑</kbd>](# "alt-up") | Do [fuzzy history search](#requirements) (also in multi-line buffer) |
+| [<kbd>⌥↑</kbd>](# "alt-up") | Do fuzzy history search (also in multi-line buffer) |
 
 ### Completion Menu
 `zsh-autocomplete` adds the following key bindings to the completion menu:
@@ -51,8 +51,8 @@ When you source
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
-| [<kbd>⌥↓</kbd>](# "alt-down") | Jump to the next group of matches (if groups are shown) |
-| [<kbd>⌥↑</kbd>](# "alt-up") | Jump to the previous group of matches (if groups are shown)  |
+| [<kbd>⌥↓</kbd>](# "alt-down") | Jump to next group of matches (if groups are shown) |
+| [<kbd>⌥↑</kbd>](# "alt-up") | Jump to previous group of matches (if groups are shown)  |
 | [<kbd>↩︎</kbd>](# "enter") | Insert single match (exit menu) |
 | [<kbd>⇥</kbd>](# "tab") | Insert multiple matches (stay in menu) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info (does not work in "corrections" menu) |
@@ -101,14 +101,14 @@ zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
 ### Shorten the automatic completions list
-By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on 
+By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on
 the screen.
 
 To limit the list to a smaller height, use the following:
 ```shell
 zstyle ':autocomplete:list-choices:*' max-lines 40%
 ```
-You can set this to a percentage of the total screen height or to a fixed number of lines. Both 
+You can set this to a percentage of the total screen height or to a fixed number of lines. Both
 work.
 
 ### Always show matches in named groups
@@ -158,18 +158,18 @@ To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start me
 zstyle ':autocomplete:tab:*' completion select
 ```
 
-To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_ 
+To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_
 starting menu selection):
 ```shell
 zstyle ':autocomplete:tab:*' completion cycle
 ```
 
-To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") insert the longest string that 
+To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") insert the longest string that
 all matches listed have in common (and after that, behave as `cycle`):
 ```shell
 zstyle ':autocomplete:tab:*' completion insert
 ```
-**Note:** This last option also changes the listings slightly to not do completion to the left of 
+**Note:** This last option also changes the listings slightly to not do completion to the left of
 what you've typed (unless that would result in zero matches).
 
 

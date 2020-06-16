@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: When things don't work as expected
+about: If you think something is broken
 title: ''
 labels: 'Bug report'
 assignees: ''
@@ -13,10 +13,14 @@ assignees: ''
 ### To Reproduce
 Steps to reproduce the behavior:
 
-<!-- If you are not able to reproduce it by running `zsh -df` and sourcing the plugin manually, it means there that the issue is caused by something in your local config file(s). Temporarily comment out or remove sections of your config and restart `zsh` until you narrow down exactly what is causing the issue. -->
+<!-- If you are not able to reproduce it by running `zsh -df` and sourcing the plugin manually, it
+means there that the issue is caused by something in your local config file(s). Temporarily comment
+out or remove sections of your config and restart `zsh` until you narrow down exactly what is
+causing the issue. -->
 
 ```sh
-% zsh -df
+% cd "$(mktemp -d)"
+% ZDOTDIR=$PWD HOME=$PWD zsh -df
 % source path/to/zsh-autocomplete.plugin.zsh
 % ... # what do you do to reproduce?
 ```
@@ -30,7 +34,7 @@ Steps to reproduce the behavior:
 ### Desktop
  - OS + distribution: <!-- e.g. Arch Linux 2019.07.01 -->
  - Zsh version: <!-- `echo $ZSH_VERSION` -->
- - Plugin version: <!-- or git commit hash if installed via git -->
+ - Plugin version: <!-- git commit hash -->
 
 ### Additional context
 <!-- Add any other context about the problem here. -->
