@@ -77,10 +77,11 @@ _autocomplete.main.hook() {
     local prefix=${(M)word##*/}
     local suffix=${word##*/}
     local punct=${(M)suffix##[[:punct:]]##}
+    local nonpunct=${suffix##[[:punct:]]##}
     if [[ $punct == "." ]]; then
-      reply=( "^(${(b)prefix}*(#i)${(b)suffix}*)" )
+      reply=( "^(${(b)prefix}*.(#i)${(b)nonpunct[1]}*)" )
     else
-      reply=( "^(${(b)prefix}(#i)${(b)suffix}*)"
+      reply=( "^(${(b)prefix}${punct}(#i)${(b)nonpunct[1]}*)"
               "${(b)prefix}${punct}[[:punct:]]*" )
     fi'
   zstyle -e ':completion:*' glob '
