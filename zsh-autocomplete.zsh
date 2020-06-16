@@ -136,14 +136,13 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' list-separator ''
   zstyle ':completion:*' use-cache true
 
+  zstyle ':completion:correct-word:*' completer _correct _ignored
+  zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle ':completion:correct-word:*' ignored-patterns '[[:punct:]]*'
+  zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order -
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' add-space false
   zstyle ':completion:correct-word:*' glob false
-  zstyle ':completion:correct-word:*' completer _approximate
-  zstyle ':completion:correct-word:*' matcher-list ''
-  zstyle ':completion:correct-word:*' ignored-patterns '[[:punct:]]*'
-  zstyle -e ':completion:correct-word:complete:*' ignored-patterns 'reply=( "^($PREFIX$SUFFIX)" )'
-  zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order '-'
 
   zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
@@ -379,7 +378,7 @@ _autocomplete.cancel_async() {
 
 _autocomplete.async-list-choices() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
-  setopt nobanghist
+  setopt nobanghist noxtrace noverbose
 
   _autocomplete.cancel_async
 
@@ -414,6 +413,9 @@ _autocomplete.async-list-choices() {
 }
 
 _autocomplete.query-list-choices() {
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  setopt nobanghist
+
   local hook_functions=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   local f; for f in $hook_functions; do
     unset ${f}_functions &> /dev/null
@@ -438,9 +440,9 @@ _autocomplete.query-list-choices() {
     }
 
     local curcontext
-    local -a +h comppostfuncs=( print_comp_mesg )
+    local +h -a comppostfuncs=( print_comp_mesg )
     unset 'compstate[vared]'
-    _autocomplete._main_complete list-choices 2>&1
+    _autocomplete._main_complete list-choices 2> /dev/null
     compstate[insert]=''
     compstate[list_max]=0
     compstate[list]=''
@@ -469,15 +471,16 @@ _autocomplete.async_callback() {
       local null comp_mesg keys lbuffer rbuffer
       local nmatches list_lines
       IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null
-      # echo -E "comp_mesg=$comp_mesg keys=$keys lbuffer=$lbuffer rbuffer=$rbuffer nmatches=$nmatches list_lines=$list_lines null=$null"
 
       if [[ "${LBUFFER}" != "${(Q)lbuffer}" || "${RBUFFER}" != "${(Q)rbuffer}" ]]; then
         return
       fi
 
+      local buffer="$BUFFER"
       case ${(Q)keys} in
         ' ')
-          if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]; then
+          if zstyle -T ":autocomplete:space:" magic correct-word \
+          && [[ ${LBUFFER[-1]} == ' ' ]]; then
             (( CURSOR-- ))
             zle correct-word
             zle .auto-suffix-remove
@@ -485,7 +488,8 @@ _autocomplete.async_callback() {
           fi
           ;;
         '/')
-          if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]; then
+          if zstyle -T ":autocomplete:slash:" magic correct-word \
+          && [[ ${LBUFFER[-1]} == '/' ]]; then
             LBUFFER=${LBUFFER[1,-2]}
             zle correct-word
             zle .auto-suffix-remove
@@ -493,10 +497,15 @@ _autocomplete.async_callback() {
           fi
           ;;
       esac
+      local ret
+      if [[ "$buffer" == "$BUFFER" ]]; then
+        zle _list_choices $nmatches $list_lines $comp_mesg
+      else
+        zle _list_choices
+      fi
 
       # If a widget can't be called, ZLE always returns 0.
       # Thus, we return 1 on purpose, so we can check if our widget got called.
-      zle _list_choices $nmatches $list_lines $comp_mesg
       if (( ? == 1 )); then
         unset _ZSH_HIGHLIGHT_PRIOR_BUFFER
         _zsh_highlight
@@ -551,6 +560,7 @@ _autocomplete.list-choices.completion-widget() {
     warning+=' to open the menu.'
     _autocomplete.warning $warning
   else
+    local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
     _autocomplete._main_complete list-choices
   fi
   compstate[list]='list force'
@@ -559,6 +569,15 @@ _autocomplete.list-choices.completion-widget() {
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return 1 on purpose, so we can check if our widget got called.
   return 1
+}
+
+_autocomplete.list-choices.comppostfunc() {
+  if [[ "$PREFIX$SUFFIX" == '' ]] && (( compstate[list_lines] == 0 )); then
+    local reply _comp_mesg
+    _message "Type more..."
+  else
+    _autocomplete.handle_long_list
+  fi
 }
 
 _autocomplete.warning() {
@@ -580,18 +599,15 @@ _autocomplete.correct-word.completion-widget() {
     return 1
   fi
 
-  local curcontext
-  _autocomplete.curcontext correct-word
-
-  _main_complete _complete
-  if [[ -v compstate[exact_string] || "${compstate[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
+  if [[ ${_lastcomp[insert]} == menu
+     || -v _lastcomp[exact_string]
+     || "${_lastcomp[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
     compstate[insert]=''
-    return 0
+    return
   fi
 
-  _main_complete
-  compstate[insert]='1'
-  return ${compstate[nmatches]}
+  local curcontext
+  _autocomplete._main_complete correct-word
 }
 
 _autocomplete.list-expand.completion-widget() {
