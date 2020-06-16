@@ -17,11 +17,11 @@ Find-as-you-type completion for the Z Shell!
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
-| [<kbd>⇥</kbd>](# "tab") | Insert top completion[<sup>note</sup>](#with-zsh-autosuggestions) |
-| [<kbd>⌃␣</kbd>](# "down") | Select another completion[<sup>note</sup>](#with-fzf) |
+| [<kbd>⇥</kbd>](# "tab") | Accept top match[<sup>note</sup>](#with-zsh-autosuggestions) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another match[<sup>note</sup>](#with-fzf) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
 | [<kbd>␣</kbd>](# "space") | Insert space and correct spelling or do history expansion |
-| [<kbd>⌥␣</kbd>](# "alt-space") | Insert space (_without_ correct spelling or history expansion) |
+| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Insert space (_without_ correction or expansion) |
 
 ### With `zsh-autosuggestions`
 When you source
@@ -30,7 +30,7 @@ When you source
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (when available) or insert top completion |
+| [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (when available) or top match |
 
 ### With `fzf`
 When you source
@@ -39,25 +39,25 @@ When you source
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↓</kbd>](# "down") | Select a completion or (in multi-line buffer) move cursor down |
+| [<kbd>↓</kbd>](# "down") | Select a match or (in multi-line buffer) move cursor down |
 | [<kbd>↑</kbd>](# "up") | Do fuzzy history search or (in multi-line buffer) move cursor up |
-| [<kbd>⌃␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert longest common prefix (on glob expression) or do fuzzy file search |
-| [<kbd>⌥↓</kbd>](# "alt-down") | Enter completion menu (also in multi-line buffer) |
-| [<kbd>⌥↑</kbd>](# "alt-up") | Do fuzzy history search (also in multi-line buffer) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert longest common prefix (on glob expressions) or do fuzzy file search |
+| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Select a match (also in multi-line buffer) |
+| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Do fuzzy history search (also in multi-line buffer) |
 
-### Completion Menu
+### In Completion Menu
 `zsh-autocomplete` adds the following key bindings to the completion menu:
 
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
-| [<kbd>⌥↓</kbd>](# "alt-down") | Jump to next group of matches (if groups are shown) |
-| [<kbd>⌥↑</kbd>](# "alt-up") | Jump to previous group of matches (if groups are shown)  |
-| [<kbd>↩︎</kbd>](# "enter") | Insert single match (exit menu) |
-| [<kbd>⇥</kbd>](# "tab") | Insert multiple matches (stay in menu) |
+| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Jump to next group of matches (if groups are shown) |
+| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Jump to previous group of matches (if groups are shown)  |
+| [<kbd>↩︎</kbd>](# "enter") | Accept single match (exit menu) |
+| [<kbd>⇥</kbd>](# "tab") | Accept multiple matches (stay in menu) |
 | [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info (does not work in "corrections" menu) |
-| [<kbd>⌃␣</kbd>](# "ctrl-space") | Insert single match + [fuzzy file search](#requirements) |
-| other | Insert single match + insert character (exit menu) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept single match + [do fuzzy file search](#requirements) |
+| other | Accept single match + insert character (exit menu) |
 
 
 ## Requirements
@@ -76,8 +76,8 @@ There are two ways to install `zsh-autocomplete`:
 ### As a Plugin
 Please refer to your framework's/plugin manager's documentation for instructions.
 
-**Note** for Prezto users: You need you load `zsh-autocomplete` _after or instead of_
-Prezto's built-in `completion` module.
+**Note** for Prezto users: You need to load `zsh-autocomplete` _after or instead of_ Prezto's
+built-in `completion` module.
 
 ### Manually
 1. `git clone` this repo.
@@ -92,6 +92,7 @@ To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 ## Configuration
 The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
 
+
 ### Wait for minimum amount of input
 By default, `zsh-autocomplete` will show completions as soon as you start typing.
 
@@ -100,7 +101,7 @@ To make it stay silent until a minimum number of characters have been typed:
 zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
-### Shorten the automatic completions list
+### Shorten the autocompletion list
 By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on
 the screen.
 
@@ -110,6 +111,7 @@ zstyle ':autocomplete:list-choices:*' max-lines 40%
 ```
 You can set this to a percentage of the total screen height or to a fixed number of lines. Both
 work.
+
 
 ### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only in certain circumstances or
@@ -121,6 +123,7 @@ To always show matches in groups (and thus show duplicate matches, too):
 zstyle ':autocomplete:*' groups always
 ```
 **WARNING:** Enabling this setting can noticeably decrease autocompletion performance.
+
 
 ### Tweak or disable automagic corrections
 By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
@@ -171,6 +174,29 @@ zstyle ':autocomplete:tab:*' completion insert
 ```
 **Note:** This last option also changes the listings slightly to not do completion to the left of
 what you've typed (unless that would result in zero matches).
+
+
+### Customize autocompletion messages
+You can customize the various messages that the autocompletion feature shows.
+
+This is shown when the number of lines needed to display all matches exceeds the available screen
+space (or the number given by `zstyle ':autocomplete:list-choices:*' max-lines`):
+```shell
+zstyle ':autocomplete:*:too-many-matches' message \
+  'Too many completions to fit on screen. Type more to filter or press Ctrl-Space to open the menu.'
+```
+
+This is shown when the completion system decides, for whatever reason, that it does not want to
+show any completions yet, until you've typed more input:
+```shell
+zstyle ':autocomplete:*:no-matches-yet' message 'Type more...'
+```
+
+This is shown when, for the given input, the completion system cannot find any matching completions
+at all:
+```shell
+zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
+```
 
 
 ## Author

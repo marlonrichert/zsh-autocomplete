@@ -536,7 +536,7 @@ _autocomplete.list-choices.completion-widget() {
   local min_input
   zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
 
-  local word=$PREFIX$SUFFIX
+  local mesg word=$PREFIX$SUFFIX
   if (( CURRENT == 1 && ${#word} < min_input )); then
     :
   elif [[ -v 1 ]] && (( $1 == 0 )); then
@@ -545,20 +545,25 @@ _autocomplete.list-choices.completion-widget() {
         _autocomplete._main_complete list-choices
       else
         local reply _comp_mesg
-        _message "Type more..."
+        zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
+        _message $mesg
       fi
     else
-      _autocomplete.warning "No matching completions found."
+      zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg \
+        || mesg='No matching completions found.'
+      _autocomplete.warning $mesg
     fi
   elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > max_lines )); then
-    local warning='Too many completions to fit on screen. Type more to filter or press '
-    if zle -l fzf-history-widget; then
-      warning+='Down Arrow'
-    else
-      warning+='Ctrl-Space'
+    if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
+      mesg='Too many completions to fit on screen. Type more to filter or press '
+      if zle -l fzf-history-widget; then
+        mesg+='Down Arrow'
+      else
+        mesg+='Ctrl-Space'
+      fi
+      mesg+=' to open the menu.'
     fi
-    warning+=' to open the menu.'
-    _autocomplete.warning $warning
+    _autocomplete.warning $mesg
   else
     local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
     _autocomplete._main_complete list-choices
