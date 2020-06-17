@@ -19,10 +19,10 @@ out or remove sections of your config and restart `zsh` until you narrow down ex
 causing the issue. -->
 
 ```sh
-% cd "$(mktemp -d)"
-% ZDOTDIR=$PWD HOME=$PWD zsh -df
+% cd "$(mktemp -d)" # Creates a temp dir and enters it.
+% ZDOTDIR=$PWD HOME=$PWD zsh -df # Starts a subshell without config files.
 % source path/to/zsh-autocomplete.plugin.zsh
-% ... # what do you do to reproduce?
+% ... # What do you do to reproduce?
 ```
 
 ### Expected behavior

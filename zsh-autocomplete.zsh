@@ -400,7 +400,12 @@ _autocomplete.async-list-choices() {
       } always {
         zpty -d _autocomplete__zpty
       }
-  )
+    )
+
+    # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
+    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
+    command true
+
   } always {
     # Read the process ID from the child process
     local pid
