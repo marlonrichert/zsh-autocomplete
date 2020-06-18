@@ -9,8 +9,6 @@
   # In case we're sourced _before_ `zsh-autosuggestions`
   functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
   add-zsh-hook() {
-    emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
-
     # Prevent `_zsh_autosuggest_start` from being added.
     if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]; then
       _autocomplete.add-zsh-hook "$@" > /dev/null
@@ -255,6 +253,8 @@ _autocomplete.main.hook() {
       bindkey $key[BackTab] reverse-menu-complete
       zle -C reverse-menu-complete reverse-menu-complete menu-complete
       menu-complete() {
+        setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
         [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
         _main_complete
         if (( ${#compstate[exact_string]} > 0 )); then
@@ -360,8 +360,6 @@ _autocomplete.main.hook() {
     functions[_autocomplete._path_files]=$functions[_path_files]
 
     _path_files() {
-      setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
-
       _autocomplete._path_files "$@"
       local ret=$?
       [[ $_completer != complete ]] && return ret
@@ -372,9 +370,9 @@ _autocomplete.main.hook() {
       (( ? != 0 )) && return ret
 
       word=${word:P}
-      local dir expl prefix
+      local expl prefix
       local -a display
-      for dir in $reply; do
+      local dir; for dir in $reply; do
         dir=${dir:P}
         prefix="${dir:h}"
         [[ "$word" == ("$dir"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
@@ -392,8 +390,7 @@ _autocomplete.main.hook() {
       _autocomplete.zfiles "$word"
       (( ? != 0 )) && return ret
 
-      local file
-      for file in $reply; do
+      local file; for file in $reply; do
         file=${file:P}
         prefix="${file:h}"
         [[ "$word" == ("$file"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
@@ -431,9 +428,9 @@ _autocomplete.list-choices.hook() {
 _autocomplete.cancel_async() {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-	# If we've got a pending request, cancel it.
+  # If we've got a pending request, cancel it.
   if [[ -n "$_autocomplete__async_fd" ]] && { true <&$_autocomplete__async_fd } 2> /dev/null; then
-		# Close the file descriptor and remove the handler.
+    # Close the file descriptor and remove the handler.
     exec {_autocomplete__async_fd}<&-
     zle -F $_autocomplete__async_fd
   fi
@@ -442,9 +439,7 @@ _autocomplete.cancel_async() {
   local group='-' && [[ -o MONITOR ]] || group=''
 
   # Kill all processes we spawned.
-  local pid
-  for pid in ${(A)_autocomplete__child_pids}
-  do
+  local pid; for pid in ${(A)_autocomplete__child_pids}; do
     # Kill the process or process group.
     kill -TERM $group$pid 2> /dev/null
   done
@@ -459,7 +454,7 @@ _autocomplete.async-list-choices() {
 
   {
     # Fork a process and open a pipe to read from it.
-  	exec {_autocomplete__async_fd}< <(
+    exec {_autocomplete__async_fd}< <(
       # Tell parent process our process ID.
       echo $sysparams[pid]
 
@@ -484,11 +479,11 @@ _autocomplete.async-list-choices() {
   } always {
     # Read the process ID from the child process
     local pid
-  	read pid <&$_autocomplete__async_fd
+    read pid <&$_autocomplete__async_fd
     _autocomplete__child_pids+=( $pid )
 
-	# Install a widget to handle input from the fd
-  	zle -F -w "$_autocomplete__async_fd" _autocomplete.async_callback
+  # Install a widget to handle input from the fd
+    zle -F -w "$_autocomplete__async_fd" _autocomplete.async_callback
   }
 }
 
@@ -536,15 +531,15 @@ _autocomplete.query-list-choices() {
   vared __lbuffer 2>&1
 }
 
-# Called when new data is ready to be read from the pipe
-# First arg will be fd ready for reading
-# Second arg will be passed in case of error
+# Called when new data is ready to be read from the pipe.
+# First arg will be fd ready for reading.
+# Second arg will be passed in case of error.
 _autocomplete.async_callback() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
   setopt nobanghist
 
   {
-  	if [[ -z "$2" || "$2" == "hup" ]]; then
+    if [[ -z "$2" || "$2" == "hup" ]]; then
 
       (( $#BUFFER == 0 )) && return
 
@@ -592,21 +587,20 @@ _autocomplete.async_callback() {
         _zsh_autosuggest_highlight_apply
         zle -R
       fi
-  	fi
+    fi
   } always {
     if [[ -n "$1" ]] && { true <&$1 } 2>/dev/null; then
       # Close the fd
       exec {1}<&-
 
-    	# Remove the handler
-    	zle -F "$1"
+      # Remove the handler
+      zle -F "$1"
     fi
   }
 }
 
 _autocomplete.list-choices.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
-  setopt noglobcomplete
 
   local curcontext
   _autocomplete.curcontext list-choices
@@ -657,6 +651,8 @@ _autocomplete.list-choices.completion-widget() {
 }
 
 _autocomplete.list-choices.comppostfunc() {
+  setopt localoptions noshortloops nowarncreateglobal extendedglob $_autocomplete__options
+
   if [[ "$PREFIX$SUFFIX" == '' ]] && (( compstate[list_lines] == 0 )); then
     local reply _comp_mesg
     _message "Type more..."
