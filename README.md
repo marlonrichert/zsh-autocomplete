@@ -163,6 +163,9 @@ To use [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") to start me
 ```shell
 zstyle ':autocomplete:tab:*' completion select
 ```
+**Note** that this also changes [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") to expand an alias or
+insert the longest common prefix of a glob expansion (since you don't need it anymore for selecting
+matches).
 
 To have [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") cycle between matches (_without_
 starting menu selection):

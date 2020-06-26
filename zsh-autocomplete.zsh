@@ -130,6 +130,8 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:*:messages' format '%F{blue}%d%f'
   zstyle ':completion:*:warnings' format '%F{red}%d%f'
+  zstyle ':completion:*:unambiguous' group-name ''
+  zstyle ':completion:*:unambiguous' format '%F{green}%d:%f'
   zstyle ':completion:*' auto-description '%F{yellow}%d%f'
 
   zstyle ':completion:*' add-space true
@@ -146,7 +148,7 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:list-choices:*' menu ''
 
-  zstyle ':completion:expand-word:*' completer _expand_alias _expand
+  zstyle ':completion:expand-word:*' menu ''
 
   zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
   zstyle ':completion:list-expand:complete:*' matcher-list '
@@ -710,13 +712,11 @@ functions -M _autocomplete__max_lines
 
 _autocomplete.list-choices.comppostfunc() {
   setopt localoptions noshortloops nowarncreateglobal extendedglob $_autocomplete__options
-
   if [[ "$PREFIX$SUFFIX" == '' ]] && (( compstate[list_lines] == 0 )); then
     local reply _comp_mesg
     _message "Type more..."
-  else
-    _autocomplete.handle_long_list
   fi
+  _autocomplete.add_unambiguous
 }
 
 _autocomplete.warning() {
@@ -854,9 +854,12 @@ _autocomplete.expand-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext
-  _autocomplete._main_complete expand-word
-  (( compstate[nmatches] == 1)) && compstate[insert]='1'
-  (( compstate[nmatches] > 0))
+  if [[ -v compstate[old_list] && ${_lastcomp[tags]} == *unambiguous* ]]; then
+      compstate[old_list]='keep'
+      compstate[insert]='0'
+  else
+    _autocomplete._main_complete expand-word _expand_alias
+  fi
 }
 
 _autocomplete.curcontext() {
@@ -876,8 +879,23 @@ _autocomplete._main_complete() {
 
   _autocomplete.curcontext $1
   shift
-  (( $#comppostfuncs == 0 )) && local +h -a comppostfuncs=( _autocomplete.handle_long_list )
+  (( $#comppostfuncs == 0 )) &&
+    local +h -a comppostfuncs=( _autocomplete.handle_long_list _autocomplete.add_unambiguous )
   _main_complete "$@"
+}
+
+_autocomplete.add_unambiguous() {
+  (( compstate[nmatches] <= 1 )) || [[ -z ${compstate[unambiguous]} ||
+    $QIPREFIX$PREFIX$SUFFIX$QISUFFIX == ${compstate[unambiguous]}*  ]] && return
+  local word=$PREFIX$SUFFIX
+  local unambiguous=${compstate[unambiguous]}
+  [[ -n $QIPREFIX ]] && unambiguous=${unambiguous#$QIPREFIX}
+  [[ -n $QISUFFIX ]] && unambiguous=${unambiguous#$QISUFFIX}
+  local i; for (( i=1; i <= $#unambiguous; i++ )); do
+    word=${word#${unambiguous[i]}}
+  done
+  local -a sopt=( -qs $word ) && [[ -n $word ]] || sopt=()
+  _wanted unambiguous expl 'common prefix' compadd "$expl[@]" $sopt -QU - $unambiguous
 }
 
 _autocomplete.handle_long_list() {
