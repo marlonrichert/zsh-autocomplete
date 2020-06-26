@@ -174,8 +174,6 @@ all matches listed have in common (and after that, behave as `cycle`):
 ```shell
 zstyle ':autocomplete:tab:*' completion insert
 ```
-**Note:** This last option also changes the listings slightly to not do completion to the left of
-what you've typed (unless that would result in zero matches).
 
 To have [<kbd>⇥</kbd>](# "tab") use [`fzf`'s completion feature](#requirements):
 ```shell

@@ -207,12 +207,35 @@ _autocomplete.main.hook() {
   case $tab_completion in
     'cycle')
       bindkey $key[Tab] menu-complete
+      zle -C menu-complete menu-complete menu-complete
       bindkey $key[BackTab] reverse-menu-complete
+      zle -C reverse-menu-complete reverse-menu-complete menu-complete
+      menu-complete() {
+        setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
+        _main_complete
+      }
       ;;
     'select')
-      bindkey $key[Tab] menu-select
+      bindkey $key[Tab] menu-complete
+      zle -C menu-complete menu-select menu-complete
       bindkey $key[BackTab] reverse-menu-complete
-      zle -C reverse-menu-complete menu-select _main_complete
+      zle -C reverse-menu-complete menu-select menu-complete
+      menu-complete() {
+        setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
+        _main_complete
+        case $WIDGET in
+          menu-complete)
+            compstate[insert]='menu:1'
+            ;;
+          reverse-menu-complete)
+            compstate[insert]='menu:-1'
+            ;;
+        esac
+      }
       ;;
     'insert')
       bindkey $key[Tab] menu-complete
