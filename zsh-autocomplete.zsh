@@ -1,38 +1,8 @@
 () {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-  autoload +X -Uz add-zsh-hook
-
-  # In case we're sourced _after_ `zsh-autosuggestions`
-  add-zsh-hook -d precmd _zsh_autosuggest_start
-
-  # In case we're sourced _before_ `zsh-autosuggestions`
-  functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
-  add-zsh-hook() {
-    # Prevent `_zsh_autosuggest_start` from being added.
-    if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]; then
-      _autocomplete.add-zsh-hook "$@" > /dev/null
-    fi
-  }
-
-  typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=1
-  typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-
-  zmodload -i zsh/parameter # `functions` array
-  autoload -Uz zmathfunc && zmathfunc # `min` function
-  autoload -Uz add-zle-hook-widget
-  [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
-
-  [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
-    ALWAYS_TO_END COMPLETE_ALIASES GLOB_COMPLETE GLOB_DOTS LIST_PACKED
-    no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
-  )
-
-  # Workaround for issue #43
-  # https://github.com/marlonrichert/zsh-autocomplete/issues/43
-  zle -N zle-line-finish azhw:zle-line-finish
-
   # Make `terminfo` codes work.
+  autoload -Uz add-zle-hook-widget
   add-zle-hook-widget line-init _autocomplete.application-mode.hook
   _autocomplete.application-mode.hook() {
     echoti smkx
@@ -41,6 +11,52 @@
   _autocomplete.raw-mode.hook() {
     echoti rmkx
   }
+
+  typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+  typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=1
+
+  # In case we're sourced _after_ `zsh-autosuggestions`
+  autoload +X -Uz add-zsh-hook
+  add-zsh-hook -d precmd _zsh_autosuggest_start
+
+  # In case we're sourced _before_ `zsh-autosuggestions`
+  zmodload -i zsh/parameter  # `functions` array
+  functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
+  add-zsh-hook() {
+    # Prevent `_zsh_autosuggest_start` from being added.
+    if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]; then
+      _autocomplete.add-zsh-hook "$@" > /dev/null
+    fi
+  }
+
+  # Workaround for issue #43
+  # https://github.com/marlonrichert/zsh-autocomplete/issues/43
+  zle -N zle-line-finish azhw:zle-line-finish
+
+  autoload -Uz zmathfunc && zmathfunc  # `min` function
+
+  [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+
+  [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
+    ALWAYS_TO_END COMPLETE_ALIASES GLOB_COMPLETE GLOB_DOTS LIST_PACKED
+    no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
+  )
+
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off $___mode
+
+  # Initialize completion system, if it hasn't been done yet.
+  # Needs to be ASAP, to avoid a race condition.
+  # `zsh/complist` should be loaded _before_ `compinit`.
+  if ! (zle -l menu-select && bindkey -l menuselect > /dev/null); then
+    zmodload -i zsh/complist
+    autoload -Uz compinit && compinit -C
+  elif ! [[ -v compprefuncs && -v comppostfuncs ]]; then
+    autoload -Uz compinit && compinit -C
+  fi
+
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  [[ -v functions[.zinit-shade-on] ]] && .zinit-shade-on $___mode
 
   add-zsh-hook precmd _autocomplete.main.hook
 }
@@ -51,7 +67,7 @@ _autocomplete.main.hook() {
   # Remove itself after being called.
   add-zsh-hook -d precmd _autocomplete.main.hook
 
-  zmodload -i zsh/zutil # `zstyle` builtin
+  zmodload -i zsh/zutil  # `zstyle` builtin
 
   # Remove incompatible styles.
   zstyle -d ':completion:*' format
@@ -68,8 +84,8 @@ _autocomplete.main.hook() {
     zstyle ':completion:*:complete:*' show-ambiguity '07'
   fi
 
-  zstyle ':completion:*:complete:*' matcher-list \
-    'r:|?=**' '+m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+  zstyle ':completion:*:complete:*' matcher-list '
+    r:|?=**' '+m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
@@ -135,8 +151,8 @@ _autocomplete.main.hook() {
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
 
   zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
-  zstyle ':completion:list-expand:complete:*' matcher-list \
-  'r:|?=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+  zstyle ':completion:list-expand:complete:*' matcher-list '
+    r:|?=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
   zstyle -e ':completion:list-expand:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
@@ -152,17 +168,6 @@ _autocomplete.main.hook() {
   zstyle ':completion:list-expand:*' extra-verbose true
   zstyle ':completion:list-expand:*' list-separator '-'
   zstyle ':completion:list-expand:*' menu 'yes select'
-
-  # Initialize completion system, if it hasn't been done yet.
-  # `zsh/complist` should be loaded _before_ `compinit`.
-  if ! (zle -l menu-select && bindkey -l menuselect > /dev/null); then
-    zmodload -i zsh/complist
-    autoload -Uz compinit
-    compinit
-  elif ! [[ -v compprefuncs && -v comppostfuncs ]]; then
-    autoload -Uz compinit
-    compinit
-  fi
 
   if [[ ! -v key ]]; then
     # This file can be generated interactively with `autoload -Uz zkbd && zkbd`.
