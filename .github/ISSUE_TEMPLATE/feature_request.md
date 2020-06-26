@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: If you have an idea how to make things better
+about: Do you have an idea for an improvement?
 title: ''
 labels: 'Feature request'
 assignees: ''
