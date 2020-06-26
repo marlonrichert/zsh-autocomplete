@@ -103,17 +103,19 @@ To make it stay silent until a minimum number of characters have been typed:
 zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
-### Shorten the autocompletion list
-By default, while you are typing, `zsh-autocomplete` lists as many completions as it can fit on
-the screen.
+### Shorten or lengthen the autocompletion list
+By default, while you are typing, `zsh-autocomplete` limits the number of lines of completions
+shown to 50% of
+[`$LINES`](http://zsh.sourceforge.net/Doc/Release/Parameters.html#Parameters-Used-By-The-Shell)
+minus
+[`$BUFFERLINES`](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#User_002dDefined-Widgets)
+to prevent the prompt from jumping around too much while typing.
 
-To limit the list to a smaller height, use the following:
+To limit the list to a different height, use the following:
 ```shell
-zstyle ':autocomplete:list-choices:*' max-lines 40%
+zstyle ':autocomplete:list-choices:*' max-lines 100%
 ```
-You can set this to a percentage of the total screen height or to a fixed number of lines. Both
-work.
-
+You can set this to a percentage or to a fixed number of lines. Both work.
 
 ### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only in certain circumstances or

@@ -650,8 +650,6 @@ _autocomplete.list-choices.completion-widget() {
 
   local curcontext
   _autocomplete.curcontext list-choices
-  _autocomplete.max_lines
-  local max_lines=REPLY
 
   if (( CURRENT == 1 )); then
     local min_input
@@ -675,7 +673,7 @@ _autocomplete.list-choices.completion-widget() {
         mesg='No matching completions found.'
       _autocomplete.warning $mesg
     fi
-  elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > max_lines )); then
+  elif [[ -v 2 ]] && (( $2 > _autocomplete__max_lines() )); then
     local mesg
     if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
       local menuselect
@@ -687,13 +685,25 @@ _autocomplete.list-choices.completion-widget() {
     local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
     _autocomplete._main_complete list-choices
   fi
-  compstate[list]='list force'
   compstate[insert]=''
+  compstate[list_max]=0
 
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return 1 on purpose, so we can check if our widget got called.
   return 1
 }
+
+_autocomplete__max_lines() {
+  local available max_lines
+  zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
+  if [[ $max_lines == *% ]]; then
+    (( max_lines = (LINES - BUFFERLINES) * ${max_lines%%\%} / 100 ))
+  else
+    (( max_lines = min(max_lines, LINES - BUFFERLINES) ))
+  fi
+  return max_lines
+}
+functions -M _autocomplete__max_lines
 
 _autocomplete.list-choices.comppostfunc() {
   setopt localoptions noshortloops nowarncreateglobal extendedglob $_autocomplete__options
@@ -715,6 +725,7 @@ _autocomplete.warning() {
   local mesg
   zformat -f mesg "$format" "d:$1" "D:$1"
   compadd -x "$mesg"
+  compstate[list]='list force'
 }
 
 _autocomplete.correct-word.completion-widget() {
@@ -871,11 +882,8 @@ _autocomplete._main_complete() {
 _autocomplete.handle_long_list() {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-  # compstate[insert]=''
   compstate[list_max]=0
-  _autocomplete.max_lines
-  local max_lines=REPLY
-  if (( (compstate[list_lines] + BUFFERLINES + 1) > max_lines )); then
+  if (( compstate[list_lines] + BUFFERLINES + 1 > LINES )); then
     compstate[list]=''
     if [[ $WIDGET != list-choices ]]; then
       compstate[insert]='menu'
@@ -884,11 +892,3 @@ _autocomplete.handle_long_list() {
   return 0
 }
 
-_autocomplete.max_lines() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-  typeset -g REPLY
-  zstyle -s ":autocomplete:$curcontext" max-lines REPLY || REPLY=$LINES
-  [[ $REPLY == *% ]] && (( REPLY=(LINES * ${REPLY%%\%} / 100) ))
-  (( REPLY=min(LINES, REPLY) ))
-}
