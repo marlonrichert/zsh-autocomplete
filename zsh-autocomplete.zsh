@@ -38,8 +38,9 @@
   [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
 
   [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
-    ALWAYS_TO_END COMPLETE_ALIASES GLOB_COMPLETE GLOB_DOTS LIST_PACKED
-    no_CASE_GLOB no_COMPLETE_IN_WORD no_LIST_BEEP
+    GLOB_DOTS GLOB_STAR_SHORT LIST_PACKED
+    no_ALWAYS_TO_END no_CASE_GLOB no_COMPLETE_ALIASES
+    no_COMPLETE_IN_WORD no_GLOB_COMPLETE no_LIST_BEEP
   )
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
