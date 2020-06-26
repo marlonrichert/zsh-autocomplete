@@ -110,11 +110,11 @@ _autocomplete.main.hook() {
     fi'
   zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
 
-  zstyle ':completion:*:expand:*' tag-order '! all-expansions original'
-
   zstyle -e ':completion:*' max-errors '
     reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
+  zstyle -e ':completion:*' glob '
+    [[ $PREFIX$SUFFIX == *[\*\(\|\<\[\?\^\#]* ]] && reply=( "true" ) || reply=( "false" )'
   zstyle ':completion:*' expand prefix suffix
   zstyle ':completion:*' list-suffixes true
   zstyle ':completion:*' path-completion true
@@ -128,8 +128,6 @@ _autocomplete.main.hook() {
     zstyle ':completion:*' group-name ''
   fi
 
-  zstyle ':completion:*:expansions' format '%F{yellow}%d:%f'
-  zstyle ':completion:*:expansions' group-name ''
   zstyle ':completion:*:messages' format '%F{blue}%d%f'
   zstyle ':completion:*:warnings' format '%F{red}%d%f'
   zstyle ':completion:*' auto-description '%F{yellow}%d%f'
@@ -146,7 +144,6 @@ _autocomplete.main.hook() {
   zstyle ':completion:correct-word:*' add-space false
   zstyle ':completion:correct-word:*' glob false
 
-  zstyle ':completion:list-choices:*' glob false
   zstyle ':completion:list-choices:*' menu ''
 
   zstyle ':completion:expand-word:*' completer _expand_alias _expand
@@ -162,8 +159,6 @@ _autocomplete.main.hook() {
     reply=( "${(b)prefix}${punct}[[:punct:]]*" )'
   zstyle ':completion:list-expand:complete:*:path-directories' ignored-patterns '/'
   zstyle ':completion:list-expand:*' tag-order '*'
-  zstyle ':completion:list-expand:*' list-suffixes true
-  zstyle ':completion:list-expand:*' path-completion true
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
   zstyle ':completion:list-expand:*' group-name ''
   zstyle ':completion:list-expand:*' extra-verbose true
