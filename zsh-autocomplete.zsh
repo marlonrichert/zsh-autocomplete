@@ -202,45 +202,6 @@ _autocomplete.main.hook() {
   if [[ -z $key[ControlSpace] ]]; then key[ControlSpace]='^@'; fi
   if [[ -z $key[DeleteList] ]]; then key[DeleteList]='^D'; fi
 
-  if zle -l fzf-completion && zle -l fzf-cd-widget; then
-    bindkey $key[ControlSpace] expand-or-complete
-    zle -N expand-or-complete _autocomplete.expand-or-complete.zle-widget
-    bindkey -M menuselect -s $key[ControlSpace] $key[LineFeed]$key[ControlSpace]
-  else
-    bindkey $key[ControlSpace] expand-word
-  fi
-  zle -C expand-word menu-select _autocomplete.expand-word.completion-widget
-
-  if zle -l fzf-history-widget; then
-    bindkey $key[Up] up-line-or-history-search
-    zle -N up-line-or-history-search _autocomplete.up-line-or-history-search.zle-widget
-
-    bindkey '^['$key[Up] history-search
-    zle -N history-search _autocomplete.history-search.zle-widget
-
-    bindkey $key[Down] down-line-or-menu-select
-    zle -N down-line-or-menu-select _autocomplete.down-line-or-menu-select.zle-widget
-
-    bindkey '^['$key[Down] menu-select
-  else
-    bindkey $key[ControlSpace] menu-select
-  fi
-  zle -C menu-select menu-select _autocomplete.menu-select.completion-widget
-
-  bindkey -M menuselect '^['$key[Up] vi-backward-blank-word
-  bindkey -M menuselect '^['$key[Down] vi-forward-blank-word
-
-  if zstyle -t ":autocomplete:space:" magic expand-history; then
-    bindkey ' ' magic-space
-    zle -N magic-space
-    magic-space() {
-      zle .expand-history
-      zle .self-insert
-    }
-  fi
-  zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
-  bindkey '^[ ' self-insert-unmeta
-
   local tab_completion
   zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'
   case $tab_completion in
@@ -287,6 +248,12 @@ _autocomplete.main.hook() {
       else
         bindkey $key[Tab] complete-word
       fi
+      ;;
+    'fzf')
+      export fzf_default_completion='complete-word'
+      ;;
+  esac
+  if [[ $tab_completion == (accept|fzf) ]]; then
       zle -C complete-word complete-word _autocomplete.complete-word.completion-widget
 
       bindkey $key[BackTab] list-expand
@@ -303,8 +270,7 @@ _autocomplete.main.hook() {
         bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
         bindkey -M menuselect -s $key[Undo] $key[DeleteList]$key[Undo]
       fi
-      ;;
-  esac
+  fi
 
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
     prompt_\*
@@ -314,6 +280,57 @@ _autocomplete.main.hook() {
     forward-char
     vi-forward-char
   )
+
+  if zstyle -T ':autocomplete:' fuzzy-search fzf && zle -l fzf-history-widget; then
+      bindkey $key[Up] up-line-or-history-search
+      zle -N up-line-or-history-search _autocomplete.up-line-or-history-search.zle-widget
+
+      bindkey '^['$key[Up] history-search
+      zle -N history-search _autocomplete.history-search.zle-widget
+
+      bindkey $key[Down] down-line-or-menu-select
+      zle -N down-line-or-menu-select _autocomplete.down-line-or-menu-select.zle-widget
+
+      bindkey '^['$key[Down] menu-select
+      zle -C menu-select menu-select _autocomplete.menu-select.completion-widget
+      zstyle ':autocomplete:menu-select:*' key-binding "(Alt) Down Arrow"
+  fi
+
+  local menuselect
+  zstyle -s ':autocomplete:menu-select:' key-binding menuselect || menuselect="Ctrl-Space"
+  case $menuselect in
+    "Ctrl-Space")
+      bindkey $key[ControlSpace] menu-select
+      zle -C menu-select menu-select _autocomplete.menu-select.completion-widget
+      zstyle ':autocomplete:menu-select:*' key-binding "Ctrl-Space"
+      ;;
+    *)
+      if zstyle -T ':autocomplete:' fuzzy-search fzf &&
+          zle -l fzf-completion && zle -l fzf-cd-widget; then
+        bindkey $key[ControlSpace] expand-or-complete
+        zle -N expand-or-complete _autocomplete.expand-or-complete.zle-widget
+      else
+        bindkey $key[ControlSpace] expand-word
+      fi
+      zle -C expand-word complete-word _autocomplete.expand-word.completion-widget
+      bindkey -M menuselect $key[ControlSpace] end-of-history
+      zstyle ':completion:*:unambiguous' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
+      ;;
+  esac
+
+  bindkey ' ' magic-space
+  zle -N magic-space
+  magic-space() {
+    setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+    zstyle -T ":autocomplete:space:" magic expand-history && zle .expand-history
+    zle .self-insert
+  }
+  zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
+  bindkey '^[ ' self-insert-unmeta
+
+  bindkey -M menuselect '^['$key[Up] vi-backward-blank-word
+  bindkey -M menuselect '^['$key[Down] vi-forward-blank-word
 
   _autocomplete.no-op() { :; }
   if [[ ! -v functions[_zsh_highlight] ]]; then
@@ -613,35 +630,34 @@ _autocomplete.list-choices.completion-widget() {
   _autocomplete.max_lines
   local max_lines=REPLY
 
-  local min_input
-  zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
+  if (( CURRENT == 1 )); then
+    local min_input
+    zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
+    (( $#PREFIX + $#SUFFIX < min_input )) && return 2
+  fi
 
-  local mesg word=$PREFIX$SUFFIX
-  if (( CURRENT == 1 && ${#word} < min_input )); then
-    :
-  elif [[ -v 1 ]] && (( $1 == 0 )); then
-    if [[ $word == '' ]]; then
+  if [[ -v 1 ]] && (( $1 == 0 )); then
+    if [[ $PREFIX$SUFFIX == '' ]]; then
       if [[ $3 == 'yes' ]] && (( $2 > 0 )); then
+        local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
         _autocomplete._main_complete list-choices
       else
-        local reply _comp_mesg
+        local mesg reply _comp_mesg
         zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
         _message $mesg
       fi
     else
-      zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg \
-        || mesg='No matching completions found.'
+      local mesg
+      zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
+        mesg='No matching completions found.'
       _autocomplete.warning $mesg
     fi
   elif [[ -v 2 ]] && (( ($2 + BUFFERLINES + 1) > max_lines )); then
+    local mesg
     if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
-      mesg='Too many completions to fit on screen. Type more to filter or press '
-      if zle -l fzf-history-widget; then
-        mesg+='Down Arrow'
-      else
-        mesg+='Ctrl-Space'
-      fi
-      mesg+=' to open the menu.'
+      local menuselect
+      zstyle -s ':autocomplete:menu-select:' key-binding menuselect || menuselect="menu-select"
+      mesg="Too many matches to display. Type more to filter or press $menuselect to open menu."
     fi
     _autocomplete.warning $mesg
   else
@@ -776,7 +792,7 @@ _autocomplete.history-search.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind=ctrl-space:abort,ctrl-k:kill-line"
+  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
 
   zle fzf-history-widget
 }
@@ -786,26 +802,17 @@ _autocomplete.expand-or-complete.zle-widget() {
 
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
-  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --bind=ctrl-space:abort,ctrl-k:kill-line"
+  local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
 
   local curcontext
   _autocomplete.curcontext expand-or-complete
 
   if [[ $BUFFER == [[:IFS:]]# ]]; then
     zle fzf-cd-widget
-    return
+  elif ! zle expand-word; then
+    zle -R
+    zle fzf-completion
   fi
-
-  if [[ ${LBUFFER[-1]} != [[:IFS:]]# || ${RBUFFER[1]} != [[:IFS:]]# ]]; then
-    zle .select-in-shell-word
-    local lbuffer=$LBUFFER
-    if ! zle expand-word && [[ $lbuffer != $LBUFFER ]]; then
-      zle .auto-suffix-remove
-    fi
-    return 0
-  fi
-
-  zle fzf-completion
 }
 
 _autocomplete.expand-word.completion-widget() {

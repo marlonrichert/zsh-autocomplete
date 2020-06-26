@@ -177,6 +177,20 @@ zstyle ':autocomplete:tab:*' completion insert
 **Note:** This last option also changes the listings slightly to not do completion to the left of
 what you've typed (unless that would result in zero matches).
 
+To have [<kbd>⇥</kbd>](# "tab") use [`fzf`'s completion feature](#requirements):
+```shell
+zstyle ':autocomplete:tab:*' completion fzf
+```
+
+### Disable `fzf` key bindings
+If you source [`fzf`'s shell extensions](#requirements), then `zsh-autocomplete` adds [additional
+key bindings](#with-fzf).
+
+To _not_ use these:
+```shell
+zstyle ':autocomplete:*' fuzzy-search off
+```
+
 
 ### Customize autocompletion messages
 You can customize the various messages that the autocompletion feature shows.
