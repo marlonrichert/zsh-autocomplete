@@ -138,7 +138,7 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' list-separator ''
   zstyle ':completion:*' use-cache true
 
-  zstyle ':completion:correct-word:*' completer _correct _ignored
+  zstyle ':completion:correct-word:*' completer _correct
   zstyle ':completion:correct-word:*' matcher-list ''
   zstyle ':completion:correct-word:*' ignored-patterns '[[:punct:]]*'
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order -
@@ -448,7 +448,7 @@ _autocomplete.main.hook() {
     }
   fi
 
-  zmodload -i zsh/system # `sysparams` array
+  zmodload -i zsh/system  # `sysparams` array
   zmodload -i zsh/zpty
   typeset -g _autocomplete__last_buffer _autocomplete__async_fd
   typeset -gaU _autocomplete__child_pids=( )
@@ -468,7 +468,7 @@ _autocomplete.list-choices.hook() {
   if [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept'; then
     return
   fi
-  _autocomplete.async-list-choices ${KEYS} ${LBUFFER} ${RBUFFER}
+  _autocomplete.async-list-choices "$KEYS" "$LBUFFER" "$RBUFFER"
 }
 
 _autocomplete.cancel_async() {
@@ -506,7 +506,7 @@ _autocomplete.async-list-choices() {
 
       {
         local REPLY
-        zpty _autocomplete__zpty _autocomplete.query-list-choices "\$1" "\$2" "\$3"
+        zpty _autocomplete__zpty _autocomplete.query-list-choices '$1' '$2' '$3'
         zpty -w _autocomplete__zpty $'\t'
 
         local line
@@ -545,9 +545,30 @@ _autocomplete.query-list-choices() {
   zle -D zle-isearch-exit zle-isearch-update zle-line-pre-redraw zle-line-init zle-line-finish \
          zle-history-line-set zle-keymap-select &> /dev/null
 
-  typeset -g __keys=${1} __lbuffer=${2} __rbuffer=${3}
+  typeset -g __keys=$1 __lbuffer=$2 __rbuffer=$3 __lbuffernew=$2 __rbuffernew=$3
   zle-widget() {
+    LBUFFER=$__lbuffer
     RBUFFER=$__rbuffer
+    case $__keys in
+      ' ')
+        if zstyle -T ":autocomplete:space:" magic correct-word && [[ ${LBUFFER[-1]} == ' ' ]]; then
+          (( CURSOR-- ))
+          zle correct-word
+          zle .auto-suffix-remove
+          (( CURSOR++ ))
+        fi
+        ;;
+      '/')
+        if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]; then
+          LBUFFER=${LBUFFER[1,-2]}
+          zle correct-word
+          zle .auto-suffix-remove
+          LBUFFER=$LBUFFER'/'
+        fi
+        ;;
+    esac
+    [[ $LBUFFER != $__lbuffer ]] && __lbuffernew=$LBUFFER
+    [[ $RBUFFER != $__rbuffer ]] && __lbuffernew=$RBUFFER
     zle completion-widget 2>&1
   }
   completion-widget() {
@@ -565,16 +586,18 @@ _autocomplete.query-list-choices() {
     unset 'compstate[vared]'
     _autocomplete._main_complete list-choices 2> /dev/null
     compstate[insert]=''
-    compstate[list_max]=0
     compstate[list]=''
+    compstate[list_max]=0
 
-    echo -nE "${(q)__keys}"$'\0'"${(q)__lbuffer}"$'\0'"${(q)__rbuffer}"$'\0'
-    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'$'\0'
+    echo -nE "${(q)__lbuffer}"$'\0'"${(q)__rbuffer}"$'\0'
+    echo -nE "${(q)__lbuffernew}"$'\0'"${(q)__rbuffernew}"$'\0'
+    echo -nE "${compstate[nmatches]}"$'\0'"${compstate[list_lines]}"$'\0'
+    echo -nE $'\0'
   }
   zle -N zle-widget
   zle -C completion-widget list-choices completion-widget
   bindkey '^I' zle-widget
-  vared __lbuffer 2>&1
+  vared LBUFFER 2>&1
 }
 
 # Called when new data is ready to be read from the pipe.
@@ -586,53 +609,38 @@ _autocomplete.async_callback() {
 
   {
     if [[ -z "$2" || "$2" == "hup" ]]; then
-
-      (( $#BUFFER == 0 )) && return
-
-      local null comp_mesg keys lbuffer rbuffer
-      local nmatches list_lines
-      IFS=$'\0' read -r -u $1 comp_mesg keys lbuffer rbuffer nmatches list_lines null
+      local null comp_mesg lbuffer rbuffer lbuffernew rbuffernew
+      local nmatches list_lines columns lines
+      IFS=$'\0' read -r -u $1 \
+        comp_mesg lbuffer rbuffer lbuffernew rbuffernew nmatches list_lines null
 
       if [[ "${LBUFFER}" != "${(Q)lbuffer}" || "${RBUFFER}" != "${(Q)rbuffer}" ]]; then
         return
       fi
 
-      local buffer="$BUFFER"
-      case ${(Q)keys} in
-        ' ')
-          if zstyle -T ":autocomplete:space:" magic correct-word \
-          && [[ ${LBUFFER[-1]} == ' ' ]]; then
-            (( CURSOR-- ))
-            zle correct-word
-            zle .auto-suffix-remove
-            (( CURSOR++ ))
-          fi
-          ;;
-        '/')
-          if zstyle -T ":autocomplete:slash:" magic correct-word \
-          && [[ ${LBUFFER[-1]} == '/' ]]; then
-            LBUFFER=${LBUFFER[1,-2]}
-            zle correct-word
-            zle .auto-suffix-remove
-            LBUFFER=$LBUFFER'/'
-          fi
-          ;;
-      esac
-      local ret
-      if [[ "$buffer" == "$BUFFER" ]]; then
-        zle _list_choices $nmatches $list_lines $comp_mesg
-      else
-        zle _list_choices
-      fi
+      lbuffernew="${(Q)lbuffernew}"
+      rbuffernew="${(Q)rbuffernew}"
+      [[ "$LBUFFER" != "$lbuffernew" ]] && LBUFFER=$lbuffernew
+      [[ "$RBUFFER" != "$rbuffernew" ]] && RBUFFER=$rbuffernew
+
+      zle _list_choices $nmatches $list_lines $comp_mesg
 
       # If a widget can't be called, ZLE always returns 0.
       # Thus, we return 1 on purpose, so we can check if our widget got called.
-      if (( ? == 1 )); then
-        unset _ZSH_HIGHLIGHT_PRIOR_BUFFER
-        _zsh_highlight
-        _zsh_autosuggest_highlight_apply
-        zle -R
-      fi
+      case $? in
+        1)
+          unset _ZSH_HIGHLIGHT_PRIOR_BUFFER
+          _zsh_highlight
+          _zsh_autosuggest_highlight_apply
+          zle -R
+          ;;
+        2)
+          zle -Rc
+          ;;
+        *)
+          :
+          ;;
+      esac
     fi
   } always {
     if [[ -n "$1" ]] && { true <&$1 } 2>/dev/null; then
@@ -730,21 +738,21 @@ _autocomplete.warning() {
 
 _autocomplete.correct-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
-  unsetopt GLOB_COMPLETE
 
   if [[ ${LBUFFER[-1]} != [[:IDENT:]] || ${RBUFFER[1]} != [[:IFS:]]# ]]; then
     return 1
   fi
 
-  if [[ ${_lastcomp[insert]} == menu
-     || -v _lastcomp[exact_string]
-     || "${_lastcomp[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
+  if [[ -v _lastcomp[exact_string] || ${_lastcomp[insert]} == menu ||
+      "${_lastcomp[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
     compstate[insert]=''
-    return
+    return 1
   fi
 
   local curcontext
+  unset 'compstate[vared]'
   _autocomplete._main_complete correct-word
+  compstate[insert]='1 '
 }
 
 _autocomplete.list-expand.completion-widget() {
@@ -773,9 +781,7 @@ _autocomplete.complete-word.completion-widget() {
   if [[ -v compstate[old_list] ]]; then
     compstate[old_list]='keep'
     compstate[insert]='1'
-    if [[ ${compstate[context]} == (command|redirect) ]]; then
-      compstate[insert]+=' '
-    fi
+    [[ ${compstate[context]} == (command|redirect) ]] && compstate[insert]+=' '
     _autocomplete._main_complete complete-word _oldlist
   else
     _autocomplete._main_complete complete-word

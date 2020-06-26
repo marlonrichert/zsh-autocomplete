@@ -128,8 +128,7 @@ zstyle ':autocomplete:*' groups always
 ```
 **WARNING:** Enabling this setting can noticeably decrease autocompletion performance.
 
-
-### Tweak or disable automagic corrections
+### Tweak or disable automagic corrections and expansions
 By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
 your spelling.
 
@@ -143,7 +142,7 @@ To make it do both:
 zstyle ':autocomplete:space:*' magic correct-word expand-history
 ```
 
-To disable all automagic corrections, including history expansion:
+To disable all automagic corrections and expansions:
 ```shell
 zstyle ':autocomplete:*' magic off
 ```
