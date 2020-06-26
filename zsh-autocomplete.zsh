@@ -361,36 +361,42 @@ _autocomplete.main.hook() {
 
   [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
 
-  if [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]]; then
+  if [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]] &&
+      zstyle -T ':autocomplete:' frecent-dirs 'zoxide'; then
     _autocomplete.zdirs() {
       reply=( $( zoxide query $1 2> /dev/null ) )
     }
-  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]]; then
+  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
+      zstyle -T ':autocomplete:' frecent-dirs 'z.lua'; then
     _autocomplete.zdirs() {
       reply=(
         "${(@)${(f)$( _zlua -l $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
       )
     }
-  elif [[ -v functions[_z] && -v functions[_z_precmd] ]]; then
+  elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
+      zstyle -T ':autocomplete:' frecent-dirs 'z.sh'; then
     _autocomplete.zdirs() {
       reply=(
         "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|[[:digit:]]##)[[:space:]]##}"
       )
     }
-  elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]]; then
+  elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
+      zstyle -T ':autocomplete:' frecent-dirs 'autojump'; then
     _autocomplete.zdirs() {
       reply=(
         "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__[[:digit:]]__}"
       )
     }
-  elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]]; then
+  elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
+      zstyle -T ':autocomplete:' frecent-dirs 'fasd'; then
     _autocomplete.zdirs() {
       reply=(
         "${(@)${(f)$( fasd --query d $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
       )
     }
   fi
-  if [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]]; then
+  if [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
+      zstyle -T ':autocomplete:' frecent-files 'fasd'; then
     _autocomplete.zfiles() {
       reply=(
         "${(@)${(f)$( fasd --query f $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"

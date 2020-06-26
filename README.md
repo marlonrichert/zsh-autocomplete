@@ -1,12 +1,12 @@
 # zsh-autocomplete
-Find-as-you-type completion for the Z Shell!
+Find-as-you-type completion for the Z Shell
 * **Asynchronously** shows completions **as you type**.
   * With [IDE-like keybindings](#key-bindings) to choose completions and insert them.
+  * Includes "frecent" dirs from `zoxide`, `z.lua`, `z.sh`, `autojump` and `fasd`.
 * Automagically corrects misspellings, expands aliases and does history expansions.
   * Don't like a correction/expansion? Just press Undo to revert it.
 * Integrates seamlessly with `fzf`, `zsh-autosuggestions` and
   `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
-* Includes completion results from `zoxide`, `z.lua`, `z.sh`, `autojump` and `fasd`.
 
 
 ## Demo
@@ -78,8 +78,8 @@ There are two ways to install `zsh-autocomplete`:
 ### As a Plugin
 Please refer to your framework's/plugin manager's documentation for instructions.
 
-**Note** for Prezto users: You need to load `zsh-autocomplete` _after or instead of_ Prezto's
-built-in `completion` module.
+**Note** for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
+_instead_ of your framework's supplied completion module.
 
 ### Manually
 1. `git clone` this repo.
@@ -93,7 +93,6 @@ To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
 
 ## Configuration
 The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
-
 
 ### Wait for minimum amount of input
 By default, `zsh-autocomplete` will show completions as soon as you start typing.
@@ -128,23 +127,36 @@ zstyle ':autocomplete:*' groups always
 ```
 **WARNING:** Enabling this setting can noticeably decrease autocompletion performance.
 
-### Tweak or disable automagic corrections and expansions
-By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
-your spelling.
+### Disable "frecent" dirs feature
+If you have `zoxide`, `z.lua`, `z.sh`, `autojump` or `fasd` installed and have correctly configured
+it to track your directory changes, then `zsh-autocomplete` will automatically list "frecent"
+directories from this tool.
 
-To have space do history expansion, instead of spelling correction:
+To _not_ include these:
 ```shell
-zstyle ':autocomplete:space:*' magic expand-history
+zstyle ':autocomplete:*' frecent-dirs off
 ```
 
-To make it do both:
+### Customize autocompletion messages
+You can customize the various messages that the autocompletion feature shows.
+
+This is shown when the number of lines needed to display all matches exceeds the available screen
+space (or the number given by `zstyle ':autocomplete:list-choices:*' max-lines`):
 ```shell
-zstyle ':autocomplete:space:*' magic correct-word expand-history
+zstyle ':autocomplete:*:too-many-matches' message \
+  'Too many completions to fit on screen. Type more to filter or press Ctrl-Space to open the menu.'
 ```
 
-To disable all automagic corrections and expansions:
+This is shown when the completion system decides, for whatever reason, that it does not want to
+show any completions yet, until you've typed more input:
 ```shell
-zstyle ':autocomplete:*' magic off
+zstyle ':autocomplete:*:no-matches-yet' message 'Type more...'
+```
+
+This is shown when, for the given input, the completion system cannot find any matching completions
+at all:
+```shell
+zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
 ### Change [<kbd>⇥</kbd>](# "tab") and [<kbd>⇤</kbd>](# "shift-tab") behavior
@@ -184,6 +196,25 @@ To have [<kbd>⇥</kbd>](# "tab") use [`fzf`'s completion feature](#requirements
 zstyle ':autocomplete:tab:*' completion fzf
 ```
 
+### Tweak or disable automagic corrections and expansions
+By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
+your spelling.
+
+To have space do history expansion, instead of spelling correction:
+```shell
+zstyle ':autocomplete:space:*' magic expand-history
+```
+
+To make it do both:
+```shell
+zstyle ':autocomplete:space:*' magic correct-word expand-history
+```
+
+To disable all automagic corrections and expansions:
+```shell
+zstyle ':autocomplete:*' magic off
+```
+
 ### Disable `fzf` key bindings
 If you source [`fzf`'s shell extensions](#requirements), then `zsh-autocomplete` adds [additional
 key bindings](#with-fzf).
@@ -191,29 +222,6 @@ key bindings](#with-fzf).
 To _not_ use these:
 ```shell
 zstyle ':autocomplete:*' fuzzy-search off
-```
-
-
-### Customize autocompletion messages
-You can customize the various messages that the autocompletion feature shows.
-
-This is shown when the number of lines needed to display all matches exceeds the available screen
-space (or the number given by `zstyle ':autocomplete:list-choices:*' max-lines`):
-```shell
-zstyle ':autocomplete:*:too-many-matches' message \
-  'Too many completions to fit on screen. Type more to filter or press Ctrl-Space to open the menu.'
-```
-
-This is shown when the completion system decides, for whatever reason, that it does not want to
-show any completions yet, until you've typed more input:
-```shell
-zstyle ':autocomplete:*:no-matches-yet' message 'Type more...'
-```
-
-This is shown when, for the given input, the completion system cannot find any matching completions
-at all:
-```shell
-zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
 
