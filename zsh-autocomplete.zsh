@@ -78,7 +78,7 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
-  zstyle ':completion:*' completer _list _expand _complete _ignored _approximate
+  zstyle ':completion:*' completer _expand _complete _ignored _approximate
   zstyle ':completion:*' menu 'yes select=long-list'
 
   if zstyle -m ":autocomplete:tab:" completion 'insert'; then
@@ -113,8 +113,7 @@ _autocomplete.main.hook() {
   zstyle -e ':completion:*' max-errors '
     reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
 
-  zstyle -e ':completion:*' glob '
-    [[ $PREFIX$SUFFIX == *[\*\(\|\<\[\?\^\#]* ]] && reply=( "true" ) || reply=( "false" )'
+  zstyle -e ':completion:*' glob 'reply=( "true" ) && _autocomplete.is_glob || reply=( "false" )'
   zstyle ':completion:*' expand prefix suffix
   zstyle ':completion:*' list-suffixes true
   zstyle ':completion:*' path-completion true
@@ -886,8 +885,14 @@ _autocomplete._main_complete() {
   _autocomplete.curcontext $1
   shift
   (( $#comppostfuncs == 0 )) &&
-    local +h -a comppostfuncs=( _autocomplete.handle_long_list _autocomplete.add_unambiguous )
+    local +h -a comppostfuncs=( _autocomplete.add_unambiguous _autocomplete.handle_long_list )
+  _autocomplete.is_glob && ISUFFIX='*'
   _main_complete "$@"
+}
+
+_autocomplete.is_glob() {
+  local word=$PREFIX$SUFFIX
+  [[ $word == *[\*\(\|\<\[\?\^\#]* && $word == ${~${(q)word}} ]]
 }
 
 _autocomplete.add_unambiguous() {
