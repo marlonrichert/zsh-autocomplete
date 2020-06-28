@@ -326,7 +326,7 @@ _autocomplete.main.hook() {
       ;;
     *)
       if zstyle -T ':autocomplete:' fuzzy-search fzf &&
-          zle -l fzf-completion && zle -l fzf-cd-widget; then
+          zle -l fzf-completion && zle -l fzf-cd-widget && zle -l fzf-file-widget; then
         bindkey $key[ControlSpace] expand-or-complete
         zle -N expand-or-complete _autocomplete.expand-or-complete.zle-widget
       else
@@ -836,7 +836,7 @@ _autocomplete.expand-or-complete.zle-widget() {
   setopt localoptions extendedglob $_autocomplete__options
 
   local FZF_COMPLETION_TRIGGER=''
-  local fzf_default_completion='list-expand'
+  local fzf_default_completion='fzf-file-widget'
   local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
 
   local curcontext
@@ -844,22 +844,28 @@ _autocomplete.expand-or-complete.zle-widget() {
 
   if [[ $BUFFER == [[:IFS:]]# ]]; then
     zle fzf-cd-widget
-  elif ! zle expand-word; then
-    zle -R
-    zle fzf-completion
+    return
   fi
+
+  zle expand-word && return
+
+  zle .select-a-shell-word
+  zle fzf-completion
 }
 
 _autocomplete.expand-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
   if [[ -v compstate[old_list] && ${_lastcomp[tags]} == *unambiguous* ]]; then
       compstate[old_list]='keep'
       compstate[insert]='0'
-  else
-    _autocomplete._main_complete expand-word _expand_alias
+      compstate[to_end]=''
+      return
   fi
+
+  local curcontext
+  _autocomplete._main_complete expand-word _expand_alias
+  (( compstate[nmatches] > 0 ))
 }
 
 _autocomplete.curcontext() {
@@ -885,17 +891,31 @@ _autocomplete._main_complete() {
 }
 
 _autocomplete.add_unambiguous() {
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
   (( compstate[nmatches] <= 1 )) || [[ -z ${compstate[unambiguous]} ||
-    $QIPREFIX$PREFIX$SUFFIX$QISUFFIX == ${compstate[unambiguous]}*  ]] && return
+    $QIPREFIX$PREFIX$SUFFIX$QISUFFIX == ${compstate[unambiguous]}* ]] && return
+
   local word=$PREFIX$SUFFIX
   local unambiguous=${compstate[unambiguous]}
   [[ -n $QIPREFIX ]] && unambiguous=${unambiguous#$QIPREFIX}
-  [[ -n $QISUFFIX ]] && unambiguous=${unambiguous#$QISUFFIX}
-  local i; for (( i=1; i <= $#unambiguous; i++ )); do
-    word=${word#${unambiguous[i]}}
+  [[ -n $QISUFFIX ]] && unambiguous=${unambiguous%$QISUFFIX}
+
+  [[ $unambiguous == ${word}? ]] && return
+
+  local i
+  for (( i=1; i <= $#unambiguous; i++ )); do
+    word=${word#(#i)${unambiguous[i]}}
   done
-  local -a sopt=( -qs $word ) && [[ -n $word ]] || sopt=()
-  _wanted unambiguous expl 'common prefix' compadd "$expl[@]" $sopt -QU - $unambiguous
+  for (( i=-1; i >= -$#word ; i-- )); do
+    [[ ${unambiguous} == ${~word[1,i]} ]] && word=$word[i+1,-1] && break
+  done
+
+  _comp_tags="$_comp_tags unambiguous"
+  local expl
+  _description unambiguous expl 'common prefix'
+  local -a sopt=( -qI $word ) && [[ -n $word ]] || sopt=()
+  compadd "$expl[@]" $sopt -QU - $unambiguous
 }
 
 _autocomplete.handle_long_list() {

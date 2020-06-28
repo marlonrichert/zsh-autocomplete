@@ -43,7 +43,7 @@ When you source
 | --- | --- |
 | [<kbd>↓</kbd>](# "down") | Select a match or (in multi-line buffer) move cursor down |
 | [<kbd>↑</kbd>](# "up") | Do fuzzy history search or (in multi-line buffer) move cursor up |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert longest common prefix (on glob expressions) or do fuzzy file search |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert common prefix or do fuzzy file search |
 | [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Select a match (also in multi-line buffer) |
 | [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Do fuzzy history search (also in multi-line buffer) |
 
