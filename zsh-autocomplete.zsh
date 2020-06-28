@@ -137,9 +137,9 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' list-separator ''
   zstyle ':completion:*' use-cache true
 
-  zstyle ':completion:correct-word:*' completer _correct
-  zstyle ':completion:correct-word:*' matcher-list ''
+  zstyle ':completion:correct-word:*' completer _complete _correct
   zstyle ':completion:correct-word:*' ignored-patterns '[[:punct:]]*'
+  zstyle -e ':completion:correct-word:complete:*' ignored-patterns 'reply=( "^($PREFIX$SUFFIX)" )'
   zstyle ':completion:correct-word:*:git-*:argument-*:*' tag-order -
   zstyle ':completion:correct-word:*' accept-exact true
   zstyle ':completion:correct-word:*' add-space false
@@ -556,10 +556,12 @@ _autocomplete.query-list-choices() {
         ;;
       '/')
         if zstyle -T ":autocomplete:slash:" magic correct-word && [[ ${LBUFFER[-1]} == '/' ]]; then
-          LBUFFER=${LBUFFER[1,-2]}
+          LBUFFER=$LBUFFER[1,-2]
+          RBUFFER=' '$RBUFFER
           zle correct-word
           zle .auto-suffix-remove
           LBUFFER=$LBUFFER'/'
+          RBUFFER=$RBUFFER[2,-1]
         fi
         ;;
     esac
@@ -733,20 +735,18 @@ _autocomplete.warning() {
 _autocomplete.correct-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  if [[ ${LBUFFER[-1]} != [[:IDENT:]] || ${RBUFFER[1]} != [[:IFS:]]# ]]; then
-    return 1
-  fi
-
-  if [[ -v _lastcomp[exact_string] || ${_lastcomp[insert]} == menu ||
-      "${_lastcomp[unambiguous]}" == "$PREFIX$SUFFIX" ]]; then
+  if _autocomplete.is_glob || [[ "${LBUFFER[-1]}${RBUFFER[1]}" == [[:IFS:][:space:]]# ||
+       ${_lastcomp[insert]} == menu ]]; then
     compstate[insert]=''
     return 1
   fi
 
-  local curcontext
   unset 'compstate[vared]'
+  local curcontext
   _autocomplete._main_complete correct-word
-  compstate[insert]='1 '
+  compstate[insert]='1 ' &&
+    (( compstate[nmatches] > 0 )) && [[ ${_lastcomp[completer]} != complete ]] ||
+    compstate[insert]=''
 }
 
 _autocomplete.list-expand.completion-widget() {
