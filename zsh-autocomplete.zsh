@@ -19,8 +19,10 @@
   autoload +X -Uz add-zsh-hook
   add-zsh-hook -d precmd _zsh_autosuggest_start
 
+  # Get access to some of the internal hash tables used by the shell.
+  zmodload -i zsh/parameter
+
   # In case we're sourced _before_ `zsh-autosuggestions`
-  zmodload -i zsh/parameter  # `functions` array
   functions[_autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
   add-zsh-hook() {
     # Prevent `_zsh_autosuggest_start` from being added.
@@ -55,6 +57,18 @@
   elif ! [[ -v compprefuncs && -v comppostfuncs ]]; then
     autoload -Uz compinit && compinit -C
   fi
+
+  autoload +X -Uz _main_complete
+  functions[_autocomplete._main_complete]=$functions[_main_complete]
+
+  _main_complete() {
+    setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+    (( $#comppostfuncs == 0 )) &&
+      local +h -a comppostfuncs=( _autocomplete.add_extras _autocomplete.handle_long_list )
+    _autocomplete.is_glob && ISUFFIX='*'
+    _autocomplete._main_complete "$@"
+  }
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] && .zinit-shade-on $___mode
@@ -211,18 +225,21 @@ _autocomplete.main.hook() {
       zle -C menu-complete menu-complete menu-complete
       bindkey $key[BackTab] reverse-menu-complete
       zle -C reverse-menu-complete reverse-menu-complete menu-complete
+
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
         [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
         _main_complete
       }
+
       ;;
     'select')
       bindkey $key[Tab] menu-complete
       zle -C menu-complete menu-select menu-complete
       bindkey $key[BackTab] reverse-menu-complete
       zle -C reverse-menu-complete menu-select menu-complete
+
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
@@ -237,12 +254,14 @@ _autocomplete.main.hook() {
             ;;
         esac
       }
+
       ;;
     'insert')
       bindkey $key[Tab] menu-complete
       zle -C menu-complete menu-complete menu-complete
       bindkey $key[BackTab] reverse-menu-complete
       zle -C reverse-menu-complete reverse-menu-complete menu-complete
+
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
@@ -263,6 +282,7 @@ _autocomplete.main.hook() {
           compstate[insert]='menu'
         fi
       }
+
       ;;
     'accept')
       zstyle ':autocomplete:tab:*' completion accept
@@ -590,10 +610,10 @@ _autocomplete.query-list-choices() {
       compstate[list]=''
     }
 
-    local curcontext
-    local +h -a comppostfuncs=( print_comp_mesg )
     unset 'compstate[vared]'
-    _autocomplete._main_complete list-choices 2> /dev/null
+    local curcontext; _autocomplete.curcontext list-choices
+    local +h -a comppostfuncs=( print_comp_mesg )
+    _main_complete 2> /dev/null
     compstate[insert]=''
     compstate[list]=''
     compstate[list_max]=0
@@ -665,8 +685,7 @@ _autocomplete.async_callback() {
 _autocomplete.list-choices.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
-  _autocomplete.curcontext list-choices
+  local curcontext; _autocomplete.curcontext list-choices
 
   if (( CURRENT == 1 )); then
     local min_input
@@ -678,7 +697,7 @@ _autocomplete.list-choices.completion-widget() {
     if [[ $PREFIX$SUFFIX == '' ]]; then
       if [[ $3 == 'yes' ]] && (( $2 > 0 )); then
         local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
-        _autocomplete._main_complete list-choices
+        _main_complete
       else
         local mesg reply _comp_mesg
         zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
@@ -700,7 +719,7 @@ _autocomplete.list-choices.completion-widget() {
     _autocomplete.warning $mesg
   else
     local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
-    _autocomplete._main_complete list-choices
+    _main_complete
   fi
   compstate[insert]=''
   compstate[list_max]=0
@@ -753,8 +772,8 @@ _autocomplete.correct-word.completion-widget() {
   fi
 
   unset 'compstate[vared]'
-  local curcontext
-  _autocomplete._main_complete correct-word
+  local curcontext; _autocomplete.curcontext correct-word
+  _main_complete
   compstate[insert]='1 ' &&
     ( (( compstate[nmatches] == 0 )) || [[ ${_lastcomp[completer]} == complete ]] ) &&
     compstate[insert]=''
@@ -763,8 +782,8 @@ _autocomplete.correct-word.completion-widget() {
 _autocomplete.list-expand.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
-  _autocomplete._main_complete list-expand
+  local curcontext; _autocomplete.curcontext list-expand
+  _main_complete
 }
 
 _autocomplete.complete-word.zle-widget() {
@@ -782,21 +801,21 @@ _autocomplete.complete-word.zle-widget() {
 _autocomplete.complete-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
+  local curcontext; _autocomplete.curcontext complete-word
   if [[ -v compstate[old_list] ]]; then
     compstate[old_list]='keep'
     compstate[insert]='1'
     [[ ${compstate[context]} == (command|redirect) ]] && compstate[insert]+=' '
-    _autocomplete._main_complete complete-word _oldlist
+    _main_complete _oldlist
   else
-    _autocomplete._main_complete complete-word
+    _main_complete
   fi
 }
 
 _autocomplete.down-line-or-menu-select.zle-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
+  local curcontext; _autocomplete.curcontext
   _autocomplete.curcontext down-line-or-menu-select
 
   if (( BUFFERLINES == 1 )); then
@@ -809,20 +828,20 @@ _autocomplete.down-line-or-menu-select.zle-widget() {
 _autocomplete.menu-select.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  local curcontext
+  local curcontext; _autocomplete.curcontext menu-select
   if [[ -v compstate[old_list] ]]; then
     compstate[old_list]='keep'
     compstate[insert]='menu'
-    _autocomplete._main_complete menu-select _oldlist
+    _main_complete _oldlist
   else
-    _autocomplete._main_complete menu-select
+    _main_complete
   fi
 }
 
 _autocomplete.up-line-or-history-search.zle-widget() {
   setopt localoptions extendedglob $_autocomplete__options
 
-  local curcontext
+  local curcontext; _autocomplete.curcontext
   _autocomplete.curcontext up-line-or-history-search
 
   if (( BUFFERLINES == 1 )); then
@@ -849,7 +868,7 @@ _autocomplete.expand-or-complete.zle-widget() {
   local fzf_default_completion='fzf-file-widget'
   local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
 
-  local curcontext
+  local curcontext; _autocomplete.curcontext
   _autocomplete.curcontext expand-or-complete
 
   if [[ $BUFFER == [[:IFS:]]# ]]; then
@@ -873,8 +892,8 @@ _autocomplete.expand-word.completion-widget() {
       return
   fi
 
-  local curcontext
-  _autocomplete._main_complete expand-word _expand_alias
+  local curcontext; _autocomplete.curcontext expand-word
+  _main_complete _expand_alias
   (( compstate[nmatches] > 0 ))
 }
 
@@ -888,17 +907,6 @@ _autocomplete.curcontext() {
   else
     curcontext="$1:${curcontext#*:}"
   fi
-}
-
-_autocomplete._main_complete() {
-  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
-
-  _autocomplete.curcontext $1
-  shift
-  (( $#comppostfuncs == 0 )) &&
-    local +h -a comppostfuncs=( _autocomplete.add_unambiguous _autocomplete.handle_long_list )
-  _autocomplete.is_glob && ISUFFIX='*'
-  _main_complete "$@"
 }
 
 _autocomplete.is_glob() {
