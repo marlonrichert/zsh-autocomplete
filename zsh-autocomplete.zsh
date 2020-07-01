@@ -358,6 +358,7 @@ _autocomplete.main.hook() {
       fi
       zle -C expand-word complete-word _autocomplete.expand-word.completion-widget
       bindkey -M menuselect $key[ControlSpace] end-of-history
+      zstyle ':completion:*:requoted' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
       zstyle ':completion:*:unambiguous' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
       ;;
   esac
@@ -701,22 +702,22 @@ _autocomplete.list-choices.completion-widget() {
       else
         local mesg reply _comp_mesg
         zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
-        _message $mesg
+        _autocomplete.explain message $mesg
       fi
     else
       local mesg
       zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
         mesg='No matching completions found.'
-      _autocomplete.warning $mesg
+      _autocomplete.explain warning $mesg
     fi
   elif [[ -v 2 ]] && (( $2 > _autocomplete__max_lines() )); then
-    local mesg
+    local mesg reply
     if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
       local menuselect
       zstyle -s ':autocomplete:menu-select:' key-binding menuselect || menuselect="menu-select"
-      mesg="Too many matches to display. Type more to filter or press $menuselect to open menu."
+      mesg="Too long list. Press $menuselect to open or type more to filter."
     fi
-    _autocomplete.warning $mesg
+    _autocomplete.explain message $mesg
   else
     local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
     _main_complete
@@ -730,6 +731,8 @@ _autocomplete.list-choices.completion-widget() {
 }
 
 _autocomplete__max_lines() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
   local available max_lines
   zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
   if [[ $max_lines == *% ]]; then
@@ -747,17 +750,17 @@ _autocomplete.list-choices.comppostfunc() {
     local reply _comp_mesg
     _message "Type more..."
   fi
-  _autocomplete.add_unambiguous
+  _autocomplete.add_extras
 }
 
-_autocomplete.warning() {
+_autocomplete.explain() {
   setopt localoptions noshortloops nowarncreateglobal extendedglob $_autocomplete__options
 
   local format
-  zstyle -s ":completion:${curcontext}:warnings" format format
-  _setup warnings
+  zstyle -s ":completion:${curcontext}:${1}s" format format
+  _setup "${1}s"
   local mesg
-  zformat -f mesg "$format" "d:$1" "D:$1"
+  zformat -f mesg "$format" "d:$2" "D:$2"
   compadd -x "$mesg"
   compstate[list]='list force'
 }
@@ -885,7 +888,7 @@ _autocomplete.expand-or-complete.zle-widget() {
 _autocomplete.expand-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  if [[ -v compstate[old_list] && ${_lastcomp[tags]} == *unambiguous* ]]; then
+  if [[ -v compstate[old_list] && ${_lastcomp[tags]} == *(requoted|unambiguous)* ]]; then
       compstate[old_list]='keep'
       compstate[insert]='0'
       compstate[to_end]=''
@@ -910,8 +913,37 @@ _autocomplete.curcontext() {
 }
 
 _autocomplete.is_glob() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
   local word=$PREFIX$SUFFIX
-  [[ $word == *[\*\(\|\<\[\?\^\#]* && $word == ${~${(q)word}} ]]
+  [[ $word == *(${(j:|:)~${(@b)patchars}})* && $word == ${~${(q)word}} && ! -e $~word ]]
+}
+
+_autocomplete.add_extras() {
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+  _autocomplete.requote || _autocomplete.add_unambiguous
+}
+
+_autocomplete.requote() {
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+  local requoted
+  if [[ $_completer == expand ]] && (( compstate[nmatches] == 1 )); then
+    requoted=${(Q)compstate[unambiguous]}
+  elif (( compstate[nmatches] == 0 )); then
+    requoted=${(Q):-$PREFIX$SUFFIX}
+  else
+    return 1
+  fi
+
+  [[ $requoted == $PREFIX$SUFFIX ]] && return
+
+  _comp_tags+=' requoted'
+  local expl
+  _description requoted expl 'human readable'
+  compadd "$expl[@]" -qS ' ' -QU - ${(q+)requoted}
+  return 0
 }
 
 _autocomplete.add_unambiguous() {
