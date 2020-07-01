@@ -111,7 +111,12 @@ _autocomplete.main.hook() {
   zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
 
   zstyle -e ':completion:*' max-errors '
-    reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) numeric )'
+    if [[ -z $SUFFIX && -n $QIPREFIX && -n $QISUFFIX ]]; then
+      reply=( 0 )
+    else
+      reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) )
+    fi
+    reply+=( numeric )'
 
   zstyle -e ':completion:*' glob 'reply=( "true" ) && _autocomplete.is_glob || reply=( "false" )'
   zstyle ':completion:*' expand prefix suffix
@@ -742,7 +747,7 @@ _autocomplete.correct-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   if _autocomplete.is_glob || [[ "${LBUFFER[-1]}${RBUFFER[1]}" == [[:IFS:][:space:]]# ||
-       ${_lastcomp[insert]} == menu ]]; then
+       ${_lastcomp[insert]} == menu || -n $QIPREFIX && -n $QISUFFIX ]]; then
     compstate[insert]=''
     return 1
   fi
@@ -751,7 +756,7 @@ _autocomplete.correct-word.completion-widget() {
   local curcontext
   _autocomplete._main_complete correct-word
   compstate[insert]='1 ' &&
-    (( compstate[nmatches] > 0 )) && [[ ${_lastcomp[completer]} != complete ]] ||
+    ( (( compstate[nmatches] == 0 )) || [[ ${_lastcomp[completer]} == complete ]] ) &&
     compstate[insert]=''
 }
 
