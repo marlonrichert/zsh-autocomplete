@@ -75,13 +75,8 @@ Fzf integration:
 ## Installation
 There are two ways to install `zsh-autocomplete`:
 
-### As a Plugin
-Please refer to your framework's/plugin manager's documentation for instructions.
-
-**Note** for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
-_instead_ of your framework's supplied completion module.
-
 ### Manually
+This is the **preferred way to install**.
 1. `git clone` this repo.
 1. Add the following to your `.zshrc` file:
    ```shell
@@ -89,6 +84,15 @@ _instead_ of your framework's supplied completion module.
    ```
 
 To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
+
+### As a Plugin
+Please refer to your framework's/plugin manager's documentation for instructions.
+
+**If you're experiencing problems**, please first install `zsh-autocomplete` manually instead. (See
+previous section.)
+
+Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
+_instead_ of your framework's supplied completion module.
 
 
 ## Configuration
