@@ -909,29 +909,39 @@ _autocomplete.is_glob() {
 _autocomplete.add_unambiguous() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  (( compstate[nmatches] <= 1 )) || [[ -z ${compstate[unambiguous]} ||
-    $QIPREFIX$PREFIX$SUFFIX$QISUFFIX == ${compstate[unambiguous]}* ]] && return
+  (( compstate[nmatches] <= 1 )) || [[ -z ${compstate[unambiguous]} ]] && return 1
 
   local word=$PREFIX$SUFFIX
   local unambiguous=${compstate[unambiguous]}
-  [[ -n $QIPREFIX ]] && unambiguous=${unambiguous#$QIPREFIX}
-  [[ -n $QISUFFIX ]] && unambiguous=${unambiguous%$QISUFFIX}
+  local iprefix=$QIPREFIX$IPREFIX
+  _autocomplete.is_glob && ISUFFIX=''
+  local isuffix=$ISUFFIX$QISUFFIX
+  [[ -n $iprefix ]] && unambiguous=${unambiguous#$iprefix}
+  [[ -n $isuffix ]] && unambiguous=${unambiguous%$isuffix}
 
-  [[ $unambiguous == ${word}? ]] && return
+  [[ $unambiguous == ? || $unambiguous == $word? || $word == $unambiguous* ]] && return 1
 
   local i
-  for (( i=1; i <= $#unambiguous; i++ )); do
-    word=${word#(#i)${unambiguous[i]}}
-  done
-  for (( i=-1; i >= -$#word ; i-- )); do
-    [[ ${unambiguous} == ${~word[1,i]} ]] && word=$word[i+1,-1] && break
-  done
+  if _autocomplete.is_glob; then
+    for (( i=-1; i >= -$#word ; i-- )); do
+      if [[ $unambiguous == ${~word[1,i]} ]]; then
+        word=$word[i+1,-1]
+        break
+      fi
+    done
+  else
+    local match mbegin mend
+    word=${word##${~unambiguous//(#b)(?)/(${(b)match[1]}(#c0,1))}}
+  fi
+  word+=$isuffix
+  [[ -z $QISUFFIX ]] && word+=$QIPREFIX
 
-  _comp_tags="$_comp_tags unambiguous"
+  _comp_tags+='unambiguous'
   local expl
   _description unambiguous expl 'common prefix'
-  local -a sopt=( -qI $word ) && [[ -n $word ]] || sopt=()
+  local -a sopt=( -I $word ) && [[ -n $word ]] || sopt=()
   compadd "$expl[@]" $sopt -QU - $unambiguous
+  return 0
 }
 
 _autocomplete.handle_long_list() {
