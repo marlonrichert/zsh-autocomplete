@@ -217,9 +217,9 @@ To have [<kbd>⇥</kbd>](# "tab") use [`fzf`'s completion feature](#requirements
 zstyle ':autocomplete:tab:*' completion fzf
 ```
 
-### Tweak or disable automagic corrections and expansions
-By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") both automagically correct
-your spelling.
+### Change or disable automagic corrections and expansions
+By default, [<kbd>␣</kbd>](# "space") and [<kbd>/</kbd>](# "slash") automagically corrects
+spelling mistakes.
 
 To have space do history expansion, instead of spelling correction:
 ```shell

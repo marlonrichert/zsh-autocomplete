@@ -360,12 +360,14 @@ _autocomplete.main.hook() {
 
   bindkey ' ' magic-space
   zle -N magic-space
+
   magic-space() {
     setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-    zstyle -T ":autocomplete:space:" magic expand-history && zle .expand-history
+    zstyle -t ":autocomplete:space:" magic expand-history && zle .expand-history
     zle .self-insert
   }
+
   zle -C correct-word complete-word _autocomplete.correct-word.completion-widget
   bindkey '^[ ' self-insert-unmeta
 
