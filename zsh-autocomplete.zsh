@@ -91,7 +91,31 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
-  zstyle ':completion:*' completer _expand _complete _ignored _approximate
+  zstyle ':completion:*' completer \
+    _expand _complete _ignored _approximate _autocomplete._history _history
+
+  autoload +X -Uz _expand
+  functions[_autocomplete._expand]=$functions[_expand]
+
+  _expand() {
+    _autocomplete.is_glob && ISUFFIX='*'
+    _autocomplete._expand "$@"
+    local ret=$?
+    ISUFFIX=''
+    return ret
+  }
+
+  autoload +X -Uz _complete
+  functions[_autocomplete._complete]=$functions[_complete]
+
+  _complete() {
+    local -i nmatches=$compstate[nmatches]
+    _autocomplete._complete "$@"
+    local ret=$?
+    (( compstate[nmatches] == nmatches )) && _comp_mesg=''
+    return ret
+  }
+
   zstyle ':completion:*' menu 'yes select=long-list'
 
   if zstyle -m ":autocomplete:tab:" completion 'insert'; then
@@ -853,6 +877,9 @@ _autocomplete.up-line-or-history-search.zle-widget() {
 _autocomplete.history-search.zle-widget() {
   setopt localoptions extendedglob $_autocomplete__options
 
+  local curcontext; _autocomplete.curcontext
+  _autocomplete.curcontext history-search
+
   local FZF_COMPLETION_TRIGGER=''
   local fzf_default_completion='list-expand'
   local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
@@ -915,6 +942,34 @@ _autocomplete.is_glob() {
   [[ $word == *(${(j:|:)~${(@b)patchars}})* && $word == ${~${(q)word}} && ! -e $~word ]]
 }
 
+_autocomplete._history() {
+  setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+  local prefix=${LBUFFER/%$IPREFIX$PREFIX/$QIPREFIX$IPREFIX$PREFIX}
+  local -a lines=( "${(@)history[(R)(*[[:IFS:]]|)${(b)prefix}?##]}" )
+  local -a matches=() words
+  local word
+  local line; for line in $lines[1,$(( _autocomplete__max_lines() ))]; do
+    line="$QIPREFIX$IPREFIX$PREFIX${line#*$prefix}$SUFFIX$ISUFFIX$QISUFFIX"
+    words=( "${(Az)line}" )
+    word=$words[1]
+    case $compstate[quoting] in
+      single)
+        word=${(QQ)word}
+        ;;
+      double)
+        word=${(QQQ)word}
+        ;;
+    esac
+    matches+=( "$word" )
+  done
+
+  _comp_tags+=' history-words'
+  local expl
+  _description history-words expl 'history word'
+  compadd "$expl[@]" -QU -a matches
+}
+
 _autocomplete.add_extras() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
@@ -951,7 +1006,6 @@ _autocomplete.add_unambiguous() {
   local word=$PREFIX$SUFFIX
   local unambiguous=${compstate[unambiguous]}
   local iprefix=$QIPREFIX$IPREFIX
-  _autocomplete.is_glob && ISUFFIX=''
   local isuffix=$ISUFFIX$QISUFFIX
   [[ -n $iprefix ]] && unambiguous=${unambiguous#$iprefix}
   [[ -n $isuffix ]] && unambiguous=${unambiguous%$isuffix}
@@ -974,9 +1028,9 @@ _autocomplete.add_unambiguous() {
   [[ -z $QISUFFIX ]] && word+=$QIPREFIX
 
   _comp_tags+='unambiguous'
+  local -a sopt=( -I $word ) && [[ -n $word ]] || sopt=()
   local expl
   _description unambiguous expl 'common prefix'
-  local -a sopt=( -I $word ) && [[ -n $word ]] || sopt=()
   compadd "$expl[@]" $sopt -QU - $unambiguous
   return 0
 }
