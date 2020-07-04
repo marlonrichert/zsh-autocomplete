@@ -1,9 +1,9 @@
 # zsh-autocomplete
 Modern, IDE-like autocompletion for the Z Shell:
-* **Asynchronous** find-as-you-type completion
-  * Includes recent dirs from `zoxide`, `z.lua`, `rupa/z.sh`, `autojump` or `fasd`.
-* Intuitive [key bindings](#key-bindings) to choose completions and insert them
-* Automagical spelling correction
+* **Asynchronously** lists completions as you type.
+  * Includes recent dirs from `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump`, `fasd` or `cdr`.
+* Adds intuitive [key bindings](#key-bindings) to choose and insert completions
+* Automatically corrects misspellings.
   * Don't like a correction? Just press Undo to revert it.
 * Works seamlessly with `fzf`, and `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
 

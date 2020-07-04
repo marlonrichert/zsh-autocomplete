@@ -40,7 +40,7 @@
   [[ ! -v ZLE_REMOVE_SUFFIX_CHARS ]] && export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
 
   [[ ! -v _autocomplete__options ]] && export _autocomplete__options=(
-    GLOB_DOTS GLOB_STAR_SHORT LIST_PACKED
+    GLOB_DOTS
     no_ALWAYS_TO_END no_CASE_GLOB no_COMPLETE_ALIASES
     no_COMPLETE_IN_WORD no_GLOB_COMPLETE no_LIST_BEEP
   )
@@ -136,7 +136,7 @@ _autocomplete.main.hook() {
       reply=( "^(${(b)prefix}${punct}(#i)${(b)nonpunct[1]}*)"
               "${(b)prefix}${punct}[[:punct:]]*" )
     fi'
-  zstyle ':completion:*:complete:*:path-directories' ignored-patterns '/'
+  zstyle ':completion:*:complete:*:recent-dirs' ignored-patterns '/'
 
   zstyle ':completion:*' tag-order '*'
   zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users'
@@ -166,11 +166,15 @@ _autocomplete.main.hook() {
 
   zstyle ':completion:*:messages' format '%F{blue}%d%f'
   zstyle ':completion:*:warnings' format '%F{red}%d%f'
-  zstyle ':completion:*:unambiguous' group-name ''
-  zstyle ':completion:*:unambiguous' format '%F{green}%d:%f'
+
+  zstyle ':completion:*:recent-(dirs|files)' group-name ''
+
+  zstyle ':completion:*:(requoted|unambiguous)' group-name ''
+
   zstyle ':completion:*' auto-description '%F{yellow}%d%f'
 
   zstyle ':completion:*' add-space true
+  zstyle ':completion:*' list-packed true
   zstyle ':completion:*' list-separator ''
   zstyle ':completion:*' use-cache true
 
@@ -195,7 +199,7 @@ _autocomplete.main.hook() {
     local suffix=${word##*/}
     local punct=${(M)suffix##[[:punct:]]##}
     reply=( "${(b)prefix}${punct}[[:punct:]]*" )'
-  zstyle ':completion:list-expand:complete:*:path-directories' ignored-patterns '/'
+  zstyle ':completion:list-expand:complete:*:recent-dirs' ignored-patterns '/'
   zstyle ':completion:list-expand:*' tag-order '*'
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
   zstyle ':completion:list-expand:*' group-name ''
@@ -403,93 +407,134 @@ _autocomplete.main.hook() {
 
   [[ -v functions[_zsh_autosuggest_bind_widgets] ]] && _zsh_autosuggest_bind_widgets
 
-  if [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]] &&
-      zstyle -T ':autocomplete:' frecent-dirs 'zoxide'; then
-    _autocomplete.zdirs() {
-      reply=( $( zoxide query $1 2> /dev/null ) )
-    }
-  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
-      zstyle -T ':autocomplete:' frecent-dirs 'z.lua'; then
-    _autocomplete.zdirs() {
+  if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
+      zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
+
+    _autocomplete.recent-dirs() {
       reply=(
-        "${(@)${(f)$( _zlua -l $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
+        "${(@f)$( zshz --complete -l $1 2> /dev/null )}"
       )
     }
+
+  elif [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]] &&
+      zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
+
+    _autocomplete.recent-dirs() {
+      reply=( $( zoxide query $1 2> /dev/null ) )
+    }
+
+  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
+      zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
+
+    _autocomplete.recent-dirs() {
+      reply=(
+        "${(@)${(f)$( _zlua --complete $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
+      )
+    }
+
   elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
-      zstyle -T ':autocomplete:' frecent-dirs 'z.sh'; then
-    _autocomplete.zdirs() {
+      zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
+
+    _autocomplete.recent-dirs() {
       reply=(
         "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|[[:digit:]]##)[[:space:]]##}"
       )
     }
+
   elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
-      zstyle -T ':autocomplete:' frecent-dirs 'autojump'; then
-    _autocomplete.zdirs() {
+      zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
+
+    _autocomplete.recent-dirs() {
       reply=(
         "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__[[:digit:]]__}"
       )
     }
+
   elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
-      zstyle -T ':autocomplete:' frecent-dirs 'fasd'; then
-    _autocomplete.zdirs() {
+      zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
+
+    _autocomplete.recent-dirs() {
       reply=(
         "${(@)${(f)$( fasd --query d $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
       )
     }
+
+  else
+    autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+    add-zsh-hook chpwd chpwd_recent_dirs
+    _autocomplete.recent-dirs() {
+      cdr -r
+    }
   fi
+
   if [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
-      zstyle -T ':autocomplete:' frecent-files 'fasd'; then
-    _autocomplete.zfiles() {
+      zstyle -T ':autocomplete:' recent-files 'fasd'; then
+
+    _autocomplete.recent-files() {
       reply=(
         "${(@)${(f)$( fasd --query f $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
       )
     }
+
   fi
-  if [[ -v functions[_autocomplete.zdirs] ]]; then
+
+  if [[ -v functions[_autocomplete.recent-dirs] ]]; then
     autoload +X -Uz _path_files
     functions[_autocomplete._path_files]=$functions[_path_files]
 
     _path_files() {
+      setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+
+      local ret
       _autocomplete._path_files "$@"
-      local ret=$?
-      [[ $_completer != complete ]] && return ret
+      ret=$?
 
-      local word="$PREFIX$SUFFIX"
+      [[ -z $PREFIX$SUFFIX || $_completer != complete ]] && return ret
+
       typeset -gaU reply
-      _autocomplete.zdirs "$word"
-      (( ? != 0 )) && return ret
+      local word="$PREFIX$SUFFIX"
 
-      word=${word:P}
-      local expl prefix
-      local -a display
-      local dir; for dir in $reply; do
-        dir=${dir:P}
-        prefix="${dir:h}"
-        [[ "$word" == ("$dir"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
-        prefix="$prefix/"
-        display=( $dir )
-        _wanted path-directories expl 'frequent or recent directory' \
-          compadd -Qf -V path-directories -W $prefix -P $prefix -d display -U - ${dir:t}
-      done
+      _autocomplete.recent-dirs "$word" &&
+        _autocomplete.recent-paths recent-dirs 'recent directory' "$word" $reply
 
-      local mopts tmp1
-      zparseopts -E -a mopts '/=tmp1'
-      [[ -z tmp1 || ! -v functions[_autocomplete.zfiles] ]] && return ret
+      [[ ! -v functions[_autocomplete.recent-files] ]] && return ret
+
+      local mopts tmp1; zparseopts -E -a mopts '/=tmp1'
+      [[ -z tmp1 ]] && return ret
 
       word="$PREFIX$SUFFIX"
-      _autocomplete.zfiles "$word"
-      (( ? != 0 )) && return ret
-
-      local file; for file in $reply; do
-        file=${file:P}
-        prefix="${file:h}"
-        [[ "$word" == ("$file"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
-        prefix="$prefix/"
-        display=( $file )
-        _wanted files expl 'frequent or recent file' \
-          compadd -Qf -V files -W $prefix -P $prefix -d display -U - ${file:t}
-      done
+      _autocomplete.recent-files "$word" &&
+        _autocomplete.recent-paths recent-files 'recent file' "$word" $reply
+      return ret
     }
+
+    _autocomplete.recent-paths() {
+      local tag=$1
+      local group_name=$2
+      local word=${~3:P}
+      shift 3
+
+      local disp prefix file_prefix suffix ret=1
+      local -a display popt=() wopt=()
+
+      local path; for path in ${~@:P}; do
+        prefix="${~path:h}"
+        [[ "$word" == ("$path"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
+        path=${path#$PWD/}
+        suffix=${path:t}
+        file_prefix="${path:h}/"
+        [[ $file_prefix == // ]] && file_prefix=/
+        prefix=${file_prefix/$HOME/\~}
+        popt=( -P $prefix ) && [[ -n $prefix ]] || popt=()
+        wopt=( -W $file_prefix ) && [[ -n $file_prefix ]] || wopt=()
+        display=( "$prefix$suffix" )
+        _wanted $tag expl $group_name \
+          compadd -J $tag -d display -fQ $popt $wopt - "$suffix"
+        (( ? == 0 )) && ret=0
+      done
+      return ret
+    }
+
   fi
 
   zmodload -i zsh/system  # `sysparams` array
