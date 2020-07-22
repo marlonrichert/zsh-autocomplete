@@ -66,7 +66,6 @@
 
     (( $#comppostfuncs == 0 )) &&
       local +h -a comppostfuncs=( _autocomplete.add_extras _autocomplete.handle_long_list )
-    _autocomplete.is_glob && ISUFFIX='*'
     _autocomplete._main_complete "$@"
   }
 
@@ -229,7 +228,6 @@ _autocomplete.main.hook() {
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
         _main_complete
       }
 
@@ -243,8 +241,6 @@ _autocomplete.main.hook() {
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
-        _main_complete
         case $WIDGET in
           menu-complete)
             compstate[insert]='menu:1'
@@ -253,6 +249,7 @@ _autocomplete.main.hook() {
             compstate[insert]='menu:-1'
             ;;
         esac
+        _main_complete
       }
 
       ;;
@@ -265,7 +262,7 @@ _autocomplete.main.hook() {
       menu-complete() {
         setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-        [[ -v compstate[old_list] ]] && compstate[old_list]='keep'
+        compstate[insert]='menu'
         _main_complete
         if (( ${#compstate[exact_string]} > 0 )); then
           case $WIDGETSTYLE in
@@ -278,8 +275,6 @@ _autocomplete.main.hook() {
           esac
         elif (( ${compstate[unambiguous_cursor]} > (${#:-$PREFIX$SUFFIX} + 1) )); then
           compstate[insert]='unambiguous'
-        else
-          compstate[insert]='menu'
         fi
       }
 
@@ -478,7 +473,8 @@ _autocomplete.main.hook() {
 
   zmodload -i zsh/system  # `sysparams` array
   zmodload -i zsh/zpty
-  typeset -g _autocomplete__last_buffer _autocomplete__async_fd
+  typeset -g _autocomplete__async_fd
+  typeset -g _autocomplete_lbuffernew _autocomplete_rbuffernew
   typeset -gaU _autocomplete__child_pids=( )
   zle -N _autocomplete.async_callback
   zle -C _list_choices list-choices _autocomplete.list-choices.completion-widget
@@ -490,12 +486,20 @@ _autocomplete.main.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  (( (PENDING + KEYS_QUEUED_COUNT) > 0 )) && return
-  [[ $KEYS == *(${key[Up]}|${key[Down]}) ]] && return
-  [[ $LASTWIDGET == _complete_help ]] && return
-  if [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept'; then
+  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )) || [[ $KEYS == *(${key[Up]}|${key[Down]}) ]]; then
     return
   fi
+
+  if (( $#BUFFER > 0)); then
+    _zsh_highlight
+    _zsh_autosuggest_highlight_apply
+  fi
+
+  if ( [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept' ) ||
+      [[ $LASTWIDGET == _complete_help ]]; then
+    return
+  fi
+
   _autocomplete.async-list-choices "$KEYS" "$LBUFFER" "$RBUFFER"
 }
 
@@ -639,19 +643,17 @@ _autocomplete.async_callback() {
 
   {
     if [[ -z "$2" || "$2" == "hup" ]]; then
-      local null comp_mesg lbuffer rbuffer lbuffernew rbuffernew
-      local nmatches list_lines columns lines
-      IFS=$'\0' read -r -u $1 \
-        comp_mesg lbuffer rbuffer lbuffernew rbuffernew nmatches list_lines null
+      local null comp_mesg lbuffer rbuffer
+      local -i nmatches list_lines columns lines
+      IFS=$'\0' read -r -u $1 comp_mesg lbuffer rbuffer \
+        _autocomplete_lbuffernew _autocomplete_rbuffernew nmatches list_lines null
 
-      if [[ "${LBUFFER}" != "${(Q)lbuffer}" || "${RBUFFER}" != "${(Q)rbuffer}" ]]; then
-        return
-      fi
+      [[ "${LBUFFER}" != "${(Q)lbuffer}" || "${RBUFFER}" != "${(Q)rbuffer}" ]] && return
 
-      lbuffernew="${(Q)lbuffernew}"
-      rbuffernew="${(Q)rbuffernew}"
-      [[ "$LBUFFER" != "$lbuffernew" ]] && LBUFFER=$lbuffernew
-      [[ "$RBUFFER" != "$rbuffernew" ]] && RBUFFER=$rbuffernew
+      _autocomplete_lbuffernew="${(Q)_autocomplete_lbuffernew}"
+      _autocomplete_rbuffernew="${(Q)_autocomplete_rbuffernew}"
+      [[ "$LBUFFER" != "$_autocomplete_lbuffernew" ]] && LBUFFER="$_autocomplete_lbuffernew"
+      [[ "$RBUFFER" != "$_autocomplete_rbuffernew" ]] && RBUFFER="$_autocomplete_rbuffernew"
 
       zle _list_choices $nmatches $list_lines $comp_mesg
 
@@ -663,9 +665,6 @@ _autocomplete.async_callback() {
           _zsh_highlight
           _zsh_autosuggest_highlight_apply
           zle -R
-          ;;
-        2)
-          zle -Rc
           ;;
         *)
           :
@@ -688,29 +687,33 @@ _autocomplete.list-choices.completion-widget() {
 
   local curcontext; _autocomplete.curcontext list-choices
 
-  if (( CURRENT == 1 )); then
-    local min_input
-    zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
-    (( $#PREFIX + $#SUFFIX < min_input )) && return 2
-  fi
-
-  if [[ -v 1 ]] && (( $1 == 0 )); then
+  local min_input
+  zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
+  if (( CURRENT == 1 && $#PREFIX + $#SUFFIX < min_input )); then
+    _main_complete -
+    local mesg reply _comp_mesg
+    zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
+    _autocomplete.explain message $mesg
+  elif [[ -v 1 ]] && (( $1 == 0 )); then
     if [[ $PREFIX$SUFFIX == '' ]]; then
       if [[ $3 == 'yes' ]] && (( $2 > 0 )); then
         local +h -a comppostfuncs=( _autocomplete.list-choices.comppostfunc )
         _main_complete
       else
+        _main_complete -
         local mesg reply _comp_mesg
         zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
         _autocomplete.explain message $mesg
       fi
     else
+      _main_complete -
       local mesg
       zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
         mesg='No matching completions found.'
       _autocomplete.explain warning $mesg
     fi
   elif [[ -v 2 ]] && (( $2 > _autocomplete__max_lines() )); then
+    _main_complete -
     local mesg reply
     if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
       local menuselect
@@ -805,14 +808,16 @@ _autocomplete.complete-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext; _autocomplete.curcontext complete-word
-  if [[ -v compstate[old_list] ]]; then
+
+  if [[ $_autocomplete_lbuffernew == ($LBUFFER|$LBUFFER$QIPREFIX) &&
+        $_autocomplete_rbuffernew == ($QISUFFIX$RBUFFER|$RBUFFER) ]]; then
     compstate[old_list]='keep'
-    compstate[insert]='1'
-    [[ ${compstate[context]} == (command|redirect) ]] && compstate[insert]+=' '
     _main_complete _oldlist
   else
     _main_complete
   fi
+  compstate[insert]='1'
+  [[ ${compstate[context]} == (command|redirect) ]] && compstate[insert]+=' '
 }
 
 _autocomplete.down-line-or-menu-select.zle-widget() {
@@ -832,13 +837,7 @@ _autocomplete.menu-select.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   local curcontext; _autocomplete.curcontext menu-select
-  if [[ -v compstate[old_list] ]]; then
-    compstate[old_list]='keep'
-    compstate[insert]='menu'
-    _main_complete _oldlist
-  else
-    _main_complete
-  fi
+  _main_complete
 }
 
 _autocomplete.up-line-or-history-search.zle-widget() {
@@ -889,10 +888,10 @@ _autocomplete.expand-word.completion-widget() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
   if [[ -v compstate[old_list] && ${_lastcomp[tags]} == *(requoted|unambiguous)* ]]; then
-      compstate[old_list]='keep'
-      compstate[insert]='0'
-      compstate[to_end]=''
-      return
+    compstate[old_list]='keep'
+    compstate[insert]='0'
+    compstate[to_end]=''
+    return
   fi
 
   local curcontext; _autocomplete.curcontext expand-word
@@ -949,7 +948,8 @@ _autocomplete.requote() {
 _autocomplete.add_unambiguous() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  (( compstate[nmatches] <= 1 )) || [[ -z ${compstate[unambiguous]} ]] && return 1
+  [[ -z $compstate[unambiguous] ]] || (( compstate[nmatches] <= 1 )) &&
+    return 1
 
   local word=$PREFIX$SUFFIX
   local unambiguous=${compstate[unambiguous]}
@@ -996,4 +996,3 @@ _autocomplete.handle_long_list() {
   fi
   return 0
 }
-
