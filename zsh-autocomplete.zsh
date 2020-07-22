@@ -114,14 +114,9 @@ _autocomplete.main.hook() {
     fi'
   zstyle ':completion:*:complete:*:path-directories' ignored-patterns '/'
 
-  zstyle -e ':completion:*' tag-order '
-    reply=( "(|*-)argument-* (|*-)option[-+]* values" "options" )
-    if [[ $PREFIX$SUFFIX == [-+]* ]]; then
-      reply+=( "-" )
-    else
-      reply+=( "! *remote*" )
-    fi'
-  zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
+  zstyle ':completion:*' tag-order '*'
+  zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users'
+  zstyle ':completion:*:expand:*' tag-order '! original'
 
   zstyle -e ':completion:*' max-errors '
     if [[ -z $SUFFIX && -n $QIPREFIX && -n $QISUFFIX ]]; then
