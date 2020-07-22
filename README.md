@@ -1,17 +1,34 @@
 # zsh-autocomplete
-Find-as-you-type completion for the Z Shell
-* **Asynchronously** shows completions **as you type**.
-  * With [IDE-like keybindings](#key-bindings) to choose completions and insert them.
-  * Includes "frecent" dirs from `zoxide`, `z.lua`, `z.sh`, `autojump` and `fasd`.
-* Automagically corrects misspellings, expands aliases and does history expansions.
-  * Don't like a correction/expansion? Just press Undo to revert it.
-* Integrates seamlessly with `fzf`, `zsh-autosuggestions` and
-  `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
+Modern, IDE-like autocompletion for the Z Shell:
+* **Asynchronous** find-as-you-type completion
+  * Includes recent dirs from `zoxide`, `z.lua`, `rupa/z.sh`, `autojump` or `fasd`.
+* Intuitive [key bindings](#key-bindings) to choose completions and insert them
+* Automagical spelling correction
+  * Don't like a correction? Just press Undo to revert it.
+* Works seamlessly with `fzf`, and `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
 
-
-## Demo
 [![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
 
+Table of Contents:
+* [Key Bindings](#key-bindings)
+    * [With zsh-autosuggestions](#with-zsh-autosuggestions)
+    * [With fzf](#with-fzf)
+    * [In Completion Menu](#in-completion-menu)
+* [Requirements](#requirements)
+* [Installation](#installation)
+    * [Manually](#manually)
+    * [As a Plugin](#as-a-plugin)
+* [Configuration](#configuration)
+    * [Wait for minimum amount of input](#wait-for-minimum-amount-of-input)
+    * [Shorten or lengthen the autocompletion list](#shorten-or-lengthen-the-autocompletion-list)
+    * [Always show matches in named groups](#always-show-matches-in-named-groups)
+    * [Disable "frecent" dirs feature](#disable-frecent-dirs-feature)
+    * [Customize autocompletion messages](#customize-autocompletion-messages)
+    * [Change <a href="#" title="tab"><kbd>⇥</kbd></a> and <a href="#" title="shift-tab"><kbd>⇤</kbd></a> behavior](#change--and--behavior)
+    * [Change or disable automagic corrections and expansions](#change-or-disable-automagic-corrections-and-expansions)
+    * [Disable fzf key bindings](#disable-fzf-key-bindings)
+* [Author](#author)
+* [License](#license)
 
 ## Key Bindings
 `zsh-autocomplete` adds the following key bindings to your command line:
@@ -19,11 +36,11 @@ Find-as-you-type completion for the Z Shell
 | Key(s) | Action |
 | --- | --- |
 | any | List choices (automatic) |
-| [<kbd>⇥</kbd>](# "tab") | Accept top match[<sup>note</sup>](#with-zsh-autosuggestions) |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another match[<sup>note</sup>](#with-fzf) |
-| [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info |
-| [<kbd>␣</kbd>](# "space") | Insert space and correct spelling or do history expansion |
-| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Insert space (_without_ correction or expansion) |
+| [<kbd>⇥</kbd>](# "tab") | Accept top completion |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another completion[<sup>note</sup>](#with-fzf) |
+| [<kbd>⇤</kbd>](# "shift-tab") | Show more completions/info |
+| [<kbd>␣</kbd>](# "space") | Insert space and correct spelling |
+| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Insert space only |
 
 ### With `zsh-autosuggestions`
 When you source
@@ -32,7 +49,7 @@ When you source
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (when available) or top match |
+| [<kbd>⇥</kbd>](# "tab") | Accept top completion or autosuggested word (at end of line) |
 
 ### With `fzf`
 When you source
@@ -41,11 +58,11 @@ When you source
 
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↓</kbd>](# "down") | Select a match or (in multi-line buffer) move cursor down |
-| [<kbd>↑</kbd>](# "up") | Do fuzzy history search or (in multi-line buffer) move cursor up |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert common prefix or do fuzzy file search |
-| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Select a match (also in multi-line buffer) |
-| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Do fuzzy history search (also in multi-line buffer) |
+| [<kbd>↓</kbd>](# "down") | Select a completion or move cursor down (in multi-line buffer) |
+| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Select a completion (always) |
+| [<kbd>↑</kbd>](# "up") | Do fuzzy history search or move cursor up (in multi-line buffer) |
+| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Do fuzzy history search (always) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept all suggestions (at end of line), change directory (in empty buffer), expand alias, insert common prefix or do fuzzy file search |
 
 ### In Completion Menu
 `zsh-autocomplete` adds the following key bindings to the completion menu:
