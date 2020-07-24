@@ -5,7 +5,8 @@ Modern, IDE-like autocompletion for the Z Shell:
 * Adds intuitive [key bindings](#key-bindings) to choose and insert completions
 * Automatically corrects misspellings.
   * Don't like a correction? Just press Undo to revert it.
-* Works seamlessly with `fzf`, and `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
+* Works seamlessly with `fzf`, `zsh-autosuggestions` and 
+  `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
 
 [![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
 
@@ -24,7 +25,7 @@ Table of Contents:
     * [Always show matches in named groups](#always-show-matches-in-named-groups)
     * [Disable "frecent" dirs feature](#disable-frecent-dirs-feature)
     * [Customize autocompletion messages](#customize-autocompletion-messages)
-    * [Change <a href="#" title="tab"><kbd>⇥</kbd></a> and <a href="#" title="shift-tab"><kbd>⇤</kbd></a> behavior](#change--and--behavior)
+    * [Change <kbd>⇥</kbd> and <kbd>⇤</kbd> behavior](#change--and--behavior)
     * [Change or disable automagic corrections and expansions](#change-or-disable-automagic-corrections-and-expansions)
     * [Disable fzf key bindings](#disable-fzf-key-bindings)
 * [Author](#author)
@@ -38,7 +39,7 @@ Table of Contents:
 | any | List choices (automatic) |
 | [<kbd>⇥</kbd>](# "tab") | Accept top completion |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another completion[<sup>note</sup>](#with-fzf) |
-| [<kbd>⇤</kbd>](# "shift-tab") | Show more completions/info |
+| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info |
 | [<kbd>␣</kbd>](# "space") | Insert space and correct spelling |
 | [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Insert space only |
 
@@ -74,7 +75,7 @@ When you source
 | [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Jump to previous group of matches (if groups are shown)  |
 | [<kbd>↩︎</kbd>](# "enter") | Accept single match (exit menu) |
 | [<kbd>⇥</kbd>](# "tab") | Accept multiple matches (stay in menu) |
-| [<kbd>⇤</kbd>](# "shift-tab") | List more choices/info (does not work in "corrections" menu) |
+| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info (does not work in "corrections" menu) |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept single match + [do fuzzy file search](#requirements) |
 | other | Accept single match + insert character (exit menu) |
 
@@ -94,16 +95,18 @@ There are two ways to install `zsh-autocomplete`:
 
 ### Manually
 This is the **preferred way to install**.
-1. `git clone` this repo.
+1. `git clone` this repo. (You can optionally use a plugin manager for this.)
 1. Add the following to your `.zshrc` file:
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
    ```
 
-To update, `cd` into `zsh-autocomplete`'s directory and do `git pull`.
+To update, `cd` into `zsh-autocomplete`'s directory and do `git pull` (or use your plugin manager's
+update mechanism).
 
 ### As a Plugin
-Please refer to your framework's/plugin manager's documentation for instructions.
+`zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
+your framework's/plugin manager's documentation for instructions.
 
 **If you're experiencing problems**, please first install `zsh-autocomplete` manually instead. (See
 previous section.)

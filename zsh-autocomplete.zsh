@@ -91,9 +91,6 @@ _autocomplete.main.hook() {
   zstyle -d '*' single-ignored
   zstyle -d ':completion:*' special-dirs
 
-  zstyle ':completion:*' completer \
-    _expand _complete _ignored _approximate _autocomplete._history _history
-
   autoload +X -Uz _expand
   functions[_autocomplete._expand]=$functions[_expand]
 
@@ -116,37 +113,62 @@ _autocomplete.main.hook() {
     return ret
   }
 
-  zstyle ':completion:*' menu 'yes select=long-list'
-
-  if zstyle -m ":autocomplete:tab:" completion 'insert'; then
-    zstyle ':completion:*:complete:*' show-ambiguity '07'
-  fi
+  zstyle ':completion:*' completer \
+    _expand \
+    _complete _complete:-left _complete:-fuzzy _ignored \
+    _approximate _autocomplete._history
 
   zstyle ':completion:*:complete:*' matcher-list '
-    r:|?=**' '+m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+    l:|=**' '+m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
   zstyle -e ':completion:*:complete:*' ignored-patterns '
     local word=$PREFIX$SUFFIX
     local prefix=${(M)word##*/}
     local suffix=${word##*/}
-    local punct=${(M)suffix##[[:punct:]]##}
-    local nonpunct=${suffix##[[:punct:]]##}
-    if [[ $punct == "." ]]; then
-      reply=( "^(${(b)prefix}*.(#i)${(b)nonpunct[1]}*)" )
+    local punct=${(M)suffix##[^[:alnum:]]##}
+    local nonpunct=${suffix##[^[:alnum:]]##}
+    if [[ -n $punct ]]; then
+      reply=( "${(b)prefix}${punct}[^[:alnum:]]*" "^(${(b)prefix}*${punct}(#i)${(b)nonpunct}*)" )
     else
-      reply=( "^(${(b)prefix}${punct}(#i)${(b)nonpunct[1]}*)"
-              "${(b)prefix}${punct}[[:punct:]]*" )
+      reply=( "${(b)prefix}[^[:alnum:]]*" "^(${(b)prefix}(#i)${(b)suffix}*)" )
     fi'
-  zstyle ':completion:*:complete:*:recent-dirs' ignored-patterns '/'
+
+  zstyle ':completion:*:complete-left:*' matcher-list '
+    l:|=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+  zstyle -e ':completion:*:complete-left:*' ignored-patterns '
+    local word=$PREFIX$SUFFIX
+    local prefix=${(M)word##*/}
+    local suffix=${word##*/}
+    local punct=${(M)suffix##[^[:alnum:]]##}
+    local nonpunct=${suffix##[^[:alnum:]]##}
+    if [[ -n $punct ]]; then
+      reply=( "${(b)prefix}([^[:alnum:]]~${punct})*" )
+    else
+      reply=( "${(b)prefix}[^[:alnum:]]*" )
+    fi'
+
+  zstyle ':completion:*:complete-fuzzy:*' matcher-list '
+    r:|?=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
+  zstyle -e ':completion:*:complete-fuzzy:*' ignored-patterns '
+    local word=$PREFIX$SUFFIX
+    local prefix=${(M)word##*/}
+    local suffix=${word##*/}
+    local punct=${(M)suffix##[^[:alnum:]]##}
+    local nonpunct=${suffix##[^[:alnum:]]##}
+    if [[ -n $punct ]]; then
+      reply=( "^(${(b)prefix}*${punct}(#i)${(b)nonpunct[1]}*)" )
+    else
+      reply=( "^(${(b)prefix}(#i)${(b)suffix[1]}*)" )
+    fi'
 
   zstyle ':completion:*' tag-order '*'
-  zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users'
+  zstyle ':completion:*:(-command-|cd|z):*' tag-order '! users' '-'
   zstyle ':completion:*:expand:*' tag-order '! original'
 
   zstyle -e ':completion:*' max-errors '
     if [[ -z $SUFFIX && -n $QIPREFIX && -n $QISUFFIX ]]; then
       reply=( 0 )
     else
-      reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX}) / 2 - 1) )) )
+      reply=( $(( min(7, (${#PREFIX} + ${#SUFFIX} - 1) / 2) )) )
     fi
     reply+=( numeric )'
 
@@ -154,6 +176,12 @@ _autocomplete.main.hook() {
   zstyle ':completion:*' expand prefix suffix
   zstyle ':completion:*' list-suffixes true
   zstyle ':completion:*' path-completion true
+
+  zstyle ':completion:*' menu 'yes select=long-list'
+
+  if zstyle -m ":autocomplete:tab:" completion 'insert'; then
+    zstyle ':completion:*:complete:*' show-ambiguity '07'
+  fi
 
   zstyle ':completion:*' list-dirs-first true
   zstyle ':completion:*:(directories|*-directories|directory-*)' group-name 'directories'
@@ -186,19 +214,13 @@ _autocomplete.main.hook() {
   zstyle ':completion:correct-word:*' add-space false
   zstyle ':completion:correct-word:*' glob false
 
-  zstyle ':completion:list-choices:*' menu ''
-
   zstyle ':completion:expand-word:*' menu ''
+  zstyle ':completion:list-choices:*' menu ''
 
   zstyle ':completion:list-expand:*' completer _expand _complete _ignored _approximate
   zstyle ':completion:list-expand:complete:*' matcher-list '
-    r:|?=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}'
-  zstyle -e ':completion:list-expand:complete:*' ignored-patterns '
-    local word=$PREFIX$SUFFIX
-    local prefix=${(M)word##*/}
-    local suffix=${word##*/}
-    local punct=${(M)suffix##[[:punct:]]##}
-    reply=( "${(b)prefix}${punct}[[:punct:]]*" )'
+    l:|=** m:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}' '+r:|?=**'
+  zstyle ':completion:list-expand:complete:*' ignored-patterns ''
   zstyle ':completion:list-expand:complete:*:recent-dirs' ignored-patterns '/'
   zstyle ':completion:list-expand:*' tag-order '*'
   zstyle ':completion:list-expand:*' format '%F{yellow}%d:%f'
@@ -462,6 +484,8 @@ _autocomplete.main.hook() {
   else
     autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
     add-zsh-hook chpwd chpwd_recent_dirs
+    zstyle ':chpwd:*' recent-dirs-max 0
+
     _autocomplete.recent-dirs() {
       cdr -r
     }
@@ -478,64 +502,70 @@ _autocomplete.main.hook() {
 
   fi
 
-  if [[ -v functions[_autocomplete.recent-dirs] ]]; then
-    autoload +X -Uz _path_files
-    functions[_autocomplete._path_files]=$functions[_path_files]
+  autoload +X -Uz _path_files
+  functions[_autocomplete._path_files]=$functions[_path_files]
 
-    _path_files() {
-      setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
+  _path_files() {
+    setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-      local ret
-      _autocomplete._path_files "$@"
-      ret=$?
+    local ret
+    _autocomplete._path_files "$@"
+    ret=$?
 
-      [[ -z $PREFIX$SUFFIX || $_completer != complete ]] && return ret
-
+    if (( compstate[nmatches] > 0 )) || [[ $_completer == complete-fuzzy ]]; then
       typeset -gaU reply
       local word="$PREFIX$SUFFIX"
 
       _autocomplete.recent-dirs "$word" &&
         _autocomplete.recent-paths recent-dirs 'recent directory' "$word" $reply
+      (( ? == 0 )) && ret=0
 
       [[ ! -v functions[_autocomplete.recent-files] ]] && return ret
 
       local mopts tmp1; zparseopts -E -a mopts '/=tmp1'
       [[ -z tmp1 ]] && return ret
 
-      word="$PREFIX$SUFFIX"
       _autocomplete.recent-files "$word" &&
         _autocomplete.recent-paths recent-files 'recent file' "$word" $reply
+      (( ? == 0 )) && ret=0
+
       return ret
-    }
+    fi
+  }
 
-    _autocomplete.recent-paths() {
-      local tag=$1
-      local group_name=$2
-      local word=${~3:P}
-      shift 3
+  _autocomplete.recent-paths() {
+    local tag=$1
+    local group_name=$2
+    local _word=${~3:P}
+    shift 3
 
-      local disp prefix file_prefix suffix ret=1
-      local -a display popt=() wopt=()
+    local disp prefix file_prefix suffix ret=1
+    local -a display popt
 
-      local path; for path in ${~@:P}; do
-        prefix="${~path:h}"
-        [[ "$word" == ("$path"|"$prefix") || "${word:h}" == "$prefix" ]] && continue
-        path=${path#$PWD/}
-        suffix=${path:t}
-        file_prefix="${path:h}/"
-        [[ $file_prefix == // ]] && file_prefix=/
-        prefix=${file_prefix/$HOME/\~}
-        popt=( -P $prefix ) && [[ -n $prefix ]] || popt=()
-        wopt=( -W $file_prefix ) && [[ -n $file_prefix ]] || wopt=()
-        display=( "$prefix$suffix" )
-        _wanted $tag expl $group_name \
-          compadd -J $tag -d display -fQ $popt $wopt - "$suffix"
-        (( ? == 0 )) && ret=0
-      done
-      return ret
-    }
+    local path; for path in ${~@:P}; do
 
-  fi
+      (( compstate[lines] >= _autocomplete__max_lines() )) && break
+
+      prefix="${~path:h}"
+      [[ "$_word" == ("$path"|"$prefix") || "${_word:h}" == "$prefix" ]] && continue
+
+      path=${path#$PWD/}
+      prefix="${path:h}/"
+      suffix=${path:t}
+      display=( "${prefix/$HOME/~}$suffix" )
+
+      popt=()
+      if [[ $prefix == /* ]]; then
+        prefix=${prefix#/}
+        popt=( -P '/' -W '/' )
+      fi
+
+      _wanted $tag expl $group_name compadd -J $tag -d display -fQ $popt - "$prefix$suffix"
+      (( ? == 0 )) && ret=0
+    done
+
+    return ret
+  }
 
   zmodload -i zsh/system  # `sysparams` array
   zmodload -i zsh/zpty
@@ -1055,7 +1085,7 @@ _autocomplete.add_unambiguous() {
   [[ -n $iprefix ]] && unambiguous=${unambiguous#$iprefix}
   [[ -n $isuffix ]] && unambiguous=${unambiguous%$isuffix}
 
-  [[ $unambiguous == ? || $unambiguous == $word? || $word == $unambiguous* ]] && return 1
+  [[ $unambiguous == ? || $unambiguous == (#i)$word? || $word == (#i)$unambiguous* ]] && return 1
 
   local i
   if _autocomplete.is_glob; then
@@ -1075,7 +1105,7 @@ _autocomplete.add_unambiguous() {
   _comp_tags+='unambiguous'
   local -a sopt=( -I $word ) && [[ -n $word ]] || sopt=()
   local expl
-  _description unambiguous expl 'common prefix'
+  _description unambiguous expl 'common substring'
   compadd "$expl[@]" $sopt -QU - $unambiguous
   return 0
 }
