@@ -442,7 +442,7 @@ _autocomplete.main.hook() {
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
 
     _autocomplete.recent-dirs() {
-      reply=( $( zoxide query $1 2> /dev/null ) )
+      reply=( $( zoxide query --list $1 2> /dev/null ) )
     }
 
   elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
@@ -512,25 +512,25 @@ _autocomplete.main.hook() {
     _autocomplete._path_files "$@"
     ret=$?
 
-    if (( compstate[nmatches] > 0 )) || [[ $_completer == complete-fuzzy ]]; then
-      typeset -gaU reply
-      local word="$PREFIX$SUFFIX"
+    (( compstate[nmatches] == 0 )) && [[ $_completer != complete-fuzzy ]] && return ret
 
-      _autocomplete.recent-dirs "$word" &&
-        _autocomplete.recent-paths recent-dirs 'recent directory' "$word" $reply
-      (( ? == 0 )) && ret=0
+    typeset -gaU reply
+    local word="$PREFIX$SUFFIX"
 
-      [[ ! -v functions[_autocomplete.recent-files] ]] && return ret
+    _autocomplete.recent-dirs "$word" &&
+      _autocomplete.recent-paths recent-dirs 'recent directory' "$word" $reply
+    (( ? == 0 )) && ret=0
 
-      local mopts tmp1; zparseopts -E -a mopts '/=tmp1'
-      [[ -z tmp1 ]] && return ret
+    [[ ! -v functions[_autocomplete.recent-files] ]] && return ret
 
-      _autocomplete.recent-files "$word" &&
-        _autocomplete.recent-paths recent-files 'recent file' "$word" $reply
-      (( ? == 0 )) && ret=0
+    local mopts tmp1; zparseopts -E -a mopts '/=tmp1'
+    [[ -z tmp1 ]] && return ret
 
-      return ret
-    fi
+    _autocomplete.recent-files "$word" &&
+      _autocomplete.recent-paths recent-files 'recent file' "$word" $reply
+    (( ? == 0 )) && ret=0
+
+    return ret
   }
 
   _autocomplete.recent-paths() {
@@ -541,13 +541,11 @@ _autocomplete.main.hook() {
 
     local disp prefix file_prefix suffix ret=1
     local -a display popt
+    local -i i=0
 
     local path; for path in ${~@:P}; do
-
-      (( compstate[lines] >= _autocomplete__max_lines() )) && break
-
       prefix="${~path:h}"
-      [[ "$_word" == ("$path"|"$prefix") || "${_word:h}" == "$prefix" ]] && continue
+      [[ "$path" == "$_word" || "$prefix" == ("${_word:h}"|"$PWD") ]] && continue
 
       path=${path#$PWD/}
       prefix="${path:h}/"
@@ -560,8 +558,12 @@ _autocomplete.main.hook() {
         popt=( -P '/' -W '/' )
       fi
 
-      _wanted $tag expl $group_name compadd -J $tag -d display -fQ $popt - "$prefix$suffix"
-      (( ? == 0 )) && ret=0
+      if _wanted $tag expl $group_name \
+          compadd -V $tag -d display -fQ $popt - "$prefix$suffix"; then
+        ret=0
+        (( i++ ))
+      fi
+      (( compstate[lines] >= _autocomplete__max_lines() || i >= 4 )) && break
     done
 
     return ret
