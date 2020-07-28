@@ -46,7 +46,7 @@
   )
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
-  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off $___mode
+  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
   # Initialize completion system, if it hasn't been done yet.
   # Needs to be ASAP, to avoid a race condition.
@@ -70,7 +70,7 @@
   }
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
-  [[ -v functions[.zinit-shade-on] ]] && .zinit-shade-on $___mode
+  [[ -v functions[.zinit-shade-on] ]] && .zinit-shade-on "${___mode:-load}"
 
   add-zsh-hook precmd _autocomplete.main.hook
 }
