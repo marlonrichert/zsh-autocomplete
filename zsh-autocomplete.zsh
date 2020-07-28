@@ -584,7 +584,7 @@ _autocomplete.main.hook() {
 _autocomplete.list-choices.hook() {
   setopt localoptions noshortloops warncreateglobal extendedglob $_autocomplete__options
 
-  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )) || [[ $KEYS == *(${key[Up]}|${key[Down]}) ]]; then
+  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
     return
   fi
 
@@ -594,7 +594,7 @@ _autocomplete.list-choices.hook() {
   fi
 
   if ( [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept' ) ||
-      [[ $LASTWIDGET == _complete_help ]]; then
+      [[ $LASTWIDGET == (_complete_help|*(history|search)*) ]]; then
     return
   fi
 
