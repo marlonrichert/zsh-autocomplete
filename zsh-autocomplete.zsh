@@ -433,9 +433,7 @@ _autocomplete.main.hook() {
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
 
     _autocomplete.recent-dirs() {
-      reply=(
-        "${(@f)$( zshz --complete -l $1 2> /dev/null )}"
-      )
+      reply=( $( zshz --complete -l $1 2> /dev/null ) )
     }
 
   elif [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]] &&
@@ -476,9 +474,7 @@ _autocomplete.main.hook() {
       zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
 
     _autocomplete.recent-dirs() {
-      reply=(
-        "${(@)${(f)$( fasd --query d $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
-      )
+      reply=( $( fasd -dlR $1 2> /dev/null ) )
     }
 
   else
@@ -495,9 +491,7 @@ _autocomplete.main.hook() {
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
 
     _autocomplete.recent-files() {
-      reply=(
-        "${(@)${(f)$( fasd --query f $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}"
-      )
+      reply=( $( fasd -flR $1 2> /dev/null ) )
     }
 
   fi
@@ -547,15 +541,14 @@ _autocomplete.main.hook() {
       prefix="${~path:h}"
       [[ "$path" == "$_word" || "$prefix" == ("${_word:h}"|"$PWD") ]] && continue
 
-      path=${path#$PWD/}
-      prefix="${path:h}/"
-      suffix=${path:t}
+      [[ $prefix != */ ]] && prefix="${prefix}/"
+      suffix=${${path#$PWD/}:t}
       display=( "${prefix/$HOME/~}$suffix" )
 
       popt=()
       if [[ $prefix == /* ]]; then
-        prefix=${prefix#/}
-        popt=( -P '/' -W '/' )
+          prefix=${prefix#/}
+          popt=( -P '/' -W '/' )
       fi
 
       if _wanted $tag expl $group_name \
@@ -563,6 +556,7 @@ _autocomplete.main.hook() {
         ret=0
         (( i++ ))
       fi
+      
       (( compstate[lines] >= _autocomplete__max_lines() || i >= 4 )) && break
     done
 
