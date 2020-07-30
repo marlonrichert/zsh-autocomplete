@@ -1,0 +1,10 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+[[ ! -v compstate[old_list] || $_autocomplete__buffer != $BUFFER ||
+    $_autocomplete__word != $words[CURRENT] || $WIDGET == _complete_help ]] &&
+  return 1
+
+compstate[old_list]='keep'
+compadd -QU - "${_lastcomp[unambiguous]}"
+return 0

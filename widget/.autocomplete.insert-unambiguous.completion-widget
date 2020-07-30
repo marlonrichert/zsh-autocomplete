@@ -1,0 +1,16 @@
+#!/bin/zsh
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext insert-unambiguous
+
+_autocomplete.oldlist || _main_complete
+local ret=$?
+
+if (( $#_lastcomp[unambiguous] > $#words[CURRENT] )); then
+  compstate[insert]='unambiguous'
+elif [[ $WIDGET == reverse-* ]]; then
+  compstate[insert]='automenu:0'
+else
+  compstate[insert]='automenu:1'
+fi
+
+return ret

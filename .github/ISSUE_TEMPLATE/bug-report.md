@@ -20,7 +20,7 @@ causing the issue. -->
 
 ```shell
 # *Always* test with the following three steps:
-$ cd "$(mktemp -d)"  # Create a temp dir and enter it
+$ cd $(mktemp -d)  # Create a temp dir and enter it
 $ ZDOTDIR=$PWD HOME=$PWD zsh -df  # Start a subshell without config files
 % source path/to/zsh-autocomplete.plugin.zsh
 % # Insert your steps here

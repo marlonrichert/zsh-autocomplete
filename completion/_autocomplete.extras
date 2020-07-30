@@ -1,0 +1,9 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+_autocomplete.extras() {
+    setopt localoptions noshortloops extendedglob
+    _autocomplete.requoted || _autocomplete.unambiguous
+}
+
+_autocomplete.extras "$@"

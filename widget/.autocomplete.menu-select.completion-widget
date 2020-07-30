@@ -1,0 +1,13 @@
+#!/bin/zsh
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext menu-select
+
+_main_complete && _autocomplete.suffix
+case $WIDGET in
+  reverse-*)
+    compstate[insert]='menu:0'
+    ;;
+  *)
+    compstate[insert]='menu:1'
+    ;;
+esac

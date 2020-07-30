@@ -1,0 +1,140 @@
+#!/bin/zsh
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+# Make `terminfo` codes work.
+add-zle-hook-widget line-init .autocomplete.key-binding.line-init
+add-zle-hook-widget line-finish .autocomplete.key-binding.line-finish
+
+add-zsh-hook precmd .autocomplete.key-binding.precmd
+
+.autocomplete.key-binding.line-init() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  echoti smkx  # Switch to application mode.
+}
+
+.autocomplete.key-binding.line-finish() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  echoti rmkx  # Switch to raw mode.
+}
+
+.autocomplete.key-binding.set() {
+  if [[ -z $key[$1] ]]; then
+    if [[ -n $terminfo[$3] ]]; then key[$1]=$terminfo[$3]; else key[$1]=$2; fi
+  fi
+}
+
+.autocomplete.key-binding.precmd() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  add-zsh-hook -d precmd .autocomplete.key-binding.precmd
+
+  if [[ ! -v key ]]; then
+    # This file can be generated interactively with `autoload -Uz zkbd && zkbd`.
+    # See http://zsh.sourceforge.net/Doc/Release/User-Contributions.html#Keyboard-Definition
+    local zkbd=${ZDOTDIR:-$HOME}/.zkbd/${TERM}-${VENDOR}
+    [[ -r $zkbd ]] && source $zkbd
+
+    [[ -v key ]] || typeset -g -A key
+  fi
+
+  zmodload -i zsh/terminfo
+
+  .autocomplete.key-binding.set Up '^[OA' kcuu1
+  .autocomplete.key-binding.set Down '^[OB' kcud1
+  .autocomplete.key-binding.set Right '^[OC' kcuf1
+  .autocomplete.key-binding.set Left '^[OD' kcub1
+  .autocomplete.key-binding.set End '^[OF' kend
+  .autocomplete.key-binding.set Home '^[OH' khome
+  .autocomplete.key-binding.set Tab '^I' ht
+  .autocomplete.key-binding.set BackTab '^[[Z' kcbt
+
+  # These are not defined in `terminfo`.
+  .autocomplete.key-binding.set ControlSpace '^@'
+  .autocomplete.key-binding.set DeleteList '^D'
+  .autocomplete.key-binding.set LineFeed '^J'
+  .autocomplete.key-binding.set Return '^M'
+
+  local tab_completion
+  zstyle -s ":autocomplete:tab:" completion tab_completion || tab_completion='accept'
+  case $tab_completion in
+    cycle)
+      bindkey $key[Tab] menu-complete
+      bindkey $key[BackTab] reverse-menu-complete
+      ;;
+    select)
+      bindkey $key[Tab] menu-select
+      bindkey $key[BackTab] reverse-menu-select
+      zstyle ':autocomplete:menu-select:*' key-binding 'Tab'
+      ;;
+    insert)
+      bindkey $key[Tab] insert-unambiguous
+      bindkey $key[BackTab] reverse-insert-unambiguous
+      ;;
+    accept)
+      zstyle ':autocomplete:tab:*' completion accept
+      if [[ -v functions[_zsh_autosuggest_invoke_original_widget] ]]; then
+        bindkey $key[Tab] _complete_word
+      else
+        bindkey $key[Tab] complete-word
+      fi
+      ;;
+    fzf)
+      export fzf_default_completion='complete-word'
+      ;;
+  esac
+  case $tab_completion in
+    (accept|fzf))
+      bindkey $key[BackTab] list-expand
+
+      case $( bindkey -lL main ) in
+        *emacs*)
+          if [[ ! -v key[Undo] ]]; then key[Undo]='^_'; fi
+          ;;
+        *viins*)
+          if [[ ! -v key[Undo] ]]; then key[Undo]='^[u'; fi
+          ;;
+      esac
+      if [[ -v key[Undo] ]]; then
+        bindkey -M menuselect $key[Tab] accept-and-hold
+        bindkey -M menuselect -s $key[BackTab] $key[DeleteList]$key[Undo]$key[BackTab]
+        bindkey -M menuselect -s $key[Undo] $key[DeleteList]$key[Undo]
+      fi
+      ;;
+    *)
+      bindkey -M menuselect $key[Tab] menu-complete
+      bindkey -M menuselect $key[BackTab] reverse-menu-complete
+      ;;
+  esac
+
+  local menuselect
+  if zstyle -T ':autocomplete:' fuzzy-search fzf && zle -l fzf-history-widget; then
+      bindkey $key[Up] up-line-or-history-search
+      bindkey '^['$key[Up] history-search
+      bindkey $key[Down] down-line-or-menu-select
+      bindkey '^['$key[Down] menu-select
+
+      zstyle -s ':autocomplete:menu-select:*' key-binding menuselect ||
+        zstyle ':autocomplete:menu-select:*' key-binding "(Alt) Down Arrow"
+  fi
+  if zstyle -s ':autocomplete:menu-select:' key-binding menuselect; then
+      if zstyle -T ':autocomplete:' fuzzy-search fzf &&
+          zle -l fzf-completion && zle -l fzf-cd-widget && zle -l fzf-file-widget; then
+        bindkey $key[ControlSpace] expand-or-complete
+      else
+        bindkey $key[ControlSpace] expand-word
+      fi
+      bindkey -M menuselect $key[ControlSpace] end-of-history
+      zstyle ':completion:*:requoted' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
+      zstyle ':completion:*:unambiguous' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
+  else
+      bindkey $key[ControlSpace] menu-select
+      zstyle ':autocomplete:menu-select:*' key-binding "Ctrl-Space"
+      zstyle ':completion:*:requoted' format '%F{green}%d:%f'
+      zstyle ':completion:*:unambiguous' format '%F{green}%d:%f'
+  fi
+
+  bindkey ' ' magic-space
+  bindkey '^[ ' self-insert-unmeta
+
+  bindkey -M menuselect '^['$key[Up] vi-backward-blank-word
+  bindkey -M menuselect '^['$key[Down] vi-forward-blank-word
+}

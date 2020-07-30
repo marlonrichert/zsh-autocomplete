@@ -1,0 +1,7 @@
+#!/bin/zsh
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext expand-word
+
+_main_complete
+compstate[insert]='0'
+compstate[list]=''

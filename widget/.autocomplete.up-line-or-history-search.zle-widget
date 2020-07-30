@@ -1,0 +1,9 @@
+#!/bin/zsh
+setopt localoptions extendedglob
+local curcontext; .autocomplete.curcontext up-line-or-history-search
+
+if (( BUFFERLINES == 1 )); then
+  zle history-search
+else
+  zle .up-line || zle .beginning-of-line
+fi

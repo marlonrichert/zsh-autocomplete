@@ -1,0 +1,305 @@
+#!/bin/zsh
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+add-zsh-hook precmd .autocomplete.async.precmd
+
+.autocomplete.async.precmd() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  add-zsh-hook -d precmd .autocomplete.async.precmd
+
+  zmodload -i zsh/system  # `sysparams` array
+  zmodload -i zsh/zpty
+
+  typeset -g _autocomplete__async_fd
+  typeset -g _autocomplete__lbuffernew _autocomplete__rbuffernew
+  typeset -gaU _autocomplete__child_pids=()
+
+  zle -N .autocomplete.async.fd-handler-widget
+  zle -C _list_choices list-choices .autocomplete.list-choices.completion-widget
+  zle -C correct-word complete-word .autocomplete.correct-word.completion-widget
+
+  autoload -Uz add-zle-hook-widget
+  add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
+
+  add-zsh-hook preexec .autocomplete.async.stop-pending-request
+  add-zsh-hook zshexit .autocomplete.async.stop-pending-request
+}
+
+.autocomplete.async.line-pre-redraw() {
+  setopt localoptions noshortloops extendedglob
+
+  if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
+    return
+  fi
+
+  if (( $#BUFFER > 0)); then
+    .autocomplete._zsh_highlight
+    [[ -v _zsh_autosuggest_highlight_apply ]] && _zsh_autosuggest_highlight_apply
+  fi
+
+  if ( [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept' ) ||
+      [[ $LASTWIDGET == (_complete_help|*(history|search)*) ]]; then
+    return
+  fi
+
+  .autocomplete.async.start-new-request "$KEYS" "$LBUFFER" "$RBUFFER"
+}
+
+.autocomplete.async.stop-pending-request() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+  # If we've got a pending request, cancel it.
+  if [[ -n $_autocomplete__async_fd ]] && { true <&$_autocomplete__async_fd } 2> /dev/null; then
+    # Close the file descriptor and remove the handler.
+    exec {_autocomplete__async_fd}<&-
+    zle -F $_autocomplete__async_fd
+  fi
+
+  # Zsh will make a new process group for the child process only if job control is enabled.
+  local group='-' && [[ -o MONITOR ]] || group=''
+
+  # Kill all processes we spawned.
+  local pid; for pid in ${(A)_autocomplete__child_pids}; do
+    # Kill the process or process group.
+    kill -TERM $group$pid 2> /dev/null
+  done
+  _autocomplete__child_pids=()
+}
+
+.autocomplete.async.start-new-request() {
+  setopt localoptions noshortloops extendedglob
+  setopt nobanghist noxtrace noverbose
+
+  .autocomplete.async.stop-pending-request
+
+  {
+    # Fork a process and open a pipe to read from it.
+    exec {_autocomplete__async_fd}< <(
+      # Tell parent process our process ID.
+      echo $sysparams[pid]
+
+      {
+        local REPLY
+        zpty _autocomplete__zpty .autocomplete.async.run-query '$1' '$2' '$3'
+        zpty -w _autocomplete__zpty $'\t'
+
+        local line
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        echo -nE $line
+      } always {
+        zpty -d _autocomplete__zpty
+      }
+    )
+
+    # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
+    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
+    command true
+
+  } always {
+    # Read the process ID from the child process
+    local pid
+    read pid <&$_autocomplete__async_fd
+    _autocomplete__child_pids+=( "$pid" )
+
+  # Install a widget to handle input from the fd
+    zle -F -w "$_autocomplete__async_fd" .autocomplete.async.fd-handler-widget
+  }
+}
+
+.autocomplete.async.run-query() {
+  setopt localoptions noshortloops extendedglob
+  setopt nobanghist noxtrace noverbose
+
+  local hook_functions=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
+  local f; for f in $hook_functions; do
+    unset ${f}_functions &> /dev/null
+    unfunction $f &> /dev/null
+  done
+  zle -D zle-isearch-exit zle-isearch-update zle-line-pre-redraw zle-line-init zle-line-finish \
+         zle-history-line-set zle-keymap-select &> /dev/null
+
+  typeset -g __keys=$1 __lbuffer=$2 __rbuffer=$3 __lbuffernew=$2 __rbuffernew=$3
+  zle-widget() {
+    LBUFFER=$__lbuffer
+    RBUFFER=$__rbuffer
+    case $__keys in
+      ' ')
+        if zstyle -T ":autocomplete:space:" magic correct-word && [[ $LBUFFER[-1] == ' ' ]]; then
+          (( CURSOR-- ))
+          zle correct-word
+          zle .auto-suffix-remove
+          (( CURSOR++ ))
+        fi
+        ;;
+      '/')
+        if zstyle -T ":autocomplete:slash:" magic correct-word && [[ $LBUFFER[-1] == '/' ]]; then
+          LBUFFER=$LBUFFER[1,-2]
+          RBUFFER=' '$RBUFFER
+          zle correct-word
+          zle .auto-suffix-remove
+          LBUFFER=$LBUFFER'/'
+          RBUFFER=$RBUFFER[2,-1]
+        fi
+        ;;
+    esac
+    [[ $LBUFFER != $__lbuffer ]] && __lbuffernew=$LBUFFER
+    [[ $RBUFFER != $__rbuffer ]] && __rbuffernew=$RBUFFER
+    zle completion-widget 2>&1
+  }
+  completion-widget() {
+    echo -nE $'\0'$'\0'
+
+    print_comp_mesg() {
+      echo -nE ${(qq)_comp_mesg}$'\0'
+      compstate[insert]=''
+      compstate[list_max]=0
+      compstate[list]=''
+    }
+
+    unset 'compstate[vared]'
+    local curcontext; .autocomplete.curcontext list-choices
+    local +h -a comppostfuncs=( _autocomplete.extras print_comp_mesg )
+    _main_complete 2> /dev/null
+    compstate[insert]=''
+    compstate[list]=''
+    compstate[list_max]=0
+
+    echo -nE ${(q)__lbuffer}$'\0'${(q)__rbuffer}$'\0'
+    echo -nE ${(q)__lbuffernew}$'\0'${(q)__rbuffernew}$'\0'
+    echo -nE ${compstate[nmatches]}$'\0'${compstate[list_lines]}$'\0'
+    echo -nE $'\0'
+  }
+  zle -N zle-widget
+  zle -C completion-widget list-choices completion-widget
+  bindkey '^I' zle-widget
+  vared LBUFFER 2>&1
+}
+
+# Called when new data is ready to be read from the pipe.
+# First arg will be fd ready for reading.
+# Second arg will be passed in case of error.
+.autocomplete.async.fd-handler-widget() {
+  setopt localoptions noshortloops extendedglob
+  setopt nobanghist
+
+  {
+    if [[ -z $2 || $2 == hup ]]; then
+      local null comp_mesg lbuffer rbuffer
+      local -i nmatches list_lines columns lines
+      IFS=$'\0' read -r -u "$1" comp_mesg lbuffer rbuffer \
+        _autocomplete__lbuffernew _autocomplete__rbuffernew nmatches list_lines null
+
+      [[ ${LBUFFER} != ${(Q)lbuffer} || ${RBUFFER} != ${(Q)rbuffer} ]] && return
+
+      _autocomplete__lbuffernew=${(Q)_autocomplete__lbuffernew}
+      _autocomplete__rbuffernew=${(Q)_autocomplete__rbuffernew}
+      [[ $LBUFFER != $_autocomplete__lbuffernew ]] && LBUFFER=$_autocomplete__lbuffernew
+      [[ $RBUFFER != $_autocomplete__rbuffernew ]] && RBUFFER=$_autocomplete__rbuffernew
+
+      zle _list_choices "$nmatches" "$list_lines" "$comp_mesg"
+
+      # If a widget can't be called, ZLE always returns 0.
+      # Thus, we return 1 on purpose, so we can check if our widget got called.
+      case $? in
+        1)
+          unset _ZSH_HIGHLIGHT_PRIOR_BUFFER
+          .autocomplete._zsh_highlight
+          [[ -v _zsh_autosuggest_highlight_apply ]] && _zsh_autosuggest_highlight_apply
+          zle -R
+          ;;
+        *)
+          .autocomplete.async.stop-pending-request
+          ;;
+      esac
+    fi
+  } always {
+    if [[ -n $1 ]] && { true <&$1 } 2>/dev/null; then
+      # Close the fd
+      exec {1}<&-
+
+      # Remove the handler
+      zle -F $1
+    fi
+  }
+}
+
+.autocomplete.list-choices.completion-widget() {
+  setopt localoptions noshortloops extendedglob
+
+  local curcontext; .autocomplete.curcontext list-choices
+
+  local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
+  if (( CURRENT == 1 && ${#words[CURRENT]} < min_input )) &&
+      [[ $compstate[context] == command ]]; then
+    _main_complete -
+    if [[ -n $BUFFER ]]; then
+      local mesg reply _comp_mesg
+      zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
+      _autocomplete.explanation message $mesg
+    fi
+  elif [[ -v 1 ]] && (( $1 == 0 )); then
+    if [[ $words[CURRENT] == '' ]]; then
+      if [[ $3 == 'yes' ]] && (( $2 > 0 )); then
+        local +h -a comppostfuncs=( .autocomplete.async.comppostfunc )
+        _main_complete
+      else
+        _main_complete -
+        local mesg reply _comp_mesg
+        zstyle -s ":autocomplete:${curcontext}:no-matches-yet" message mesg || mesg='Type more...'
+        _autocomplete.explanation message $mesg
+      fi
+    else
+      _main_complete -
+      local mesg
+      zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
+        mesg='No matching completions found.'
+      _autocomplete.explanation warning $mesg
+    fi
+  elif [[ -v 2 ]] && (( $2 > _autocomplete__max_lines() )); then
+    _main_complete -
+    local mesg reply
+    if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
+      local menuselect
+      zstyle -s ':autocomplete:menu-select:' key-binding menuselect || menuselect="menu-select"
+      mesg="%F{blue}Too long list. Press %U$menuselect%u%F{blue} to open or type more to filter.%f"
+    fi
+    _autocomplete.explanation message $mesg
+  else
+    local +h -a comppostfuncs=( .autocomplete.async.comppostfunc )
+    _main_complete
+  fi
+  compstate[insert]=''
+  compstate[list_max]=0
+
+  # If a widget can't be called, ZLE always returns 0.
+  # Thus, we return 1 on purpose, so we can check if our widget got called.
+  return 1
+}
+
+.autocomplete.async.comppostfunc() {
+  setopt localoptions noshortloops extendedglob
+
+  if [[ $words[CURRENT] == '' ]] && (( compstate[list_lines] == 0 )); then
+    local reply _comp_mesg
+    _message "Type more..."
+  fi
+  _autocomplete.extras
+}
+
+.autocomplete.correct-word.completion-widget() {
+  setopt localoptions noshortloops nowarncreateglobal extendedglob
+  local curcontext; .autocomplete.curcontext correct-word
+
+  if _autocomplete.is_glob || [[ "${LBUFFER[-1]}${RBUFFER[1]}" == [[:IFS:][:space:]]# ||
+       ${_lastcomp[insert]} == menu || -n $QIPREFIX && -n $QISUFFIX ]]; then
+    compstate[insert]=''
+    return 1
+  fi
+
+  unset 'compstate[vared]'
+  _main_complete
+  compstate[insert]='1 ' &&
+    ( (( compstate[nmatches] == 0 )) || [[ ${_lastcomp[completer]} == complete ]] ) &&
+    compstate[insert]=''
+}

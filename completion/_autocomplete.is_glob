@@ -1,0 +1,5 @@
+#autoload
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+[[ $words[CURRENT] == *(${(j:|:)~${(@b)patchars}})* &&
+    $words[CURRENT] == ${~${(q)words[CURRENT]}} && ! -e ${~words[CURRENT]} ]]

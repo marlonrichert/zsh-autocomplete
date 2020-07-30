@@ -1,0 +1,34 @@
+#!/bin/zsh
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+autoload -Uz add-zle-hook-widget
+autoload -Uz .autocomplete.curcontext .autocomplete.highlight
+
+autoload -Uz colors && colors
+autoload -Uz zmathfunc && zmathfunc
+autoload -Uz .autocomplete.mathfunc && .autocomplete.mathfunc
+
+# Don't let `|` remove suffixes.
+[[ -v ZLE_REMOVE_SUFFIX_CHARS ]] || export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+
+# Workaround for issue #43
+# https://github.com/marlonrichert/zsh-autocomplete/issues/43
+zle -N zle-line-finish azhw:zle-line-finish
+
+add-zsh-hook precmd .autocomplete.base.precmd
+
+.autocomplete.base.precmd() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
+
+  add-zsh-hook -d precmd .autocomplete.base.precmd
+
+  if [[ -v functions[_zsh_highlight] ]]; then
+    functions[.autocomplete._zsh_highlight]=$functions[_zsh_highlight]
+    functions[_zsh_highlight]=$functions[.autocomplete.no-op]
+  fi
+
+  .autocomplete.compinit
+}

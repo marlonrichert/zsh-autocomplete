@@ -1,0 +1,51 @@
+#!/bin/zsh
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+add-zsh-hook precmd .autocomplete.widget.precmd
+
+.autocomplete.widget.precmd() {
+  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  add-zsh-hook -d precmd .autocomplete.widget.precmd
+
+  .autocomplete.widget.c complete-word complete-word complete-word
+  .autocomplete.widget.z _complete_word complete-word
+  .autocomplete.widget.z expand-or-complete expand-or-complete
+  .autocomplete.widget.c expand-word complete-word expand-word
+  .autocomplete.widget.z history-search history-search
+  .autocomplete.widget.z up-line-or-history-search up-line-or-history-search
+  .autocomplete.widget.c insert-unambiguous menu-complete insert-unambiguous
+  .autocomplete.widget.c reverse-insert-unambiguous reverse-menu-complete insert-unambiguous
+  .autocomplete.widget.c list-expand menu-select list-expand
+  .autocomplete.widget.z magic-space magic-space
+  .autocomplete.widget.c menu-complete menu-complete menu-complete
+  .autocomplete.widget.c reverse-menu-complete reverse-menu-complete menu-complete
+  .autocomplete.widget.c menu-select menu-select menu-select
+  .autocomplete.widget.c reverse-menu-select menu-select menu-select
+  .autocomplete.widget.z down-line-or-menu-select down-line-or-menu-select
+
+  if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
+    [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
+      prompt_\*
+      user:_zsh_highlight_widget_\*-zle-line-finish
+    )
+    [[ -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] && ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(
+      forward-char
+      vi-forward-char
+    )
+    _zsh_autosuggest_bind_widgets
+  fi
+}
+
+.autocomplete.widget.c() {
+  local func=.autocomplete.$3.completion-widget
+  autoload -Uz $func
+  zle -C $1 $2 $func
+}
+
+.autocomplete.widget.z() {
+  local func=.autocomplete.$2.zle-widget
+  autoload -Uz $func
+  zle -N $1 $func
+}

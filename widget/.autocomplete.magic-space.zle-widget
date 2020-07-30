@@ -1,0 +1,6 @@
+#!/bin/zsh
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext magic-space
+
+zstyle -t ":autocomplete:space:" magic expand-history && zle .expand-history
+zle .self-insert

@@ -1,0 +1,17 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+local requoted
+if [[ $_completer == expand ]] && (( compstate[nmatches] == 1 )); then
+  requoted=${(Q)compstate[unambiguous]}
+elif (( compstate[nmatches] == 0 )); then
+  requoted=${(Q)words[CURRENT]}
+else
+  return 1
+fi
+
+[[ $requoted == ($words[CURRENT]|$compstate[unambiguous]) ]] && return 1
+
+local expl
+_description requoted expl 'human-readable'
+compadd "$expl[@]" -qS ' ' -QU - ${(q+)requoted}

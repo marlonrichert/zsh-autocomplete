@@ -1,0 +1,109 @@
+#!/bin/zsh
+emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+# Workaround for https://github.com/zdharma/zinit/issues/366
+[[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
+
+unfunction compinit
+autoload -Uz compinit
+[[ ! -v _comp_dumpfile ]] && compinit
+
+local -a desc_by_date=( ${${(%):-%x}:A:h:h}/**/*(DN.om) )
+if [[ $desc_by_date[1] -nt $_comp_dumpfile ]]; then
+  command rm -f $_comp_dumpfile
+  compinit -C
+fi
+
+[[ -v functions[_autocomplete.main_complete] ]] && return
+
+_comp_options+=(
+  globdots globstarshort numericglobsort
+  NO_alwaystoend NO_caseglob NO_completealiases NO_completeinword
+  NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
+)
+
+autoload +X -Uz _main_complete
+functions[_autocomplete.main_complete]=$functions[_main_complete]
+_main_complete() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  local word=$PREFIX$SUFFIX
+  local _autocomplete__tail=${word##*/}
+  local _autocomplete__head=${word%%$_autocomplete__tail}
+  local _autocomplete__alnum=${_autocomplete__tail##[^[:alnum:]]##}
+  local _autocomplete__punct=${_autocomplete__tail%%$_autocomplete__alnum}
+
+  (( $#comppostfuncs == 0 )) &&
+    local +h -a comppostfuncs=( _autocomplete.extras _autocomplete.long_list )
+  compstate[insert]='automenu'
+  _autocomplete.main_complete "$@"
+}
+
+autoload +X -Uz _default
+functions[_autocomplete.default]=$functions[_default]
+_default() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  _autocomplete.history_words || _autocomplete.default
+}
+
+autoload +X -Uz _description
+functions[_autocomplete.description]=$functions[_description]
+_description() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  _autocomplete.description "$@"
+  local ret=$?
+  if [[ $3 == corrections ]]; then
+    _lastdescr=( "${(@)_lastdescr[1,-2]}" )
+  fi
+  return ret
+}
+
+autoload +X -Uz _complete
+functions[_autocomplete.complete]=$functions[_complete]
+_complete() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  local -i nmatches=$compstate[nmatches]
+  _autocomplete.complete "$@"
+  local ret=$?
+  (( compstate[nmatches] == nmatches )) && _comp_mesg=''
+  return ret
+}
+
+autoload +X -Uz _correct
+functions[_autocomplete.correct]=$functions[_correct]
+_correct() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  if [[ -v compstate[quote] || $words[CURRENT] == [$histchars]* ]] || _autocomplete.is_glob; then
+    return 1
+  fi
+
+  _autocomplete.correct "$@"
+}
+
+autoload +X -Uz _expand
+functions[_autocomplete.expand]=$functions[_expand]
+_expand() {
+  setopt localoptions noshortloops extendedglob $_comp_options
+
+  if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
+    local ISUFFIX="*"
+    {
+      compadd() {
+        setopt localoptions noshortloops extendedglob
+        setopt listtypes
+        builtin compadd -f "$@"
+      }
+      _autocomplete.expand "$@"
+      local ret=$?
+    } always {
+      unfunction compadd
+    }
+    return ret
+  else
+    _autocomplete.expand "$@"
+  fi
+}

@@ -1,0 +1,9 @@
+#!/bin/zsh
+setopt localoptions extendedglob
+local curcontext; .autocomplete.curcontext history-search
+
+local FZF_COMPLETION_TRIGGER=''
+local fzf_default_completion='list-expand'
+local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
+
+zle fzf-history-widget

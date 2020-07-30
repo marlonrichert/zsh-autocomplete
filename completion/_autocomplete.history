@@ -1,0 +1,26 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+local prefix=${LBUFFER/%$IPREFIX$PREFIX/$QIPREFIX$IPREFIX$PREFIX}
+local -a lines=( "${(@)history[(R)(*[[:IFS:]]|)${(b)prefix}?##]}" )
+local -a matches=() words
+local word
+local line; for line in $lines[1,$(( _autocomplete__max_lines() ))]; do
+  line="$QIPREFIX$IPREFIX$PREFIX${line#*$prefix}$SUFFIX$ISUFFIX$QISUFFIX"
+  words=( "${(Az)line}" )
+  word=$words[1]
+  case $compstate[quoting] in
+    single)
+      word=${(QQ)word}
+      ;;
+    double)
+      word=${(QQQ)word}
+      ;;
+  esac
+  matches+=( "$word" )
+done
+
+_comp_tags+=' history-words'
+local expl
+_description history-words expl 'history word'
+compadd "$expl[@]" -QU -a matches

@@ -1,0 +1,17 @@
+#!/bin/zsh
+setopt localoptions extendedglob
+local curcontext; .autocomplete.curcontext expand-or-complete
+
+local FZF_COMPLETION_TRIGGER=''
+local fzf_default_completion='fzf-file-widget'
+local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
+
+if [[ $BUFFER == [[:IFS:]]# ]]; then
+  zle fzf-cd-widget
+  return
+fi
+
+zle expand-word && return
+
+zle .select-a-shell-word
+zle fzf-completion
