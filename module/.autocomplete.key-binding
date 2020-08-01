@@ -123,11 +123,14 @@ add-zsh-hook precmd .autocomplete.key-binding.precmd
         bindkey $key[ControlSpace] expand-word
       fi
       bindkey -M menuselect $key[ControlSpace] end-of-history
+      zstyle ':completion:*:alias-expansions' format \
+        '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
       zstyle ':completion:*:requoted' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
       zstyle ':completion:*:unambiguous' format '%F{green}%d%f %F{blue}(Ctrl-Space)%f%F{green}:%f'
   else
       bindkey $key[ControlSpace] menu-select
       zstyle ':autocomplete:menu-select:*' key-binding "Ctrl-Space"
+      zstyle ':completion:*:aliases' format '%F{green}%d:%f'
       zstyle ':completion:*:requoted' format '%F{green}%d:%f'
       zstyle ':completion:*:unambiguous' format '%F{green}%d:%f'
   fi

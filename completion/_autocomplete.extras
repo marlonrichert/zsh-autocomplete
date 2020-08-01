@@ -2,8 +2,8 @@
 setopt localoptions noshortloops extendedglob
 
 _autocomplete.extras() {
-    setopt localoptions noshortloops extendedglob
-    _autocomplete.requoted || _autocomplete.unambiguous
+  setopt localoptions noshortloops extendedglob
+  _autocomplete.requoted || _autocomplete.unambiguous || _autocomplete.alias_expansions
 }
 
 _autocomplete.extras "$@"

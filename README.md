@@ -1,8 +1,12 @@
 # `zsh-autocomplete`
 `zsh-autocomplete` adds *real-time* type-ahead autocompletion to Zsh.
-* **Asynchronously** lists completions as you type.
-  * Includes recent dirs from `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump`, `fasd` or `cdr`.
-* Adds intuitive [key bindings](#key-bindings) to choose and insert completions
+* **Asynchronously** lists completions in real time as you type.
+* Adds intuitive [keyboard shortcuts](#key-bindings) to choose and insert completions.
+* Includes useful extras, such as
+  * alias expansions,
+  * common substrings,
+  * alternative parameter expansion quoting, and
+  * recent dirs from `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump`, `fasd` or `cdr`.
 * Automatically corrects misspellings.
   * Don't like a correction? Just press Undo to revert it.
 * Works seamlessly with `fzf`, `zsh-autosuggestions` and
@@ -68,7 +72,7 @@ When you source
 
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
-| [<kbd>⇥</kbd>](# "tab") | Accept top completion or autosuggested word (at end of line) | <sub>`_complete_word`</sub> |
+| [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (at end of line) or top completion | <sub>`_complete_word`</sub> |
 
 ## When Selecting Completions
 `zsh-autocomplete` adds the following key bindings to the completion menu:
@@ -76,13 +80,13 @@ When you source
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
-| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Jump to next group of matches (if groups are shown) |
-| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Jump to previous group of matches (if groups are shown) |
-| [<kbd>↩︎</kbd>](# "enter") | Accept single match (exit menu) |
-| [<kbd>⇥</kbd>](# "tab") | Accept multiple matches (stay in menu) |
+| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Jump to the next group of matches (if groups are shown) |
+| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Jump to the previous group of matches (if groups are shown) |
+| [<kbd>↩︎</kbd>](# "enter") | Accept a single completion (and return to the command line) |
+| [<kbd>⇥</kbd>](# "tab") | Accept multiple completions |
 | [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info (does not work in "corrections" menu) |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept single match + [do fuzzy file search](#requirements) |
-| other | Accept single match + insert character (exit menu) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept the current selection, then [do fuzzy file search](#requirements) |
+| other | Accept the current selection (then exit menu and insert the character just typed) |
 
 
 # Preferences
@@ -123,7 +127,8 @@ zstyle ':autocomplete:*' groups always
 ## Customize the autocompletion messages
 You can customize the various completion messages shown.
 
-This is shown when the number of lines needed to display all matches exceeds the number given by
+This is shown when the number of lines needed to display all completions exceeds the number given
+by
 [`zstyle ':autocomplete:list-choices:*' max-lines`](#shorten-or-lengthen-the-autocompletion-list):
 ```shell
 zstyle ':autocomplete:*:too-many-matches' message \

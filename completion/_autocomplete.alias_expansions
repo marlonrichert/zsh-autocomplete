@@ -1,0 +1,9 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+local expansion=$aliases[$words[CURRENT]]
+[[ -z $expansion ]] && return 1
+
+local expl
+_description alias-expansions expl 'alias expansion'
+compadd "$expl[@]" -qS ' ' -QU - $expansion && _comp_tags+=' alias-expansions'
