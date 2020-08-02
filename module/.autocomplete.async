@@ -29,7 +29,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   setopt localoptions noshortloops extendedglob
 
   if (( (PENDING + KEYS_QUEUED_COUNT) > 0 )); then
-    return
+    return 0
   fi
 
   if (( $#BUFFER > 0)); then
@@ -37,10 +37,16 @@ add-zsh-hook precmd .autocomplete.async.precmd
     [[ -v _zsh_autosuggest_highlight_apply ]] && _zsh_autosuggest_highlight_apply
   fi
 
-  if ( [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept' ) ||
-      [[ $LASTWIDGET == (_complete_help|*(history|search)*) ]]; then
-    return
-  fi
+  # `setopt KSH_GLOB` compatibility
+  # See https://github.com/marlonrichert/zsh-autocomplete/issues/76
+  () {
+    emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+    if ( [[ $KEYS == *${key[BackTab]} ]] && zstyle -m ":autocomplete:tab:" completion 'accept' ) ||
+        [[ $LASTWIDGET == (_complete_help|*(history|search)*) ]]; then
+      return 1
+    fi
+  } || return 0
 
   .autocomplete.async.start-new-request "$KEYS" "$LBUFFER" "$RBUFFER"
 }
