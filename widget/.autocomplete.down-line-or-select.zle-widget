@@ -1,6 +1,6 @@
 #!/bin/zsh
 setopt localoptions noshortloops extendedglob
-local curcontext; .autocomplete.curcontext down-line-or-menu-select
+local curcontext; .autocomplete.curcontext down-line-or-select
 
 if (( BUFFERLINES == 1 )); then
   zle menu-select

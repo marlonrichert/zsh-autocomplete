@@ -44,7 +44,10 @@ functions[_autocomplete.default]=$functions[_default]
 _default() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
-  _autocomplete.history_words || _autocomplete.default
+  _autocomplete.default
+  local ret=$?
+  _autocomplete.history_words
+  return ret || ?
 }
 
 autoload +X -Uz _description

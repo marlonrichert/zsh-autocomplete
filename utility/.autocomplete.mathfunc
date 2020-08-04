@@ -4,13 +4,15 @@ emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 _autocomplete__max_lines() {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-  local available max_lines
-  zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
+  local max_lines=$1
+  [[ -z $max_lines ]] && max_lines='100%'
+
   if [[ $max_lines == *% ]]; then
-    (( max_lines = (LINES - BUFFERLINES) * ${max_lines%%\%} / 100 ))
+    (( max_lines = (LINES - BUFFERLINES - 1) * ${max_lines%%\%} / 100 ))
   else
-    (( max_lines = min(max_lines, LINES - BUFFERLINES) ))
+    (( max_lines = min(max_lines, LINES - BUFFERLINES - 1) ))
   fi
   return max_lines
 }
-functions -M _autocomplete__max_lines
+
+functions -Ms _autocomplete__max_lines

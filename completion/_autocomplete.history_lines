@@ -1,0 +1,64 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+local -a displays=() matches=() numbers=()
+
+(( $#words > 1 || CURRENT > 1 )) && return 1
+[[ $curcontext == *(approximate|correct|spell)* ]] && return 1
+
+local lbuffer=''
+local word=$words[1]
+
+if [[ $curcontext != history-search:* ]]; then
+
+  [[ -z $BUFFER ]] && return 1
+
+  lbuffer=${BUFFER%$PREFIX$SUFFIX*${~${(j.*.)${(b)words[CURRENT+1,-1]}}}}
+  word=${(b)word}
+fi
+
+local query="*"
+if [[ -n $BUFFER ]]; then
+  for query in "*${(b)lbuffer}*(#ia"{0..7}")$~word*"; do
+    numbers=( "${(@k)history[(r)${~query}]}" )
+    [[ -n $numbers ]] && break
+  done
+fi
+
+if [[ $curcontext == history-search:* ]]; then
+  numbers=( "${(@Oak)history[(R)${~query}]}" )
+fi
+
+local -A subs=(
+  '{ ;'   '{'
+  '; }'   '}'
+  ' ;'    ';'
+  ' () {' '() {'
+  $'\n'   '\n'
+)
+local -i wid=$(( $COLUMNS - 1 ))
+local k v num line
+for num in $numbers; do
+  line=${(Z+C+)history[$num]}
+  for k v in ${(@kv)subs}; do
+    line=${line//$k/$v}
+  done
+  if [[ $curcontext == history-search:* ]]; then
+    matches+=( "!$num" )
+    line="${(pl:$#SAVEHIST:)num}  $line"
+  else
+    matches+=( "${history[$num]}" )
+  fi
+  displays+=( "${(r:wid:)line}" )
+done
+
+local group_opt='-V'
+[[ $_completer == expand ]] && group_opt='-J'
+
+local -a suffix_opts=()
+[[ $curcontext == history-search:* ]] && suffix_opts=( -S ';' -r '^ ' )
+
+local _comp_no_ignore=1
+local expl
+_description $group_opt history-lines expl 'history match'
+compadd "$expl[@]" -QU $suffix_opts -ld displays -a matches

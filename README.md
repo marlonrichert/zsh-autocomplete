@@ -1,26 +1,70 @@
 # `zsh-autocomplete`
-`zsh-autocomplete` adds *real-time* type-ahead autocompletion to Zsh.
-* **Asynchronously** lists completions in real time as you type.
-* Adds intuitive [keyboard shortcuts](#key-bindings) to choose and insert completions.
-* Includes useful extras, such as
-  * alias expansions,
-  * common substrings,
-  * alternative parameter expansion quoting, and
-  * recent dirs from `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump`, `fasd` or `cdr`.
-* Automatically corrects misspellings.
+`zsh-autocomplete` adds **real-time** type-ahead autocompletion to Zsh!
+
+Additional features:
+* Adds intuitive [keyboard shortcuts](#key-bindings) for choosing completions.
+* Offers unique extra completions:
+  * Completes lines and words from your command history.
+  * Expands aliases, parameters and glob expressions.
+  * Shows when multiple completions have a substring in common.
+  * Completes dirs from dir jumping tools, including `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`,
+    `autojump`, `fasd` and `cdr`.
+* Corrects spelling mistakes.
   * Don't like a correction? Just press Undo to revert it.
-* Works seamlessly with `fzf`, `zsh-autosuggestions` and
-  `zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
+
+Compatible with `fzf`, `zsh-autosuggestions` and
+`zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
 
 [![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
 
 Table of Contents:
+* [Key Bindings](#key-bindings)
 * [Requirements](#requirements)
 * [Installation](#installation)
-* [Key Bindings](#key-bindings)
 * [Preferences](#preferences)
 * [Author](#author)
 * [License](#license)
+
+# Key Bindings
+| Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
+| --- | --- | --- |
+| any | Show completions (asynchronously) | - |
+| [<kbd>⇥</kbd>](# "tab") | Accept top completion or next autosuggestion word (with `zsh-autosuggestions`) | <sub>`complete-word`</sub> |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept context-sensitive completion: history line, alias expansion, alternative quoting or common substring | <sub>`expand-word`</sub> |
+| [<kbd>↓</kbd>](# "down") | Select another completion or (in multi-line buffer) move cursor down | <sub>`down-line-or-select`</sub> |
+| [<kbd>⇟</kbd>](# "page down") | Select a completion (always) | <sub>`menu-select`</sub> |
+| [<kbd>↑</kbd>](# "up") | Search history or (in multi-line buffer) move cursor up | <sub>`up-line-or-search`</sub> |
+| [<kbd>⇞</kbd>](# "page up") | Search history (always) | <sub>`history-search`</sub> |
+| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
+
+## History Menu
+| Key(s) | Action |
+| --- | --- |
+| [<kbd>↑</kbd><kbd>↓</kbd>](# "arrow keys") | Change selection |
+| [<kbd>⇞</kbd>](# "page up") | Page up |
+| [<kbd>⇟</kbd>](# "page down") | Page down |
+| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
+| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
+| [<kbd>↩︎</kbd>](# "enter") | Accept selection, exit menu and substitute history expansions |
+| [<kbd>⇥</kbd>](# "tab") | Accept selection, but stay in menu (multi-select) |
+| other | Accept selection, exit menu and substitute history expansions (then execute the key just typed) |
+
+## Completion Menu
+| Key(s) | Action |
+| --- | --- |
+| [<kbd>↖︎</kbd>](# "home") | Beginning of line |
+| [<kbd>↘︎</kbd>](# "end") | End of line |
+| [<kbd>⌥</kbd><kbd>b</kbd>](# "alt-b") | Backward one group (if groups are shown) |
+| [<kbd>⌥</kbd><kbd>f</kbd>](# "alt-f") | Forward one group (if groups are shown) |
+| [<kbd>⇞</kbd>](# "page up") | Page up |
+| [<kbd>⇟</kbd>](# "page down") | Page down |
+| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
+| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | End of menu |
+| [<kbd>↩︎</kbd>](# "enter") | Accept selection and exit menu |
+| [<kbd>⇥</kbd>](# "tab") | Accept selection, but stay in menu (multi-select) |
+| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info (does not work in history menu) |
+| other | Accept selection and exit menu (then execute the key just typed) |
 
 
 # Requirements
@@ -29,6 +73,7 @@ Recommended:
 
 Minimum:
 * Zsh 5.3 or later.
+
 
 # Installation
 There are two ways to install `zsh-autocomplete`:
@@ -53,40 +98,6 @@ previous section.)
 
 Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
 _instead_ of your framework's supplied completion module.
-
-
-# Key Bindings
-`zsh-autocomplete` adds the following key bindings to your command line:
-
-| Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
-| --- | --- | --- |
-| any | Show completions (asynchronously) | - |
-| [<kbd>⇥</kbd>](# "tab") | Accept top completion | <sub>`complete-word`</sub> |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another completion <sup>[except with `fzf`](#with-fzf)</sup> | <sub>`menu-select`</sub> |
-| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
-
-## With `zsh-autosuggestions`
-When you source
-[`zsh-autosuggestions`](https://github.com/zsh-users/zsh-autosuggestions) in your `.zshrc` file,
-`zsh-autocomplete` modifies the following key binding:
-
-| Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
-| --- | --- | --- |
-| [<kbd>⇥</kbd>](# "tab") | Accept autosuggested word (at end of line) or top completion | <sub>`_complete_word`</sub> |
-
-## When Selecting Completions
-`zsh-autocomplete` adds the following key bindings to the completion menu:
-
-| Key(s) | Action |
-| --- | --- |
-| [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
-| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Jump to the next group of matches (if groups are shown) |
-| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Jump to the previous group of matches (if groups are shown) |
-| [<kbd>↩︎</kbd>](# "enter") | Accept a single completion (and return to the command line) |
-| [<kbd>⇥</kbd>](# "tab") | Accept multiple completions |
-| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info (does not work in "corrections" menu) |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept the current selection, then [do fuzzy file search](#requirements) |
-| other | Accept the current selection (then exit menu and insert the character just typed) |
 
 
 # Preferences
@@ -220,5 +231,5 @@ You can then use `zsh-autocomplete`'s [widgets](#key-bindings) to define your ow
 © 2020 [Marlon Richert](https://github.com/marlonrichert)
 
 # License
-This project is licensed under the MIT License. See the [LICENSE](/marlonrichert/.config/LICENSE)
-file for details.
+This project is licensed under the MIT License. See the
+[LICENSE](/marlonrichert/zsh-autocomplete/LICENSE) file for details.

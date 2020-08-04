@@ -1,9 +1,38 @@
 #!/bin/zsh
-setopt localoptions extendedglob
+setopt localoptions noshortloops extendedglob
+setopt nobeep
 local curcontext; .autocomplete.curcontext history-search
 
-local FZF_COMPLETION_TRIGGER=''
-local fzf_default_completion='list-expand'
-local FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --bind=ctrl-space:abort,ctrl-k:kill-line"
+local -A keymap_historysearch=(
+  $key[Left] .backward-char
+  $key[Right] .forward-char
+  $key[ForwardWord] .backward-word
+  $key[BackwardWord] .forward-word
+  $key[Home] .beginning-of-line
+  $key[End] .end-of-line
+)
+local -A keymap_menuselect=()
+local k v ret
 
-zle fzf-history-widget
+BUFFER="${(j:*:)${(bZ+C+)BUFFER}}"
+zle -R
+{
+  for k v in ${(kv@)keymap_historysearch}; do
+    keymap_menuselect[$k]="$(bindkey -M menuselect -L $k)"
+    bindkey -M menuselect $k $v
+  done
+
+  zle _history_search
+  ret=$?
+  (( ret == 0 )) && zle .expand-history
+
+} always {
+  for k v in ${(@)keymap_menuselect}; do
+    if [[ $v == *'undefined key' ]]; then
+      bindkey -M menuselect -r $k
+    else
+      eval "$v"
+    fi
+  done
+}
+return ret

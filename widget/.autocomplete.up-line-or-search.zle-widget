@@ -1,6 +1,6 @@
 #!/bin/zsh
-setopt localoptions extendedglob
-local curcontext; .autocomplete.curcontext up-line-or-history-search
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext up-line-or-search
 
 if (( BUFFERLINES == 1 )); then
   zle history-search

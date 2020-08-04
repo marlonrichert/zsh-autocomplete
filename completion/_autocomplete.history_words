@@ -1,0 +1,34 @@
+#autoload
+setopt localoptions noshortloops extendedglob
+
+local lbuffer=${(b)LBUFFER%$PREFIX}
+local -a lbuffer_words=( "${(@Z+C+)lbuffer}" )
+local prev_word=$lbuffer_words[-1]
+local -a lines=( "${(@)history[(R)*$lbuffer*]}" )
+local -a line_words disp=() matches=()
+local -i index
+local line word
+for line in $lines; do
+  line_words=( "${(@Z+C+)line}" )
+  (( index = $line_words[(ie)$prev_word] + 1 ))
+  (( index > $#line_words )) && continue
+  word=${line_words[index]}
+  case $word in
+    \$\'*)
+      word=${(QQQQ)word}
+      ;;
+    \"*)
+      word=${(QQQ)word}
+      ;;
+    \'*)
+      word=${(QQ)word}
+      ;;
+    *)
+      word=${(Q)word}
+      ;;
+  esac
+  if (( $#word > 1 )); then
+    matches+=( $word )
+  fi
+done
+compadd -fQ -a matches

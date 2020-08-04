@@ -1,0 +1,7 @@
+#!/bin/zsh
+setopt localoptions noshortloops extendedglob
+local curcontext; .autocomplete.curcontext history-search
+
+_main_complete _autocomplete.history_lines
+compstate[insert]='menu:0'
+compstate[list]='list force'

@@ -43,7 +43,7 @@
 
   autoload -Uz .autocomplete.__init__ && .autocomplete.__init__
   local module mod
-  for module in config widget key-binding recent-dirs async; do
+  for module in config widget key key-binding recent-dirs async; do
     mod=.autocomplete.$module
     if ! zstyle -t ':autocomplete:' $module false no off 0; then
       autoload -Uz $mod && $mod

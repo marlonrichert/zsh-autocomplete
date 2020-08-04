@@ -37,13 +37,17 @@ _autocomplete.recent_paths() {
   local disp prefix file_prefix suffix ret=1
   local -a display popt
 
-  local -i max_lines max_matches
-  (( max_lines = _autocomplete__max_lines() ))
+  local max_lines max_matches
+  zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
+  (( max_lines = _autocomplete__max_lines($max_lines) ))
   (( max_matches = compstate[nmatches] + 4 ))
 
   local word=${~words[CURRENT]:P}
 
-  local path; for path in ${~@:P}; do
+  local path; for path in ${@:P}; do
+    (( compstate[list_lines] >= max_lines || compstate[nmatches] >= max_matches )) &&
+      break
+
     [[ ! -e $path ]] && continue
 
     disp=${(D)path}
@@ -60,10 +64,8 @@ _autocomplete.recent_paths() {
     display=( "$disp" )
     local _comp_no_ignore=1
     _description -V $tag expl $group_name
-    compadd "$expl[@]" -d display -f $popt - ${(b)path} && ret=0
+    compadd "$expl[@]" -d display -fQ $popt - ${(b)path} && ret=0
 
-    (( compstate[list_lines] >= max_lines || compstate[nmatches] >= max_matches )) &&
-      break
   done
 
   return ret
