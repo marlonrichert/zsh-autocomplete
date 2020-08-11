@@ -20,14 +20,11 @@ Table of Contents:
 
 
 # Requirements
-Mandatory:
-* [**Zsh**](http://zsh.sourceforge.net) needs to be your shell.
+Recommended:
+* **[Zsh](http://zsh.sourceforge.net) 5.8** or later.
 
-Fzf integration:
-* You  need to source `fzf`'s [**shell extensions**](https://github.com/junegunn/fzf#installation)
-  in your `.zshrc` file to get the [full integration](#with-fzf). It's _not_ enough for `fzf` to be
-  in your path!
-
+Minimum:
+* Zsh 5.3 or later.
 
 # Installation
 There are two ways to install `zsh-autocomplete`:
