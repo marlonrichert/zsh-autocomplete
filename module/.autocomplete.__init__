@@ -2,7 +2,7 @@
 emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 autoload -Uz add-zle-hook-widget
-autoload -Uz .autocomplete.curcontext .autocomplete.highlight
+autoload -Uz .autocomplete.curcontext .autocomplete.refresh
 
 autoload -Uz colors && colors
 autoload -Uz zmathfunc && zmathfunc
@@ -24,11 +24,6 @@ add-zsh-hook precmd .autocomplete.base.precmd
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
   add-zsh-hook -d precmd .autocomplete.base.precmd
-
-  if [[ -v functions[_zsh_highlight] ]]; then
-    functions[.autocomplete._zsh_highlight]=$functions[_zsh_highlight]
-    functions[_zsh_highlight]=$functions[.autocomplete.no-op]
-  fi
 
   .autocomplete.compinit
 }

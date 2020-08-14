@@ -132,9 +132,6 @@ add-zsh-hook precmd .autocomplete.key-binding.precmd
       zstyle ':completion:*:unambiguous' format '%F{green}%d:%f'
   fi
 
-  bindkey ' ' magic-space
-  bindkey '^[ ' self-insert-unmeta
-
   bindkey -M menuselect '^['$key[Up] vi-backward-blank-word
   bindkey -M menuselect '^['$key[Down] vi-forward-blank-word
 }

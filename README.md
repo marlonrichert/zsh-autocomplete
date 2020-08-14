@@ -60,8 +60,6 @@ _instead_ of your framework's supplied completion module.
 | [<kbd>⇥</kbd>](# "tab") | Accept top completion | <sub>`complete-word`</sub> |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Select another completion <sup>[except with `fzf`](#with-fzf)</sup> | <sub>`menu-select`</sub> |
 | [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
-| [<kbd>␣</kbd>](# "space") | Insert space and correct spelling | <sub>`magic-space`</sub> |
-| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Insert space only | <sub>`self-insert-unmeta`</sub> |
 
 ## With `zsh-autosuggestions`
 When you source
@@ -72,21 +70,8 @@ When you source
 | --- | --- | --- |
 | [<kbd>⇥</kbd>](# "tab") | Accept top completion or autosuggested word (at end of line) | <sub>`_complete_word`</sub> |
 
-## With `fzf`
-When you source
-[`fzf`'s shell extensions](https://github.com/junegunn/fzf#installation) in your `.zshrc` file,
-`zsh-autocomplete` adds and modifies the following key bindings:
-
-| Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
-| --- | --- | --- |
-| [<kbd>↓</kbd>](# "down") | Select a completion or move cursor down (in multi-line buffer) | <sub>`down-line-or-menu-select`</sub> |
-| [<kbd>⌥</kbd><kbd>↓</kbd>](# "alt-down") | Select a completion (always) | <sub>`menu-select`</sub> |
-| [<kbd>↑</kbd>](# "up") | Do fuzzy history search or move cursor up (in multi-line buffer) | <sub>`up-line-or-history-search`</sub> |
-| [<kbd>⌥</kbd><kbd>↑</kbd>](# "alt-up") | Do fuzzy history search (always) | <sub>`history-search`</sub> |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Change directory (in empty buffer), expand alias, insert common substring or do fuzzy file search | <sub>`expand-or-complete`</sub> |
-
 ## When Selecting Completions
-`zsh-autocomplete` adds the following key bindings to the selection menu:
+`zsh-autocomplete` adds the following key bindings to the completion menu:
 
 | Key(s) | Action |
 | --- | --- |
@@ -142,13 +127,7 @@ This is shown when the number of lines needed to display all matches exceeds the
 [`zstyle ':autocomplete:list-choices:*' max-lines`](#shorten-or-lengthen-the-autocompletion-list):
 ```shell
 zstyle ':autocomplete:*:too-many-matches' message \
-  '%F{blue}Too long list. Press %Uctrl-space%u%F{blue} to open or type more to filter.%f'
-```
-
-This is shown when the completion system decides, for whatever reason, that it does not want to
-show any completions yet, until you've typed more input:
-```shell
-zstyle ':autocomplete:*:no-matches-yet' message 'Type more...'
+  '%F{yellow}Too long list. Press %B$ctrl-space%b %F{yellow}to open or type more to filter.'
 ```
 
 This is shown when, for the given input, the completion system cannot find any matching completions
@@ -198,36 +177,6 @@ zstyle ':autocomplete:tab:*' completion insert
 ### Use `fzf`'s <kbd>⇥</kbd> completion
 ```shell
 zstyle ':autocomplete:tab:*' completion fzf
-```
-
-## Change or disable automatic spelling correction
-By default, [<kbd>␣</kbd>](# "space") automatically corrects spelling mistakes.
-
-### Make <kbd>␣</kbd> do history expansion instead of spelling correction
-```shell
-zstyle ':autocomplete:space:*' magic expand-history
-```
-<sup>If you don't you use `zsh-autocomplete`'s
-[key bindings](#advanced-choose-your-own-key-bindings), then you'll also need to bind the
-`magic-space` widget for this to work.</sup>
-
-### Make <kbd>␣</kbd> do both history expansion and spelling correction
-```shell
-zstyle ':autocomplete:space:*' magic correct-word expand-history
-```
-
-### Disable all automagic corrections and expansions
-```shell
-zstyle ':autocomplete:*' magic off
-```
-
-## Disable `fzf` key bindings
-If you source [`fzf`'s shell extensions](#requirements), then `zsh-autocomplete` adds [additional
-key bindings](#with-fzf).
-
-To _not_ use these:
-```shell
-zstyle ':autocomplete:*' fuzzy-search off
 ```
 
 ## Disable recent dirs completion

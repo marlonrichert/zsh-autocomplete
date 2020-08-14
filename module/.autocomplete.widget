@@ -18,7 +18,6 @@ add-zsh-hook precmd .autocomplete.widget.precmd
   .autocomplete.widget.c insert-unambiguous menu-complete insert-unambiguous
   .autocomplete.widget.c reverse-insert-unambiguous reverse-menu-complete insert-unambiguous
   .autocomplete.widget.c list-expand menu-select list-expand
-  .autocomplete.widget.z magic-space magic-space
   .autocomplete.widget.c menu-complete menu-complete menu-complete
   .autocomplete.widget.c reverse-menu-complete reverse-menu-complete menu-complete
   .autocomplete.widget.c menu-select menu-select menu-select
