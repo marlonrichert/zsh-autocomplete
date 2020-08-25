@@ -60,7 +60,7 @@ _autocomplete.recent_paths() {
     display=( "$disp" )
     local _comp_no_ignore=1
     _description -V $tag expl $group_name
-    compadd "$expl[@]" -d display -fQ $popt - $path && ret=0
+    compadd "$expl[@]" -d display -f $popt - ${(b)path} && ret=0
 
     (( compstate[list_lines] >= max_lines || compstate[nmatches] >= max_matches )) &&
       break

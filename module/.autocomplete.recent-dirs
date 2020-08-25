@@ -61,7 +61,9 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
 
     _autocomplete.recent_dirs() {
       emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+
       cdr -r
+      reply=( "${(@o)reply}" )
     }
   fi
 
