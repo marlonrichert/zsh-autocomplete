@@ -1,23 +1,10 @@
 # `zsh-autocomplete`
-`zsh-autocomplete` adds **real-time** type-ahead autocompletion to Zsh!
+`zsh-autocomplete` adds **real-time type-ahead autocompletion** to Zsh, plus many more completion
+features.
 
-Additional features:
-* Adds intuitive [keyboard shortcuts](#key-bindings) for choosing completions.
-* Offers unique extra completions:
-  * Completes lines and words from your command history.
-  * Expands aliases, parameters and glob expressions.
-  * Shows when multiple completions have a substring in common.
-  * Completes dirs from dir jumping tools, including `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`,
-    `autojump`, `fasd` and `cdr`.
-* Corrects spelling mistakes.
-  * Don't like a correction? Just press Undo to revert it.
+[![file-search](.img/file-search.gif)](https://asciinema.org/a/356653)
 
-Compatible with `fzf`, `zsh-autosuggestions` and
-`zsh-syntax-highlighting`/`zdharma/fast-syntax-highlighting`.
-
-[![asciicast](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN.svg)](https://asciinema.org/a/ZKC8EXNp1Xw1z8wjs9kVqRoJN)
-
-Table of Contents:
+* [Features](#features)
 * [Key Bindings](#key-bindings)
 * [Requirements](#requirements)
 * [Installation](#installation)
@@ -25,22 +12,68 @@ Table of Contents:
 * [Author](#author)
 * [License](#license)
 
+# Features
+
+* Recent dirs completion:
+
+  ![recent dirs](.img/recent-dirs.png)
+  * Supports `cdr`, `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump` and `fasd`.
+
+* Automatic incremental history search:
+
+  ![history lines](.img/history-lines.png)
+
+* History menu ([<kbd>↑</kbd>](# "up")):
+
+  | ![history menu 1](.img/history-menu-1.png) | ![history menu 2](.img/history-menu-2.png) |
+  | --- | --- |
+
+  * Does history search when buffer is non-empty:
+
+    | ![history search 1](.img/history-search-1.png) | ![history search 2](.img/history-search-2.png) |
+    | --- | --- |
+
+* Multi-selection ([<kbd>⇥</kbd>](# "tab")) in completion menu ([<kbd>↓</kbd>](# "down")) and
+  history menu:
+
+  | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
+  | --- | --- |
+  * Single selection in menus with [<kbd>↩︎</kbd>](# "enter").
+
+* Context-sensitive completions:
+  * Alias expansions
+
+    ![alias expansions](.img/alias-expansions.png)
+
+  * Alternative quoting
+
+    ![requoted](.img/requoted.png)
+
+  * Common substrings
+
+    ![unambiguous](.img/unambiguous.png)
+
+* Hidden completions can be revealed with [<kbd>⇤</kbd>](# "shift-tab").
+
+  ![list expand](.img/list-expand.png)
+
+
 # Key Bindings
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | - |
 | [<kbd>⇥</kbd>](# "tab") | Accept top completion or next autosuggestion word (with `zsh-autosuggestions`) | <sub>`complete-word`</sub> |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept context-sensitive completion: history line, alias expansion, alternative quoting or common substring | <sub>`expand-word`</sub> |
-| [<kbd>↓</kbd>](# "down") | Select another completion or (in multi-line buffer) move cursor down | <sub>`down-line-or-select`</sub> |
-| [<kbd>⇟</kbd>](# "page down") | Select a completion (always) | <sub>`menu-select`</sub> |
-| [<kbd>↑</kbd>](# "up") | Search history or (in multi-line buffer) move cursor up | <sub>`up-line-or-search`</sub> |
-| [<kbd>⇞</kbd>](# "page up") | Search history (always) | <sub>`history-search`</sub> |
+| [<kbd>↓</kbd>](# "down") | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
+| [<kbd>⇟</kbd>](# "page down") | Open completion menu (always) | <sub>`menu-select`</sub> |
+| [<kbd>↑</kbd>](# "up") | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
+| [<kbd>⇞</kbd>](# "page up") | Open history menu (always) | <sub>`history-search`</sub> |
 | [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
 
 ## History Menu
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↑</kbd><kbd>↓</kbd>](# "arrow keys") | Change selection |
+| [<kbd>↑</kbd><kbd>↓</kbd>](# "up or down") | Change selection |
 | [<kbd>⇞</kbd>](# "page up") | Page up |
 | [<kbd>⇟</kbd>](# "page down") | Page down |
 | [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
@@ -52,6 +85,7 @@ Table of Contents:
 ## Completion Menu
 | Key(s) | Action |
 | --- | --- |
+| [<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
 | [<kbd>↖︎</kbd>](# "home") | Beginning of line |
 | [<kbd>↘︎</kbd>](# "end") | End of line |
 | [<kbd>⌥</kbd><kbd>b</kbd>](# "alt-b") | Backward one group (if groups are shown) |
@@ -76,25 +110,21 @@ Minimum:
 
 
 # Installation
-There are two ways to install `zsh-autocomplete`:
-
-## Manually
-This is the **preferred way to install**.
 1. `git clone` this repo. (You can optionally use a plugin manager for this.)
 1. Add the following to your `.zshrc` file:
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
    ```
 
-To update, `cd` into `zsh-autocomplete`'s directory and do `git pull` (or use your plugin manager's
-update mechanism).
+## Updating
+1. `cd` into `zsh-autocomplete`'s directory.
+1. Do `git pull`.
+
+(Or use your plugin manager's update mechanism).
 
 ## As a Plugin
 `zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
 your framework's/plugin manager's documentation for instructions.
-
-**If you're experiencing problems**, please first install `zsh-autocomplete` manually instead. (See
-previous section.)
 
 Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
 _instead_ of your framework's supplied completion module.
@@ -112,7 +142,7 @@ zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
 ## Shorten or lengthen the autocompletion list
-By default, `zsh-autocomplete` limits the number of lines of completions listed to 50% of
+By default, `zsh-autocomplete` limits the amount of automatically listed completions to 50% of
 [`$LINES`](http://zsh.sourceforge.net/Doc/Release/Parameters.html#Parameters-Used-By-The-Shell)
 minus
 [`$BUFFERLINES`](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#User_002dDefined-Widgets)
@@ -133,7 +163,7 @@ To always show matches in groups (and thus show duplicate matches, too):
 ```shell
 zstyle ':autocomplete:*' groups always
 ```
-**WARNING:** Enabling this setting can potentially decrease autocompletion performance.
+**WARNING:** Enabling this setting can significantly decrease responsiveness.
 
 ## Customize the autocompletion messages
 You can customize the various completion messages shown.
@@ -196,11 +226,10 @@ zstyle ':autocomplete:tab:*' completion fzf
 ```
 
 ## Disable recent dirs completion
-If you have `zoxide`, `z.lua`, `z.sh`, `autojump` or `fasd` installed and have correctly configured
-it to track your directory changes, then `zsh-autocomplete` will automatically list (f)recent
-directories (and, in the case of `fasd`, also files) from this tool.
+`zsh-autocomplete` will automatically list recent directories from your favorite directory jumping
+tool, provided you have it set up to track your directory changes.
 
-To _not_ include these:
+To _not_ include recent dirs in your completions:
 ```shell
 zstyle ':autocomplete:*' recent-dirs off
 ```
@@ -210,7 +239,7 @@ zstyle ':autocomplete:*' recent-dirs off
 ensure you have the best possible out-of-the-box experience. However, some users might prefer to
 build their own suite of completion settings, to fully customize the experience.
 
-To disable the built-in config:
+To disable the pre-packaged config:
 ```shell
 zstyle ':autocomplete:*' config off
 ```
