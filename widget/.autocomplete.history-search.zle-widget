@@ -12,7 +12,7 @@ local -A keymap_historysearch=(
   $key[End] .end-of-line
 )
 local -A keymap_menuselect=()
-local k v ret
+local k v ret buffer=$BUFFER
 
 BUFFER="${(j:*:)${(bZ+C+)BUFFER}}"
 zle -R
@@ -24,7 +24,11 @@ zle -R
 
   zle _history_search
   ret=$?
-  (( ret == 0 )) && zle .expand-history
+  if (( ret == 0 )); then
+    zle .expand-history
+  else
+    BUFFER=$buffer
+  fi
 
 } always {
   for k v in ${(@)keymap_menuselect}; do
