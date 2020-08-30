@@ -3,5 +3,9 @@ setopt localoptions noshortloops extendedglob
 local curcontext; .autocomplete.curcontext history-search
 
 _main_complete _autocomplete.history_lines
-compstate[insert]='menu:0'
-compstate[list]='list force'
+local ret=$?
+if (( ret == 0 )); then
+  compstate[insert]='menu:0'
+  compstate[list]='list force'
+fi
+return ret
