@@ -6,15 +6,16 @@ emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 unfunction compinit
 autoload -Uz compinit
-[[ ! -v _comp_dumpfile ]] && compinit
-
 local -a desc_by_date=( ${${(%):-%x}:A:h:h}/**/*(DN.om) )
-if [[ $desc_by_date[1] -nt $_comp_dumpfile ]]; then
-  command rm -f $_comp_dumpfile
-  compinit -C
+if [[ -z "${functions[_autocomplete.extras]}" || -z "$_comp_dumpfile" ||
+    $desc_by_date[1] -nt "$_comp_dumpfile" ]]; then
+  if [[ -e "$_comp_dumpfile" ]]; then
+    command rm -f "$_comp_dumpfile"
+    compinit -C -d "$_comp_dumpfile"
+  else
+    compinit -C
+  fi
 fi
-
-[[ -v functions[_autocomplete.main_complete] ]] && return
 
 _comp_options+=(
   globdots globstarshort numericglobsort
@@ -22,8 +23,10 @@ _comp_options+=(
   NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
 )
 
+unfunction _main_complete
 autoload +X -Uz _main_complete
 functions[_autocomplete.main_complete]=$functions[_main_complete]
+
 _main_complete() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -39,8 +42,10 @@ _main_complete() {
   _autocomplete.main_complete "$@"
 }
 
+unfunction _default
 autoload +X -Uz _default
 functions[_autocomplete.default]=$functions[_default]
+
 _default() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -50,8 +55,10 @@ _default() {
   return ret || ?
 }
 
+unfunction _description
 autoload +X -Uz _description
 functions[_autocomplete.description]=$functions[_description]
+
 _description() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -63,8 +70,10 @@ _description() {
   return ret
 }
 
+unfunction _complete
 autoload +X -Uz _complete
 functions[_autocomplete.complete]=$functions[_complete]
+
 _complete() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -75,8 +84,10 @@ _complete() {
   return ret
 }
 
+unfunction _correct
 autoload +X -Uz _correct
 functions[_autocomplete.correct]=$functions[_correct]
+
 _correct() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -87,8 +98,10 @@ _correct() {
   _autocomplete.correct "$@"
 }
 
+unfunction _expand
 autoload +X -Uz _expand
 functions[_autocomplete.expand]=$functions[_expand]
+
 _expand() {
   setopt localoptions noshortloops extendedglob $_comp_options
 

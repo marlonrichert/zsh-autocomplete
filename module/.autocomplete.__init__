@@ -15,7 +15,7 @@ autoload -Uz .autocomplete.mathfunc && .autocomplete.mathfunc
 # https://github.com/marlonrichert/zsh-autocomplete/issues/43
 zle -N zle-line-finish azhw:zle-line-finish
 
-add-zsh-hook precmd .autocomplete.base.precmd
+add-zle-hook-widget zle-line-init .autocomplete.base.precmd
 
 .autocomplete.base.precmd() {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
@@ -23,7 +23,7 @@ add-zsh-hook precmd .autocomplete.base.precmd
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
-  add-zsh-hook -d precmd .autocomplete.base.precmd
+  add-zle-hook-widget -d zle-line-init .autocomplete.base.precmd
 
   .autocomplete.compinit
 }

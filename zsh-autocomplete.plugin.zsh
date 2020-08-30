@@ -29,7 +29,8 @@
   }
 
   # In case we're sourced _after_ `zsh-autosuggestions`
-  autoload -Uz add-zsh-hook
+  unfunction add-zsh-hook
+  autoload +X -Uz add-zsh-hook
   add-zsh-hook -d precmd _zsh_autosuggest_start
 
   # In case we're sourced _before_ `zsh-autosuggestions`
