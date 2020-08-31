@@ -1,10 +1,10 @@
 #!/bin/zsh
 emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-add-zle-hook-widget zle-line-init .autocomplete.recent-dirs.precmd
+add-zsh-hook precmd .autocomplete.recent-dirs.precmd
 
 .autocomplete.recent-dirs.precmd() {
   emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-  add-zle-hook-widget -d zle-line-init .autocomplete.recent-dirs.precmd
+  add-zsh-hook -d precmd .autocomplete.recent-dirs.precmd
 
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then

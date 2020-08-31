@@ -1,11 +1,11 @@
 #!/bin/zsh
 emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
-add-zle-hook-widget zle-line-init .autocomplete.async.precmd
+add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.precmd() {
   emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-  add-zle-hook-widget -d zle-line-init .autocomplete.async.precmd
+  add-zsh-hook -d precmd .autocomplete.async.precmd
 
   zmodload -i zsh/system  # `sysparams` array
   zmodload -i zsh/zpty

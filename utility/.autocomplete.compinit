@@ -6,15 +6,26 @@ emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 unfunction compinit
 autoload -Uz compinit
-local -a desc_by_date=( ${${(%):-%x}:A:h:h}/**/*(DN.om) )
-if [[ -z "${functions[_autocomplete.extras]}" || -z "$_comp_dumpfile" ||
-    $desc_by_date[1] -nt "$_comp_dumpfile" ]]; then
-  if [[ -e "$_comp_dumpfile" ]]; then
-    command rm -f "$_comp_dumpfile"
-    compinit -C -d "$_comp_dumpfile"
-  else
-    compinit -C
-  fi
+
+local REPLY
+typeset -g _comp_dumpfile="${_comp_dumpfile:-${ZDOTDIR:-$HOME}/.zcompdump}"
+local -a newer=( ${^fpath}/***/*(Ne:'[[ $REPLY -nt $_comp_dumpfile ]]:':Y1) )
+
+if [[ -z "$functions[_autocomplete.extras]" || ! -e "$_comp_dumpfile" || -e $newer ]]; then
+
+  # Decrease Oh My Zsh start-up time. See below.
+  [[ -e "$ZSH_COMPDUMP" ]] && local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
+
+  [[ -e "$_comp_dumpfile" ]] && command rm -f "$_comp_dumpfile"
+  compinit -C -d "$_comp_dumpfile"
+
+  # Prevent Oh My Zsh from deleting comp dump file.
+  [[ -e "$ZSH_COMPDUMP" ]] &&
+    tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+$omzdump[-2]
+$omzdump[-1]
+EOF
+
 fi
 
 _comp_options+=(
