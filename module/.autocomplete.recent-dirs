@@ -76,15 +76,12 @@ add-zle-hook-widget zle-line-init .autocomplete.recent-dirs.precmd
     }
   fi
 
-  unfunction _path_files
-  autoload +X -Uz _path_files
-  functions[_autocomplete.path_files]=$functions[_path_files]
-
+  .autocomplete.patch _path_files
   _path_files() {
     setopt localoptions noshortloops extendedglob
 
     local ret
-    _autocomplete.path_files "$@"
+    .autocomplete._path_files "$@"
     ret=$?
 
     if (( compstate[nmatches] > 0 )) || [[ $_completer == complete-fuzzy ]]; then

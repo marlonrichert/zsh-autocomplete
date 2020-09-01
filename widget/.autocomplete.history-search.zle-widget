@@ -31,7 +31,7 @@ zle -R
   fi
 
 } always {
-  for k v in ${(@)keymap_menuselect}; do
+  for k v in ${(kv@)keymap_menuselect}; do
     if [[ $v == *'undefined key' ]]; then
       bindkey -M menuselect -r $k
     else

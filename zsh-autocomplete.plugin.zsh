@@ -2,18 +2,13 @@
 () {
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
+  # Get access to `functions` & `commands` arrays.
+  zmodload -i zsh/parameter
+
   # Workaround for https://github.com/zdharma/zinit/issues/366
-  zmodload -i zsh/parameter  # Get access to `functions` & `commands` arrays.
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
-  local dir=${${(%):-%x}:A:h}
-  typeset -gU FPATH fpath=(
-    $dir/completion
-    $dir/module
-    $dir/utility
-    $dir/widget
-    $fpath
-  )
+  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/* $fpath )
 
   .autocomplete.no-op() {
     :
@@ -28,18 +23,16 @@
     compdef $@
   }
 
+  autoload -Uz .autocomplete.patch
+  .autocomplete.patch add-zsh-hook
+
   # In case we're sourced _after_ `zsh-autosuggestions`
-  unfunction add-zsh-hook
-  autoload +X -Uz add-zsh-hook
   add-zsh-hook -d precmd _zsh_autosuggest_start
 
   # In case we're sourced _before_ `zsh-autosuggestions`
-  functions[.autocomplete.add-zsh-hook]=$functions[add-zsh-hook]
   add-zsh-hook() {
     # Prevent `_zsh_autosuggest_start` from being added.
-    if [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]]; then
-      .autocomplete.add-zsh-hook "$@" > /dev/null
-    fi
+    [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]] && .autocomplete.add-zsh-hook "$@"
   }
 
   autoload -Uz .autocomplete.__init__ && .autocomplete.__init__

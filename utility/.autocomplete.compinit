@@ -23,10 +23,7 @@ _comp_options+=(
   NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
 )
 
-unfunction _main_complete
-autoload +X -Uz _main_complete
-functions[_autocomplete.main_complete]=$functions[_main_complete]
-
+.autocomplete.patch _main_complete
 _main_complete() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -39,30 +36,24 @@ _main_complete() {
   (( $#comppostfuncs == 0 )) &&
     local +h -a comppostfuncs=( _autocomplete.extras _autocomplete.long_list )
   compstate[insert]='automenu'
-  _autocomplete.main_complete "$@"
+  .autocomplete._main_complete "$@"
 }
 
-unfunction _default
-autoload +X -Uz _default
-functions[_autocomplete.default]=$functions[_default]
-
+.autocomplete.patch _default
 _default() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
-  _autocomplete.default
+  .autocomplete._default
   local ret=$?
   _autocomplete.history_words
   return ret || ?
 }
 
-unfunction _description
-autoload +X -Uz _description
-functions[_autocomplete.description]=$functions[_description]
-
+.autocomplete.patch _description
 _description() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
-  _autocomplete.description "$@"
+  .autocomplete._description "$@"
   local ret=$?
   if [[ $3 == corrections ]]; then
     _lastdescr=( "${(@)_lastdescr[1,-2]}" )
@@ -70,24 +61,18 @@ _description() {
   return ret
 }
 
-unfunction _complete
-autoload +X -Uz _complete
-functions[_autocomplete.complete]=$functions[_complete]
-
+.autocomplete.patch _complete
 _complete() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
   local -i nmatches=$compstate[nmatches]
-  _autocomplete.complete "$@"
+  .autocomplete._complete "$@"
   local ret=$?
   (( compstate[nmatches] == nmatches )) && _comp_mesg=''
   return ret
 }
 
-unfunction _correct
-autoload +X -Uz _correct
-functions[_autocomplete.correct]=$functions[_correct]
-
+.autocomplete.patch _correct
 _correct() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -95,13 +80,10 @@ _correct() {
     return 1
   fi
 
-  _autocomplete.correct "$@"
+  .autocomplete._correct "$@"
 }
 
-unfunction _expand
-autoload +X -Uz _expand
-functions[_autocomplete.expand]=$functions[_expand]
-
+.autocomplete.patch _expand
 _expand() {
   setopt localoptions noshortloops extendedglob $_comp_options
 
@@ -113,13 +95,13 @@ _expand() {
         setopt listtypes
         builtin compadd -f "$@"
       }
-      _autocomplete.expand "$@"
+      .autocomplete._expand "$@"
       local ret=$?
     } always {
       unfunction compadd
     }
     return ret
   else
-    _autocomplete.expand "$@"
+    .autocomplete._expand "$@"
   fi
 }

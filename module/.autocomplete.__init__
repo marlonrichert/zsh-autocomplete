@@ -4,7 +4,6 @@ emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 autoload -Uz add-zle-hook-widget
 autoload -Uz .autocomplete.curcontext .autocomplete.refresh
 
-autoload -Uz colors && colors
 autoload -Uz zmathfunc && zmathfunc
 autoload -Uz .autocomplete.mathfunc && .autocomplete.mathfunc
 
