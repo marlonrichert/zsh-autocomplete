@@ -13,13 +13,13 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   [[ -v _AUTOCOMPLETE__ASYNC_DELAY ]] || typeset -gHF _AUTOCOMPLETE__ASYNC_DELAY=.75
   [[ -v _AUTOCOMPLETE__ASYNC_TIMEOUT ]] || typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.5
 
-  typeset -gH _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
 
-  typeset -gH _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   zle -N .autocomplete.async.timeout.fd-widget
 
-  typeset -gH _autocomplete__async_highlight_fd _autocomplete__async_highlight_pid
+  typeset -gHi _autocomplete__async_highlight_fd _autocomplete__async_highlight_pid
   zle -N .autocomplete.async.highlight.fd-widget
 
   typeset -gH _autocomplete__buffer _autocomplete__word
@@ -58,7 +58,10 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
   region_highlight=( $_autocomplete__region_highlight )
 
-  (( KEYS_QUEUED_COUNT + PENDING > 0 )) && return 0
+  if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
+    .autocomplete.async.stop
+    return 0
+  fi
 
   .autocomplete.async.start
 }
@@ -67,26 +70,39 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
+  _autocomplete__async_complete_fd=0
+  _autocomplete__async_complete_pid=0
+
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+  _autocomplete__async_timeout_fd=0
+  _autocomplete__async_timeout_pid=0
+
   .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
+  _autocomplete__async_highlight_fd=0
+  _autocomplete__async_highlight_pid=0
+
+  _autocomplete__buffer=''
+  _autocomplete__word=''
 }
 
 .autocomplete.async.kill() {
-  if [[ -n $1 ]] && { true <&$1 } 2> /dev/null; then
+  local -i fd=$1 pid=$2
+
+  if (( fd > 9 )) && { true <&$fd } 2> /dev/null; then
     # Close the file descriptor and remove the handler widget.
-    exec {1}<&-
-    zle -F $1 2> /dev/null
+    exec {fd}<&-
+    zle -F $fd 2> /dev/null
   fi
-  if [[ -n $2 ]]; then
+
+  if (( pid != 0 )); then
     # Zsh will make a new process group for the child process only if job control is enabled.
     local group='-' && [[ -o MONITOR ]] || group=''
-    kill -TERM $group$2 2> /dev/null
+    kill -TERM $group$pid 2> /dev/null
   fi
 }
 
 .autocomplete.async.start() {
   setopt localoptions noshortloops extendedglob
-  setopt nobanghist noxtrace noverbose
 
   .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
   [[ -v functions[_zsh_autosuggest_async_request] ]] && _zsh_autosuggest_async_request "$BUFFER"
@@ -102,6 +118,8 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
     .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
     exec {_autocomplete__async_highlight_fd}< <(
       {
+        setopt noxtrace noverbose
+
         local pid=$sysparams[pid]
         print $pid
         if [[ -v functions[_zsh_autosuggest_fetch_suggestion] ]]; then
@@ -123,7 +141,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
 .autocomplete.async.highlight.fd-widget() {
   setopt localoptions noshortloops extendedglob
-  setopt nobanghist
 
   local pid highlight eof
   {
@@ -141,10 +158,14 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete() {
+  setopt localoptions noshortloops extendedglob
+
   typeset -F SECONDS=0
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
+    setopt noxtrace noverbose
+
     local pid=$sysparams[pid]
     print $pid
     {
@@ -167,6 +188,8 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
     {
+      setopt noxtrace noverbose
+
       local complete_pid=$_autocomplete__async_complete_pid
       local complete_fd=$_autocomplete__async_complete_fd
       local pid=$sysparams[pid]
@@ -240,6 +263,11 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
       IFS=$'\0' read -r -u "$1" pid seconds nmatches list_lines buffer word mesg eof
   } always {
     .autocomplete.async.kill $1 $pid
+    if [[ $1 == $_autocomplete__async_complete_fd &&
+        $pid == $_autocomplete__async_complete_pid ]]; then
+      _autocomplete__async_complete_fd=0
+      _autocomplete__async_complete_pid=0
+    fi
   }
 
   [[ $_autocomplete__buffer == $buffer && $_autocomplete__word == $word ]] && return
@@ -268,9 +296,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   local -i nmatches=$2 list_lines=$3
   local mesg=$4 reply
 
-  if (( seconds > _AUTOCOMPLETE__ASYNC_DELAY )); then
-    zle -Rc "processing…"
-  fi
+  (( seconds > _AUTOCOMPLETE__ASYNC_DELAY )) && zle -Rc "processing…"
 
   local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
   local max_lines; zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
@@ -313,7 +339,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 .autocomplete.async.timeout.fd-widget() {
   setopt localoptions noshortloops extendedglob
   setopt nobanghist
-
   local -i pid complete_fd complete_pid
   local eof
   {
@@ -322,11 +347,12 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
     .autocomplete.async.kill $1 $pid
   }
 
-  if [[ $complete_fd == $_autocomplete__async_complete_fd &&
-      $complete_pid == $_autocomplete__async_complete_pid ]]; then
-    .autocomplete.async.kill $complete_fd $complete_pid
-    return
-  fi
+  [[ $complete_fd == $_autocomplete__async_complete_fd &&
+      $complete_pid == $_autocomplete__async_complete_pid ]] || return
+
+  .autocomplete.async.kill $complete_fd $complete_pid
+
+  [[ -z $BUFFER ]] && return
 
   _autocomplete__buffer=''
   _autocomplete__word=''
@@ -344,8 +370,10 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
 .autocomplete.async.explain.completion-widget() {
   setopt localoptions noshortloops extendedglob
+
   _autocomplete.explanation $1 $2
   buffer=$BUFFER
   word=$words[CURRENT]
+  compstate[list]='list force'
   return 1
 }
