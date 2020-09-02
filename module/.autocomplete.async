@@ -277,7 +277,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  if ! zle _list_choices $seconds $nmatches $list_lines $mesg; then
+  if ! zle _list_choices $seconds $nmatches $list_lines $mesg 2> /dev/null; then
     _autocomplete__buffer=$buffer
     _autocomplete__word=$word
 
@@ -359,7 +359,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
-  if ! zle _explain error 'Completion timed out.'; then
+  if ! zle _explain error 'Completion timed out.' 2> /dev/null; then
 
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
     .autocomplete.refresh
