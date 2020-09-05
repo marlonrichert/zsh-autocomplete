@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 [[ -v functions[$1] ]] && unfunction $1
 autoload +X -Uz $1

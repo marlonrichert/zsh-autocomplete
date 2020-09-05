@@ -1,6 +1,6 @@
 #!/bin/zsh
 () {
-  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   # Get access to `functions` & `commands` arrays.
   zmodload -i zsh/parameter
@@ -18,7 +18,7 @@
   functions[compinit]=$functions[.autocomplete.no-op]
   autoload -Uz .autocomplete.compinit
   compdef() {
-    emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+    emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
     .autocomplete.compinit
     compdef $@
   }

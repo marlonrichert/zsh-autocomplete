@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -LR zsh -o noshortloops -o extendedglob
+emulate -L zsh -o noshortloops -o extendedglob
 
 region_highlight=( $_autocomplete__region_highlight )
 zle -R

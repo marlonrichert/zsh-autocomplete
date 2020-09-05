@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 # Workaround for https://github.com/zdharma/zinit/issues/366
 [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
@@ -25,7 +25,7 @@ _comp_options+=(
 
 .autocomplete.patch _main_complete
 _main_complete() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  eval "$_comp_setup"
 
   local word=$PREFIX$SUFFIX
   local _autocomplete__tail=${word##*/}
@@ -41,7 +41,7 @@ _main_complete() {
 
 .autocomplete.patch _default
 _default() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   .autocomplete._default
   local ret=$?
@@ -51,7 +51,7 @@ _default() {
 
 .autocomplete.patch _description
 _description() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   .autocomplete._description "$@"
   local ret=$?
@@ -63,7 +63,7 @@ _description() {
 
 .autocomplete.patch _complete
 _complete() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   local -i nmatches=$compstate[nmatches]
   .autocomplete._complete "$@"
@@ -74,7 +74,7 @@ _complete() {
 
 .autocomplete.patch _correct
 _correct() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   if [[ -v compstate[quote] || $words[CURRENT] == [$histchars]* ]] || _autocomplete.is_glob; then
     return 1
@@ -85,13 +85,13 @@ _correct() {
 
 .autocomplete.patch _expand
 _expand() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
     local ISUFFIX="*"
     {
       compadd() {
-        setopt localoptions noshortloops extendedglob
+        setopt localoptions localtraps localpatterns
         setopt listtypes
         builtin compadd -f "$@"
       }

@@ -1,5 +1,4 @@
 #autoload
-setopt localoptions noshortloops extendedglob
 
 local format
 zstyle -s ":completion:${curcontext}:${1}s" format format

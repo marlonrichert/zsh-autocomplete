@@ -1,8 +1,7 @@
 #autoload
-setopt localoptions noshortloops extendedglob
 
 _autocomplete.recent_paths() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   local -aU reply
   local ret=1
@@ -28,7 +27,7 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  setopt localoptions noshortloops extendedglob $_comp_options
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
 
   local tag=$1
   local group_name=$2
@@ -65,7 +64,6 @@ _autocomplete.recent_paths() {
     local _comp_no_ignore=1
     _description -V $tag expl $group_name
     compadd "$expl[@]" -d display -fQ $popt - ${(b)path} && ret=0
-
   done
 
   return ret

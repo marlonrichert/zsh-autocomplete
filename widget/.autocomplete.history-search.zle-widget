@@ -1,5 +1,5 @@
 #!/bin/zsh
-setopt localoptions noshortloops extendedglob
+setopt localoptions localtraps localpatterns ${_comp_options[@]}
 setopt nobeep
 local curcontext; .autocomplete.curcontext history-search
 

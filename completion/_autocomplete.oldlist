@@ -1,5 +1,4 @@
 #autoload
-setopt localoptions noshortloops extendedglob
 
 [[ ! -v compstate[old_list] || $_autocomplete__buffer != $BUFFER ||
     $_autocomplete__word != $words[CURRENT] || $WIDGET == _complete_help ]] &&

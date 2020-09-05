@@ -1,5 +1,4 @@
 #!/bin/zsh
-setopt localoptions noshortloops extendedglob
 local curcontext; .autocomplete.curcontext complete-word
 
 local lbuffer=$LBUFFER

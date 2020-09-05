@@ -1,10 +1,10 @@
 #!/bin/zsh
-emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
 add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 
 .autocomplete.async.precmd() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
   add-zle-hook-widget -d zle-line-init .autocomplete.async.precmd
 
   zmodload -i zsh/system  # `sysparams` array
@@ -54,8 +54,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.line-pre-redraw() {
-  setopt localoptions noshortloops extendedglob
-
   region_highlight=( $_autocomplete__region_highlight )
 
   if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
@@ -67,7 +65,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.stop() {
-  emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   _autocomplete__async_complete_fd=0
@@ -102,8 +100,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.start() {
-  setopt localoptions noshortloops extendedglob
-
   .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
   [[ -v functions[_zsh_autosuggest_async_request] ]] && _zsh_autosuggest_async_request "$BUFFER"
   .autocomplete.async.highlight
@@ -118,6 +114,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
     .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
     exec {_autocomplete__async_highlight_fd}< <(
       {
+        setopt localoptions localtraps localpatterns ${_comp_options[@]}
         setopt noxtrace noverbose
 
         local pid=$sysparams[pid]
@@ -140,8 +137,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.highlight.fd-widget() {
-  setopt localoptions noshortloops extendedglob
-
   local pid highlight eof
   {
     [[ -z $2 || $2 == hup ]] && IFS=$'\0' read -r -u "$1" pid highlight eof
@@ -158,12 +153,11 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete() {
-  setopt localoptions noshortloops extendedglob
-
   typeset -F SECONDS=0
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
+    setopt localoptions localtraps localpatterns ${_comp_options[@]}
     setopt noxtrace noverbose
 
     local pid=$sysparams[pid]
@@ -188,6 +182,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
     {
+      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       setopt noxtrace noverbose
 
       local complete_pid=$_autocomplete__async_complete_pid
@@ -205,7 +200,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete.inner() {
-  setopt localoptions noshortloops extendedglob
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
   setopt nobanghist noxtrace noverbose
 
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
@@ -218,21 +213,16 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
   typeset -gH lbuffer=$1 rbuffer=$2
 
   zle-widget() {
-    setopt localoptions noshortloops extendedglob
-
     LBUFFER=$lbuffer
     RBUFFER=$rbuffer
     zle completion-widget 2> /dev/null
   }
 
   message() {
-    setopt localoptions noshortloops extendedglob
     typeset -gH message=$mesg
   }
 
   completion-widget() {
-    setopt localoptions noshortloops extendedglob
-
     unset 'compstate[vared]'
     local curcontext; .autocomplete.curcontext list-choices
     local +h -a comppostfuncs=( _autocomplete.extras message )
@@ -252,7 +242,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete.fd-widget() {
-  setopt localoptions noshortloops extendedglob
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
   setopt nobanghist
 
   local -F seconds
@@ -289,7 +279,6 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.list-choices.completion-widget() {
-  setopt localoptions noshortloops extendedglob
   local curcontext; .autocomplete.curcontext list-choices
 
   local -F seconds=$1
@@ -337,8 +326,9 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  setopt localoptions noshortloops extendedglob
+  setopt localoptions localtraps localpatterns ${_comp_options[@]}
   setopt nobanghist
+
   local -i pid complete_fd complete_pid
   local eof
   {
@@ -369,7 +359,7 @@ add-zle-hook-widget zle-line-init .autocomplete.async.precmd
 }
 
 .autocomplete.async.explain.completion-widget() {
-  setopt localoptions noshortloops extendedglob
+  eval "$_comp_setup"
 
   _autocomplete.explanation $1 $2
   buffer=$BUFFER

@@ -1,4 +1,4 @@
 #!/bin/zsh
-setopt localoptions noshortloops extendedglob
 local curcontext; .autocomplete.curcontext menu-complete
+
 _main_complete

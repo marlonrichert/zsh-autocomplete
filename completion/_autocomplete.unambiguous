@@ -1,5 +1,4 @@
 #autoload
-setopt localoptions noshortloops extendedglob
 
 (( compstate[nmatches] <= 1 )) && return 1
 [[ -z $compstate[unambiguous] || $_comp_tags == *recent-(dirs|files)* ]] && return 1
