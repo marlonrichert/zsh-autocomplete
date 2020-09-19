@@ -7,35 +7,52 @@ assignees: ''
 
 ---
 
-### Describe the bug
-<!-- A clear and concise description of what the bug is. -->
+# Required reading
 
-### To Reproduce
-Steps to reproduce the behavior:
-
-<!-- IMPORTANT: If you are not able to reproduce it by running `zsh -df` and sourcing the plugin
-manually, it means there that the issue is caused by something in your local config file(s).
-Paste lines from your `.zshrc` file into the subshell below until you narrow down exactly what is
-causing the issue. -->
-
-```shell
-# *Always* test with the following three steps:
-$ cd $(mktemp -d)  # Create a temp dir and enter it
-$ ZDOTDIR=$PWD HOME=$PWD zsh -df  # Start a subshell without config files
-% source path/to/zsh-autocomplete.plugin.zsh
-% # Insert your steps here
+Try if the bug occurs without config files:
+```zsh
+$ cd $(mktemp -d)  # Create a temp dir and enter it.
+$ ZDOTDIR=$PWD HOME=$PWD zsh -f  # Start a subshell without config files.
+% source path/to/zsh-autocomplete.plugin.zsh  # Source the plugin.
+% # Try to reproduce your bug...
 ```
+Does the bug occur without config files?
+* [ ] Yes
+* [ ] No
 
-### Expected behavior
-<!-- A clear and concise description of what you expected to happen. -->
+If not, which combination of config causes the bug to appear?
 
-### Actual behavior
-<!-- If applicable, add screenshots or other output to help explain your problem. -->
+... <!-- Write your answer here. -->
 
-### Desktop
- - OS + distribution: <!-- e.g. Arch Linux 2019.07.01 -->
- - Zsh version: <!-- echo $ZSH_VERSION -->
- - Plugin version: <!-- git commit hash -->
 
-### Additional context
-<!-- Add any other context about the problem here. -->
+Try to reproduce the bug on the `dev` branch:
+```zsh
+$ cd path/to/zsh-autocomplete  # Go to the dir where you clone zsh-autocomplete.
+$ git checkout dev  # Check out the dev branch.
+% exec zsh  # Restart Zsh.
+% # Try to reproduce your bug...
+```
+Does the bug occur on the `dev` branch?
+* [ ] Yes
+* [ ] No
+
+If not, do still file a report, so I can make sure I don't break it again. :)
+
+
+# Steps to reproduce
+How can I reproduce the bug? If I cannot reproduce it, then I cannot test it and thus cannot fix it.
+
+Please provide concrete steps:
+1. ...
+2. ...
+
+## Expected behavior
+What did you expect to happen? Why?
+
+## Actual behavior
+What actually happened? Why is this a problem?
+
+
+# Environment
+* Zsh version: <!-- 5.3 or later should work, but I test with the latest version only. -->
+* `zsh-autocomplete` commit: <!-- Paste the raw number here. GitHub will make a link out of it. -->
