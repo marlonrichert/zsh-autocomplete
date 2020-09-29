@@ -1,8 +1,6 @@
 #autoload
 
 _autocomplete.recent_paths() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   local -aU reply
   local ret=1
 
@@ -27,8 +25,6 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   local tag=$1
   local group_name=$2
   shift 2

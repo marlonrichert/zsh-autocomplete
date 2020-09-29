@@ -1,5 +1,17 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+
+.autocomplete.base.precmd() {
+  emulate -L zsh -o extendedglob
+
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
+
+  add-zsh-hook -d precmd .autocomplete.base.precmd
+
+  .autocomplete.compinit
+}
+
+emulate -L zsh -o extendedglob
 
 autoload -Uz add-zle-hook-widget
 autoload -Uz .autocomplete.curcontext .autocomplete.refresh
@@ -15,14 +27,3 @@ autoload -Uz .autocomplete.mathfunc && .autocomplete.mathfunc
 zle -N zle-line-finish azhw:zle-line-finish
 
 add-zsh-hook precmd .autocomplete.base.precmd
-
-.autocomplete.base.precmd() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-  # Workaround for https://github.com/zdharma/zinit/issues/366
-  [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
-
-  add-zsh-hook -d precmd .autocomplete.base.precmd
-
-  .autocomplete.compinit
-}

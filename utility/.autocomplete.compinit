@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+emulate -L zsh -o extendedglob
 
 # Workaround for https://github.com/zdharma/zinit/issues/366
 [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
@@ -36,8 +36,6 @@ _comp_options+=(
 
 .autocomplete.patch _main_complete
 _main_complete() {
-  eval "$_comp_setup"
-
   local word=$PREFIX$SUFFIX
   local _autocomplete__tail=${word##*/}
   local _autocomplete__head=${word%%$_autocomplete__tail}
@@ -52,8 +50,6 @@ _main_complete() {
 
 .autocomplete.patch _default
 _default() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   .autocomplete._default
   local ret=$?
   _autocomplete.history_words
@@ -62,8 +58,6 @@ _default() {
 
 .autocomplete.patch _description
 _description() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   .autocomplete._description "$@"
   local ret=$?
   if [[ $3 == corrections ]]; then
@@ -74,8 +68,6 @@ _description() {
 
 .autocomplete.patch _complete
 _complete() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   local -i nmatches=$compstate[nmatches]
   .autocomplete._complete "$@"
   local ret=$?
@@ -85,8 +77,6 @@ _complete() {
 
 .autocomplete.patch _correct
 _correct() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   if [[ -v compstate[quote] || $words[CURRENT] == [$histchars]* ]] || _autocomplete.is_glob; then
     return 1
   fi
@@ -96,14 +86,11 @@ _correct() {
 
 .autocomplete.patch _expand
 _expand() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
   if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
     local ISUFFIX="*"
     {
       compadd() {
-        setopt localoptions localtraps localpatterns
-        setopt listtypes
+        setopt localoptions listtypes
         builtin compadd -f "$@"
       }
       .autocomplete._expand "$@"

@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+emulate -L zsh -o extendedglob
 
 typeset -g curcontext=${curcontext:-}
 if [[ -z $curcontext ]]; then

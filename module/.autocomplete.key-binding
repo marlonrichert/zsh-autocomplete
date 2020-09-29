@@ -1,10 +1,7 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-add-zsh-hook precmd .autocomplete.key-binding.precmd
 
 .autocomplete.key-binding.precmd() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.key-binding.precmd
 
   local tab_completion
@@ -74,3 +71,5 @@ add-zsh-hook precmd .autocomplete.key-binding.precmd
   bindkey -M menuselect $key[PageUp] backward-word
   bindkey -M menuselect $key[PageDown] forward-word
 }
+
+add-zsh-hook precmd .autocomplete.key-binding.precmd

@@ -1,12 +1,7 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-
-add-zsh-hook precmd .autocomplete.widget.precmd
 
 .autocomplete.widget.precmd() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.widget.precmd
 
   .autocomplete.widget.c complete-word complete-word complete-word
@@ -48,3 +43,7 @@ add-zsh-hook precmd .autocomplete.widget.precmd
   autoload -Uz $func
   zle -N $1 $func
 }
+
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+add-zsh-hook precmd .autocomplete.widget.precmd

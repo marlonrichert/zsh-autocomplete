@@ -1,16 +1,13 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-add-zsh-hook precmd .autocomplete.recent-dirs.precmd
 
 .autocomplete.recent-dirs.precmd() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.recent-dirs.precmd
 
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "$( zshz --complete -l $1 2> /dev/null )" )
     }
 
@@ -18,7 +15,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "$( zoxide query --list $1 2> /dev/null )" )
     }
 
@@ -26,7 +22,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "${(@)${(f)$( _zlua --complete $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}" )
     }
 
@@ -34,7 +29,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|[[:digit:]]##)[[:space:]]##}" )
     }
 
@@ -42,7 +36,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__[[:digit:]]__}" )
     }
 
@@ -50,7 +43,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "$( fasd -dlR $1 2> /dev/null )" )
     }
 
@@ -60,7 +52,6 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
     zstyle ':chpwd:*' recent-dirs-max 0
 
     _autocomplete.recent_dirs() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       cdr -r
       reply=( "${(@o)reply}" )
     }
@@ -70,15 +61,12 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
 
     _autocomplete.recent_files() {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
       reply=( "$( fasd -flR $1 2> /dev/null )" )
     }
   fi
 
   .autocomplete.patch _path_files
   _path_files() {
-    setopt localoptions localtraps localpatterns ${_comp_options[@]}
-
     local ret
     .autocomplete._path_files "$@"
     ret=$?
@@ -90,3 +78,5 @@ add-zsh-hook precmd .autocomplete.recent-dirs.precmd
     return ret
   }
 }
+
+add-zsh-hook precmd .autocomplete.recent-dirs.precmd

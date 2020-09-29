@@ -1,6 +1,5 @@
 #!/bin/zsh
-setopt localoptions localtraps localpatterns ${_comp_options[@]}
-setopt nobeep
+setopt localoptions extendedglob nobeep
 local curcontext; .autocomplete.curcontext history-search
 
 local -A keymap_historysearch=(
@@ -25,6 +24,7 @@ zle -R
   zle _history_search
   ret=$?
   if (( ret == 0 )); then
+    setopt banghist
     zle .expand-history
   else
     BUFFER=$buffer

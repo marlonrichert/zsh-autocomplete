@@ -1,10 +1,7 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.precmd() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
   zmodload -i zsh/system  # `sysparams` array
@@ -53,6 +50,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
   add-zsh-hook zshexit .autocomplete.async.stop
 }
 
+add-zsh-hook precmd .autocomplete.async.precmd
+
 .autocomplete.async.line-pre-redraw() {
   region_highlight=( $_autocomplete__region_highlight )
 
@@ -65,7 +64,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.stop() {
-  emulate -L zsh -o noshortloops -o warncreateglobal -o extendedglob
+  emulate -L zsh -o extendedglob
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   _autocomplete__async_complete_fd=0
@@ -114,8 +113,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
     exec {_autocomplete__async_highlight_fd}< <(
       {
-        setopt localoptions localtraps localpatterns ${_comp_options[@]}
-        setopt noxtrace noverbose
+        setopt extendedglob noxtrace noverbose
 
         local pid=$sysparams[pid]
         print $pid
@@ -157,8 +155,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
-    setopt localoptions localtraps localpatterns ${_comp_options[@]}
-    setopt noxtrace noverbose
+    setopt extendedglob noxtrace noverbose
 
     local pid=$sysparams[pid]
     print $pid
@@ -182,8 +179,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
     {
-      setopt localoptions localtraps localpatterns ${_comp_options[@]}
-      setopt noxtrace noverbose
+      setopt extendedglob noxtrace noverbose
 
       local complete_pid=$_autocomplete__async_complete_pid
       local complete_fd=$_autocomplete__async_complete_fd
@@ -200,8 +196,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete.inner() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-  setopt nobanghist noxtrace noverbose
+  setopt extendedglob nobanghist noxtrace noverbose
 
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &> /dev/null
@@ -242,8 +237,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete.fd-widget() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-  setopt nobanghist
+  setopt extendedglob nobanghist
 
   local -F seconds
   local -i pid nmatches list_lines
@@ -326,8 +320,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  setopt localoptions localtraps localpatterns ${_comp_options[@]}
-  setopt nobanghist
+  setopt extendedglob nobanghist
 
   local -i pid complete_fd complete_pid
   local eof
