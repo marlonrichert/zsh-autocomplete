@@ -8,7 +8,7 @@
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
-  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/* $fpath )
+  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath )
 
   .autocomplete.no-op() {
     :
