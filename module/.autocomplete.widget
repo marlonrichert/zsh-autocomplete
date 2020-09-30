@@ -5,7 +5,6 @@
   add-zsh-hook -d precmd .autocomplete.widget.precmd
 
   .autocomplete.widget.c complete-word complete-word complete-word
-  .autocomplete.widget.z _complete_word complete-word
   .autocomplete.widget.c expand-word complete-word expand-word
   .autocomplete.widget.z history-search history-search
   .autocomplete.widget.c _history_search menu-select history-search

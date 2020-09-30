@@ -62,7 +62,7 @@ features.
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | - |
-| [<kbd>⇥</kbd>](# "tab") | Accept top completion or next autosuggestion word (with `zsh-autosuggestions`) | <sub>`complete-word`</sub> |
+| [<kbd>⇥</kbd>](# "tab") | Accept top completion | <sub>`complete-word`</sub> |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept context-sensitive completion: history line, alias expansion, alternative quoting or common substring | <sub>`expand-word`</sub> |
 | [<kbd>↓</kbd>](# "down") | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
 | [<kbd>⇟</kbd>](# "page down") | Open completion menu (always) | <sub>`menu-select`</sub> |

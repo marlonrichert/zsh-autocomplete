@@ -22,11 +22,7 @@
       ;;
     accept)
       zstyle ':autocomplete:tab:*' completion accept
-      if [[ -v functions[_zsh_autosuggest_invoke_original_widget] ]]; then
-        bindkey $key[Tab] _complete_word
-      else
-        bindkey $key[Tab] complete-word
-      fi
+      bindkey $key[Tab] complete-word
       ;;
   esac
   export fzf_default_completion='complete-word'
