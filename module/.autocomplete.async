@@ -85,7 +85,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.kill() {
   local -i fd=$1 pid=$2
 
-  if (( fd > 9 )) && { true <&$fd } 2> /dev/null; then
+  if (( fd > 9 )) && { : <&$fd } 2> /dev/null; then
     # Close the file descriptor and remove the handler widget.
     exec {fd}<&-
     zle -F $fd 2> /dev/null

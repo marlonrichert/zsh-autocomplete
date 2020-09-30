@@ -51,13 +51,11 @@ for num in $numbers; do
   displays+=( "${(r:wid:)line}" )
 done
 
-local group_opt='-V'
-[[ $_completer == expand ]] && group_opt='-J'
-
 local -a suffix_opts=()
-[[ $curcontext == history-search:* ]] && suffix_opts=( -S ';' -r '^ ' )
+[[ $curcontext == history-search:* ]] &&
+  suffix_opts=( -S ';' -r '^ ' )
 
 local _comp_no_ignore=1
 local expl
-_description $group_opt history-lines expl 'history match'
+_description -2V $group_opt history-lines expl 'history match'
 compadd "$expl[@]" -QU $suffix_opts -ld displays -a matches

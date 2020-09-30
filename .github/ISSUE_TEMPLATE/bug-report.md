@@ -40,7 +40,8 @@ If not, do still file a report, so I can make sure I don't break it again. :)
 
 
 # Steps to reproduce
-How can I reproduce the bug? If I cannot reproduce it, then I cannot test it and thus cannot fix it.
+How can I reproduce the bug? If I cannot reproduce it, then I cannot test it and thus cannot fix
+it.
 
 Please provide concrete steps:
 1. ...
