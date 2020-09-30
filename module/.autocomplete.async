@@ -273,8 +273,6 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.list-choices.completion-widget() {
-  local curcontext; .autocomplete.curcontext list-choices
-
   local -F seconds=$1
   local -i nmatches=$2 list_lines=$3
   local mesg=$4 reply
@@ -282,7 +280,6 @@ add-zsh-hook precmd .autocomplete.async.precmd
   (( seconds > _AUTOCOMPLETE__ASYNC_DELAY )) && zle -Rc "processing…"
 
   local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
-  local max_lines; zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
 
   if [[ $compstate[context] == command ]] &&
       (( CURRENT == 1 && $#words[CURRENT] < min_input )); then
