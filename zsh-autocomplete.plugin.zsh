@@ -3,7 +3,7 @@
   emulate -L zsh -o extendedglob
 
   # Get access to `functions` & `commands` arrays.
-  zmodload -i zsh/parameter
+  zmodload zsh/parameter
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
@@ -14,7 +14,7 @@
     :
   }
 
-  zmodload -i zsh/complist
+  zmodload zsh/complist
   functions[compinit]=$functions[.autocomplete.no-op]
   autoload -Uz .autocomplete.compinit
 
