@@ -17,10 +17,11 @@
   zmodload -i zsh/complist
   functions[compinit]=$functions[.autocomplete.no-op]
   autoload -Uz .autocomplete.compinit
+
+  typeset -gHa _autocomplete__compdef=()
   compdef() {
-    emulate -L zsh -o extendedglob
-    .autocomplete.compinit
-    compdef $@
+    emulate -L zsh -o extendedglob -o NO_shortloops -o warncreateglobal
+    _autocomplete__compdef+=( "${(q)@}" )
   }
 
   autoload -Uz .autocomplete.patch
@@ -32,14 +33,14 @@
   # In case we're sourced _before_ `zsh-autosuggestions`
   add-zsh-hook() {
     # Prevent `_zsh_autosuggest_start` from being added.
-    [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]] && .autocomplete.add-zsh-hook "$@"
+    [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]] &&
+      .autocomplete.add-zsh-hook "$@"
   }
 
   autoload -Uz .autocomplete.__init__ && .autocomplete.__init__
-  local module mod
-  for module in config widget key key-binding recent-dirs async; do
-    mod=.autocomplete.$module
-    if ! zstyle -t ':autocomplete:' $module false no off 0; then
+  local mod; for mod in config widget key key-binding recent-dirs async; do
+    if ! zstyle -t ':autocomplete:' $mod false no off 0; then
+      mod=.autocomplete.$mod
       autoload -Uz $mod && $mod
     fi
   done

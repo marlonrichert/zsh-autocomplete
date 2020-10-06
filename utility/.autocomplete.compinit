@@ -28,6 +28,10 @@ EOF
 
 fi
 
+local args; for args in $_autocomplete__compdef[@]; do
+  compdef ${(@Q)${(z)args}}
+done
+
 _comp_options+=(
   globdots globstarshort numericglobsort
   NO_alwaystoend NO_caseglob NO_completealiases NO_completeinword
