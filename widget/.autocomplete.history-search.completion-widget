@@ -2,9 +2,9 @@
 local curcontext; .autocomplete.curcontext history-search
 
 _main_complete _autocomplete.history_lines
-local ret=$?
-if (( ret == 0 )); then
+local -i ret=$?
+
   compstate[insert]='menu:0'
   compstate[list]='list force'
-fi
+
 return ret

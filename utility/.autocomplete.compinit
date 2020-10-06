@@ -55,7 +55,7 @@ _main_complete() {
 .autocomplete.patch _default
 _default() {
   .autocomplete._default
-  local ret=$?
+  local -i ret=$?
   _autocomplete.history_words
   return ret || ?
 }
@@ -63,7 +63,7 @@ _default() {
 .autocomplete.patch _description
 _description() {
   .autocomplete._description "$@"
-  local ret=$?
+  local -i ret=$?
   if [[ $3 == corrections ]]; then
     _lastdescr=( "${(@)_lastdescr[1,-2]}" )
   fi
@@ -74,7 +74,7 @@ _description() {
 _complete() {
   local -i nmatches=$compstate[nmatches]
   .autocomplete._complete "$@"
-  local ret=$?
+  local -i ret=$?
   (( compstate[nmatches] == nmatches )) && _comp_mesg=''
   return ret
 }
@@ -98,7 +98,7 @@ _expand() {
         builtin compadd -f "$@"
       }
       .autocomplete._expand "$@"
-      local ret=$?
+      local -i ret=$?
     } always {
       unfunction compadd
     }
