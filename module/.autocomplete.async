@@ -4,11 +4,13 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
-  zmodload -i zsh/system  # `sysparams` array
-  zmodload -i zsh/zpty
+  zmodload zsh/{system,zpty,zutil}
+  autoload -Uz .autocomplete.zle-flags
 
-  [[ -v _AUTOCOMPLETE__ASYNC_DELAY ]] || typeset -gHF _AUTOCOMPLETE__ASYNC_DELAY=.75
-  [[ -v _AUTOCOMPLETE__ASYNC_TIMEOUT ]] || typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.5
+  [[ -v _AUTOCOMPLETE__ASYNC_DELAY ]] ||
+    typeset -gHF _AUTOCOMPLETE__ASYNC_DELAY=.75
+  [[ -v _AUTOCOMPLETE__ASYNC_TIMEOUT ]] ||
+    typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.5
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -27,6 +29,7 @@
 
   if [[ -v functions[_zsh_highlight_call_widget] ]]; then
     _zsh_highlight_call_widget() {
+      .autocomplete.zle-flags $WIDGET
       builtin zle "$@"
     }
   fi
@@ -36,6 +39,7 @@
     for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
     do
       eval "_zsh_autosuggest_widget_$action() {
+        .autocomplete.zle-flags \$WIDGET
         _zsh_autosuggest_$action \$@
       }"
     done
@@ -55,9 +59,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.line-pre-redraw() {
   region_highlight=( $_autocomplete__region_highlight )
 
+  .autocomplete.zle-flags $LASTWIDGET
+
   if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
     .autocomplete.async.stop
-    return 0
+    return 1
   fi
 
   .autocomplete.async.start
@@ -100,7 +106,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.start() {
   .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
-  [[ -v functions[_zsh_autosuggest_async_request] ]] && _zsh_autosuggest_async_request "$BUFFER"
+  [[ -v functions[_zsh_autosuggest_async_request] ]] &&
+    _zsh_autosuggest_async_request "$BUFFER"
   .autocomplete.async.highlight
 
   # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
@@ -122,8 +129,10 @@ add-zsh-hook precmd .autocomplete.async.precmd
           _zsh_autosuggest_fetch_suggestion "$BUFFER"
           _zsh_autosuggest_suggest "$suggestion"
         fi
-        [[ -v functions[_zsh_highlight] ]] && _zsh_highlight
-        [[ -v functions[_zsh_autosuggest_highlight_apply] ]] && _zsh_autosuggest_highlight_apply
+        [[ -v functions[_zsh_highlight] ]] &&
+          _zsh_highlight
+        [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+          _zsh_autosuggest_highlight_apply
         print $pid$'\0'${(qq)region_highlight}$'\0'$'\0'
       } always {
         kill -TERM $pid
@@ -136,11 +145,15 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.highlight.fd-widget() {
   local pid highlight eof
+
   {
-    [[ -z $2 || $2 == hup ]] && IFS=$'\0' read -r -u "$1" pid highlight eof
+    [[ -z $2 || $2 == hup ]] &&
+      IFS=$'\0' read -r -u "$1" pid highlight eof
   } always {
     .autocomplete.async.kill $1 $pid
   }
+
+  .autocomplete.zle-flags
 
   _autocomplete__region_highlight=( ${(Q)${(@z)highlight}} )
   region_highlight=( $_autocomplete__region_highlight )
@@ -237,8 +250,6 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.complete.fd-widget() {
-  setopt extendedglob nobanghist
-
   local -F seconds
   local -i pid nmatches list_lines
   local buffer word mesg eof
@@ -247,28 +258,32 @@ add-zsh-hook precmd .autocomplete.async.precmd
       IFS=$'\0' read -r -u "$1" pid seconds nmatches list_lines buffer word mesg eof
   } always {
     .autocomplete.async.kill $1 $pid
-    if [[ $1 == $_autocomplete__async_complete_fd &&
-        $pid == $_autocomplete__async_complete_pid ]]; then
-      _autocomplete__async_complete_fd=0
-      _autocomplete__async_complete_pid=0
-    fi
   }
 
-  [[ $_autocomplete__buffer == $buffer && $_autocomplete__word == $word ]] && return
+  .autocomplete.zle-flags ||
+    return 0
+
+  if [[ $1 == $_autocomplete__async_complete_fd &&
+      $pid == $_autocomplete__async_complete_pid ]]; then
+    _autocomplete__async_complete_fd=0
+    _autocomplete__async_complete_pid=0
+  fi
+
+  [[ $_autocomplete__buffer == $buffer && $_autocomplete__word == $word ]] &&
+    return 1
 
   _autocomplete__buffer=''
   _autocomplete__word=''
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
+  setopt localoptions nobanghist
   if ! zle _list_choices $seconds $nmatches $list_lines $mesg 2> /dev/null; then
     _autocomplete__buffer=$buffer
     _autocomplete__word=$word
 
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
     .autocomplete.refresh
-  else
-    .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
   fi
 }
 
@@ -317,34 +332,37 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  setopt extendedglob nobanghist
-
   local -i pid complete_fd complete_pid
   local eof
   {
-    [[ -z $2 || $2 == hup ]] && IFS=$'\0' read -r -u "$1" pid complete_fd complete_pid eof
+    [[ -z $2 || $2 == hup ]] &&
+      IFS=$'\0' read -r -u "$1" pid complete_fd complete_pid eof
   } always {
     .autocomplete.async.kill $1 $pid
   }
 
+  .autocomplete.zle-flags ||
+    return 0
+
   [[ $complete_fd == $_autocomplete__async_complete_fd &&
-      $complete_pid == $_autocomplete__async_complete_pid ]] || return
+      $complete_pid == $_autocomplete__async_complete_pid ]] ||
+    return
 
   .autocomplete.async.kill $complete_fd $complete_pid
 
-  [[ -z $BUFFER ]] && return
+  [[ -z $BUFFER ]] &&
+    return
 
   _autocomplete__buffer=''
   _autocomplete__word=''
 
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
+  setopt localoptions nobanghist
   if ! zle _explain error 'Completion timed out.' 2> /dev/null; then
 
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
     .autocomplete.refresh
-  else
-    .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
   fi
 }
 
