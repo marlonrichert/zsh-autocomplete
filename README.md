@@ -61,45 +61,41 @@ features.
 # Key Bindings
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
-| any | Show completions (asynchronously) | - |
-| [<kbd>⇥</kbd>](# "tab") | Accept top completion | <sub>`complete-word`</sub> |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Accept context-sensitive completion: history line, alias expansion, alternative quoting or common substring | <sub>`expand-word`</sub> |
+| any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
+| [<kbd>⇥</kbd>](# "tab") | Insert top completion | <sub>`complete-word`</sub> |
+| [<kbd>⇤</kbd>](# "shift-tab") | Insert bottom completion | <sub>`expand-word`</sub> |
 | [<kbd>↓</kbd>](# "down") | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
 | [<kbd>⇟</kbd>](# "page down") | Open completion menu (always) | <sub>`menu-select`</sub> |
 | [<kbd>↑</kbd>](# "up") | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
 | [<kbd>⇞</kbd>](# "page up") | Open history menu (always) | <sub>`history-search`</sub> |
-| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
-
-## History Menu
-| Key(s) | Action |
-| --- | --- |
-| [<kbd>↑</kbd><kbd>↓</kbd>](# "up or down") | Change selection |
-| [<kbd>⇞</kbd>](# "page up") | Page up |
-| [<kbd>⇟</kbd>](# "page down") | Page down |
-| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
-| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
-| [<kbd>↩︎</kbd>](# "enter") | Accept selection, exit menu and substitute history expansions |
-| [<kbd>⇥</kbd>](# "tab") | Accept selection, but stay in menu (multi-select) |
-| other | Accept selection, exit menu and substitute history expansions (then execute the key just typed) |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
 
 ## Completion Menu
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
+| [<kbd>↩︎</kbd>](# "enter") | Accept and exit |
+| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Multi-select |
+| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Reveal hidden completions and additional info |
 | [<kbd>↖︎</kbd>](# "home") | Beginning of line |
 | [<kbd>↘︎</kbd>](# "end") | End of line |
-| [<kbd>⌥</kbd><kbd>b</kbd>](# "alt-b") | Backward one group (if groups are shown) |
-| [<kbd>⌥</kbd><kbd>f</kbd>](# "alt-f") | Forward one group (if groups are shown) |
 | [<kbd>⇞</kbd>](# "page up") | Page up |
 | [<kbd>⇟</kbd>](# "page down") | Page down |
+| [<kbd>⌥</kbd><kbd>b</kbd>](# "alt-b") | Backward one group (if groups are shown) |
+| [<kbd>⌥</kbd><kbd>f</kbd>](# "alt-f") | Forward one group (if groups are shown) |
 | [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
 | [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | End of menu |
-| [<kbd>↩︎</kbd>](# "enter") | Accept selection and exit menu |
-| [<kbd>⇥</kbd>](# "tab") | Accept selection, but stay in menu (multi-select) |
-| [<kbd>⇤</kbd>](# "shift-tab") | Reveal hidden completions and additional info (does not work in history menu) |
 | other | Accept selection and exit menu (then execute the key just typed) |
 
+## History Menu
+| Key(s) | Action |
+| --- | --- |
+| [<kbd>↑</kbd><kbd>↓</kbd>](# "up or down") | Change selection |
+| [<kbd>↩︎</kbd>](# "enter") | Accept and exit menu |
+| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Multi-select |
+| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
+| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
+| other | Accept and exit menu (then execute the key just typed) |
 
 # Requirements
 Recommended:
@@ -193,36 +189,28 @@ the match you want is
   * [<kbd>⇥</kbd>](# "tab") to accept multiple matches, and
   * [<kbd>⇤</kbd>](# "shift-tab") to reveal hidden matches/info (which also works from the command
     line).
-However, several alternative behaviors are available.
 
-### Use <kbd>⇥</kbd> and <kbd>⇤</kbd> to select completions
+However, several alternative behaviors are available. The three settings for these (`widget-style`,
+`insert-unambiguous` and `fzf`) can be combined.
+
+To first insert any shared substrings, before completing entire words:
 ```shell
-zstyle ':autocomplete:tab:*' completion select
+zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
-**Note** that this also changes [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") (since you no longer
-need it for selecting completions) to expand an alias, insert a common substring or requote a
-parameter expansion.
 
-<sup>This uses the `menu-select`, `reverse-menu-select` and `expand-word`
-[widgets](#advanced-choose-your-own-key-bindings).</sup>
-
-### Use <kbd>⇥</kbd> and <kbd>⇤</kbd> to cycle between completions
+To use menu selection:
 ```shell
-zstyle ':autocomplete:tab:*' completion cycle
+zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
-<sup>This uses the `menu-complete` and `reverse-menu-complete`
-[widgets](#advanced-choose-your-own-key-bindings).</sup>
 
-### Use <kbd>⇥</kbd> and <kbd>⇤</kbd> to insert a common substring (or cycle)
+To cycle completions without using menu selection:
 ```shell
-zstyle ':autocomplete:tab:*' completion insert
+zstyle ':autocomplete:tab:*' widget-style menu-complete
 ```
-<sup>This uses the `insert-unambiguous` and `reverse-insert-unambiguous`
-[widgets](#advanced-choose-your-own-key-bindings).</sup>
 
-### Use `fzf`'s <kbd>⇥</kbd> completion
+To try Fzf's completion before using Zsh's completion:
 ```shell
-zstyle ':autocomplete:tab:*' completion fzf
+zstyle ':autocomplete:tab:*' fzf yes
 ```
 
 ## Disable recent dirs completion
@@ -232,16 +220,6 @@ tool, provided you have it set up to track your directory changes.
 To _not_ include recent dirs in your completions:
 ```shell
 zstyle ':autocomplete:*' recent-dirs off
-```
-
-## Advanced: Use your own completion config
-`zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
-ensure you have the best possible out-of-the-box experience. However, some users might prefer to
-build their own suite of completion settings, to fully customize the experience.
-
-To disable the pre-packaged config:
-```shell
-zstyle ':autocomplete:*' config off
 ```
 
 ## Advanced: Choose your own key bindings
@@ -255,6 +233,16 @@ zstyle ':autocomplete:*' key-binding off
 ```
 
 You can then use `zsh-autocomplete`'s [widgets](#key-bindings) to define your own key bindings.
+
+## Advanced: Use your own completion config
+`zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
+ensure you have the best possible out-of-the-box experience. However, some users might prefer to
+build their own suite of completion settings, to fully customize the experience.
+
+To disable the pre-packaged config:
+```shell
+zstyle ':autocomplete:*' config off
+```
 
 # Author
 © 2020 [Marlon Richert](https://github.com/marlonrichert)

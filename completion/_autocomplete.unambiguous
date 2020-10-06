@@ -1,14 +1,19 @@
 #autoload
 
-(( compstate[nmatches] <= 1 )) && return 1
-[[ -z $compstate[unambiguous] || $_comp_tags == *recent-(dirs|files)* ]] && return 1
-zstyle -t ":autocomplete:tab:" completion 'insert' && return 1
+(( compstate[nmatches] <= 1 )) &&
+  return 1
+[[ -z $compstate[unambiguous] || $_comp_tags == *recent-(dirs|files)* ]] &&
+  return 1
+zstyle -t :autocomplete:tab: insert-unambiguous &&
+  return 1
 
 local unambiguous=${compstate[unambiguous]}
 local iprefix=$QIPREFIX$IPREFIX
 local isuffix=$ISUFFIX$QISUFFIX
-[[ -n $iprefix ]] && unambiguous=${unambiguous#$iprefix}
-[[ -n $isuffix ]] && unambiguous=${unambiguous%$isuffix}
+[[ -n $iprefix ]] &&
+  unambiguous=${unambiguous#$iprefix}
+[[ -n $isuffix ]] &&
+  unambiguous=${unambiguous%$isuffix}
 
 [[ $unambiguous == (?|(#i)${words[CURRENT]}?) || ${words[CURRENT]} == (#i)$unambiguous* ]] &&
   return 1

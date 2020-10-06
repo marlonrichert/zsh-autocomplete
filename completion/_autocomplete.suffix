@@ -1,5 +1,0 @@
-#autoload
-emulate -LR zsh -o noshortloops -o warncreateglobal -o extendedglob
-
-[[ $compstate[context] == command && -v compstate[insert] && compstate[insert] != *' ' ]] &&
-    compstate[insert]+=' '

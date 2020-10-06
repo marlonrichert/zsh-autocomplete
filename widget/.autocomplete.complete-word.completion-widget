@@ -1,11 +1,27 @@
 #!/bin/zsh
-local curcontext; .autocomplete.curcontext complete-word
+setopt localoptions extendedglob
 
 _main_complete
-local ret=$?
-if (( ret == 0 )); then
-  compstate[insert]='1'
-  compstate[list]=''
-  _autocomplete.suffix
+local -i ret=$?
+
+if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
+    (( $#compstate[unambiguous] > $#words[CURRENT] )); then
+  compstate[insert]='unambiguous'
+else
+  compstate[insert]="${${(M)WIDGETSTYLE:#menu-*}:+menu:}"
+  case $KEYS in
+    $key[BackTab])
+      compstate[insert]+='0'
+      ;;
+    *)
+      compstate[insert]+='1'
+      ;|
+    $key[Tab])
+      if (( CURRENT == 1 )) || [[ $compstate[context] == command ]]; then
+        compstate[insert]+=' '
+      fi
+      ;;
+  esac
 fi
+
 return ret

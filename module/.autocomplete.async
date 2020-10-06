@@ -312,11 +312,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
   elif (( list_lines > _autocomplete__max_lines($max_lines) )); then
     local +h -a comppostfuncs=( .autocomplete.no-op )
     _main_complete -
-    if ! zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg; then
-      local menuselect
-      zstyle -s ':autocomplete:menu-select:' key-binding menuselect || menuselect="menu-select"
-      mesg="Too long list. Press %B$menuselect%b %F{yellow}to open or type more to filter."
-    fi
+    zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg ||
+      mesg="Too long list. Press %B↓%b%F{yellow} or %B⇟%b%F{yellow} to open. Type more to filter."
     _autocomplete.explanation info $mesg
   else
     local +h -a comppostfuncs=( _autocomplete.extras )
