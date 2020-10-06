@@ -1,16 +1,18 @@
 #autoload
 
-local requoted
-if [[ $_completer == expand ]] && (( compstate[nmatches] == 1 )); then
-  requoted=${(Q)compstate[unambiguous]}
-elif (( compstate[nmatches] == 0 )); then
-  requoted=${(Q)words[CURRENT]}
-else
+(( compstate[nmatches] > 1 )) &&
   return 1
-fi
+_autocomplete.is_glob &&
+  return 1
+[[ $_completer == expand ]] ||
+  return 1
 
-[[ $requoted == ($words[CURRENT]|$compstate[unambiguous]) ]] && return 1
+local match=${(Q)compstate[unambiguous]}
+
+[[ $match == ($words[CURRENT]|$compstate[unambiguous]) ]] &&
+  return 1
 
 local expl
 _description requoted expl 'human-readable'
-compadd "$expl[@]" -qS ' ' -QU - ${(q+)requoted}
+local display=( "$match" )
+compadd "$expl[@]" -qS ' ' -QU -d display - ${(q+)match}
