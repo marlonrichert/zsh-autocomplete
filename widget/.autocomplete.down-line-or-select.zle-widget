@@ -1,8 +1,7 @@
 #!/bin/zsh
-local curcontext; .autocomplete.curcontext down-line-or-select
 
 if (( BUFFERLINES == 1 )); then
-  zle menu-select
+  zle menu-select -w
 else
   zle .down-line || zle .end-of-line
 fi

@@ -1,8 +1,7 @@
 #!/bin/zsh
-local curcontext; .autocomplete.curcontext up-line-or-search
 
 if (( BUFFERLINES == 1 )); then
-  zle history-search
+  zle history-search -w
 else
   zle .up-line || zle .beginning-of-line
 fi
