@@ -8,7 +8,7 @@ if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &
     (( $#compstate[unambiguous] > $#words[CURRENT] )); then
   compstate[insert]='unambiguous'
 else
-  compstate[insert]="${${(M)WIDGETSTYLE:#menu-*}:+menu:}"
+  compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}"
   case $KEYS in
     $key[BackTab])
       compstate[insert]+='0'
