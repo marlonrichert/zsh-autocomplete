@@ -12,7 +12,7 @@ features.
 * [Author](#author)
 * [License](#license)
 
-# Features
+## Features
 
 * Recent dirs completion:
 
@@ -58,7 +58,7 @@ features.
   ![list expand](.img/list-expand.png)
 
 
-# Key Bindings
+## Key Bindings
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
@@ -70,7 +70,7 @@ features.
 | [<kbd>⇞</kbd>](# "page up") | Open history menu (always) | <sub>`history-search`</sub> |
 | [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
 
-## Completion Menu
+### Completion Menu
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
@@ -87,7 +87,7 @@ features.
 | [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
 | other | Accept selection and exit menu (then execute the key just typed) |
 
-## History Menu
+### History Menu
 | Key(s) | Action |
 | --- | --- |
 | [<kbd>↑</kbd><kbd>↓</kbd>](# "up or down") | Change selection |
@@ -97,7 +97,7 @@ features.
 | [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
 | other | Accept and exit menu (then execute the key just typed) |
 
-# Requirements
+## Requirements
 Recommended:
 * **[Zsh](http://zsh.sourceforge.net) 5.8** or later.
 
@@ -105,20 +105,20 @@ Minimum:
 * Zsh 5.3 or later.
 
 
-# Installation
+## Installation
 1. `git clone` this repo. (You can optionally use a plugin manager for this.)
 1. Add the following to your `.zshrc` file:
    ```shell
    source path/to/zsh-autocomplete.plugin.zsh
    ```
 
-## Updating
+### Updating
 1. `cd` into `zsh-autocomplete`'s directory.
 1. Do `git pull`.
 
 (Or use your plugin manager's update mechanism).
 
-## As a Plugin
+### As a Plugin
 `zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
 your framework's/plugin manager's documentation for instructions.
 
@@ -126,10 +126,11 @@ Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you
 _instead_ of your framework's supplied completion module.
 
 
-# Preferences
-The behavior of `zsh-autocomplete` can be customized through the `zstyle` system.
+## Preferences
+The behavior of `zsh-autocomplete` can be customized through the `zstyle` system. Just add any of
+the `zstyle` lines below to your `~/.zshrc` file to change your settings.
 
-## Wait for a minimum amount of input
+### Wait for a minimum amount of input
 By default, `zsh-autocomplete` will show completions as soon as you start typing.
 
 To make it stay silent until a minimum number of characters have been typed:
@@ -137,12 +138,9 @@ To make it stay silent until a minimum number of characters have been typed:
 zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
-## Shorten or lengthen the autocompletion list
-By default, `zsh-autocomplete` limits the amount of automatically listed completions to 50% of
-[`$LINES`](http://zsh.sourceforge.net/Doc/Release/Parameters.html#Parameters-Used-By-The-Shell)
-minus
-[`$BUFFERLINES`](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html#User_002dDefined-Widgets)
-to prevent the prompt from jumping around too much while you are typing.
+### Shorten or lengthen the autocompletion list
+By default, `zsh-autocomplete` limits the amount of automatically listed completions to 50% of the
+available screen space to prevent the prompt from jumping around too much while you are typing.
 
 To limit the list to a different height, use the following:
 ```shell
@@ -150,7 +148,7 @@ zstyle ':autocomplete:list-choices:*' max-lines 100%
 ```
 You can set this to a percentage or to a fixed number of lines. Both work.
 
-## Always show matches in named groups
+### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only in certain circumstances or
 when you press [<kbd>⇤</kbd>](# "shift-tab"). This allows the automatic listing of completion
 matches to be as compact and fast as possible.
@@ -161,7 +159,7 @@ zstyle ':autocomplete:*' groups always
 ```
 **WARNING:** Enabling this setting can significantly decrease responsiveness.
 
-## Customize the autocompletion messages
+### Customize the autocompletion messages
 You can customize the various completion messages shown.
 
 This is shown when the number of lines needed to display all completions exceeds the number given
@@ -178,7 +176,7 @@ at all:
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
-## Change <kbd>⇥</kbd> and <kbd>⇤</kbd> behavior
+### Change <kbd>⇥</kbd> and <kbd>⇤</kbd> behavior
 By default, [<kbd>⇥</kbd>](# "tab") accepts the top match. The idea is that you keep typing until
 the match you want is
 * _at_ the top, at which point you press [<kbd>⇥</kbd>](# "tab") to accept it immediately, or
@@ -213,7 +211,7 @@ To try Fzf's completion before using Zsh's completion:
 zstyle ':autocomplete:tab:*' fzf yes
 ```
 
-## Disable recent dirs completion
+### Disable recent dirs completion
 `zsh-autocomplete` will automatically list recent directories from your favorite directory jumping
 tool, provided you have it set up to track your directory changes.
 
@@ -222,7 +220,7 @@ To _not_ include recent dirs in your completions:
 zstyle ':autocomplete:*' recent-dirs off
 ```
 
-## Advanced: Choose your own key bindings
+### Advanced: Choose your own key bindings
 `zsh-autocomplete` includes a set of intuitive [keyboard shortcuts](#key-bindings), mimicking those
 offered by most IDEs. However, some users have their own very customized set of key bindings, into
 which the defaults might not fit in.
@@ -234,7 +232,7 @@ zstyle ':autocomplete:*' key-binding off
 
 You can then use `zsh-autocomplete`'s [widgets](#key-bindings) to define your own key bindings.
 
-## Advanced: Use your own completion config
+### Advanced: Use your own completion config
 `zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
 ensure you have the best possible out-of-the-box experience. However, some users might prefer to
 build their own suite of completion settings, to fully customize the experience.
@@ -244,9 +242,9 @@ To disable the pre-packaged config:
 zstyle ':autocomplete:*' config off
 ```
 
-# Author
+## Author
 © 2020 [Marlon Richert](https://github.com/marlonrichert)
 
-# License
+## License
 This project is licensed under the MIT License. See the
 [LICENSE](/marlonrichert/zsh-autocomplete/LICENSE) file for details.
