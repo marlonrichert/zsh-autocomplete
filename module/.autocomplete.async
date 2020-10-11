@@ -313,7 +313,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     local +h -a comppostfuncs=( .autocomplete.no-op )
     _main_complete -
     zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg ||
-      mesg="Too long list. Press %B↓%b%F{yellow} or %B⇟%b%F{yellow} to open. Type more to filter."
+      mesg='Too long list. %S ↓ %s Down Arrow / %S ⇟ %s Page Down to expand. Type more to filter.'
     _autocomplete.explanation info $mesg
   else
     local +h -a comppostfuncs=( _autocomplete.extras )
