@@ -65,18 +65,7 @@
     }
   fi
 
-  .autocomplete.patch _path_files
-  _path_files() {
-    local ret
-    .autocomplete._path_files "$@"
-    ret=$?
-
-    if (( compstate[nmatches] > 0 )) || [[ $_completer == complete-fuzzy ]]; then
-      _autocomplete.recent_paths
-    fi
-
-    return ret
-  }
+  typeset -gH _AUTOCOMPLETE__RECENT_DIRS=1
 }
 
 add-zsh-hook precmd .autocomplete.recent-dirs.precmd

@@ -1,9 +1,18 @@
 #autoload
 
-[[ -z $BUFFER || $compstate[old_list] == keep || $curcontext == history-search:* ]] && return 1
+[[ -z $BUFFER ]] &&
+  return 1
+[[ $compstate[old_list] == keep ]] &&
+  return 1
+[[ $curcontext == history-search:* ]] &&
+  return 1
 
-(( CURRENT > 1 && compstate[nmatches] == 0 )) && _autocomplete.history_words
-if _autocomplete.alias_expansions || _autocomplete.requoted ||
-    _autocomplete.unambiguous || _autocomplete.history_lines; then
-  _completer='extras'
-fi
+_autocomplete.recent_paths ||
+  _autocomplete.history_words
+
+_autocomplete.alias_expansions ||
+  _autocomplete.requoted ||
+  _autocomplete.unambiguous ||
+  _autocomplete.history_lines
+
+(( compstate[nmatches] > 0 ))

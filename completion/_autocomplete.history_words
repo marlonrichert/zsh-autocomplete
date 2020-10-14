@@ -1,5 +1,8 @@
 #autoload
 
+(( CURRENT == 1 || compstate[nmatches] > 0 )) &&
+  return 1
+
 local lbuffer=${(b)LBUFFER%$PREFIX}
 local -a lbuffer_words=( "${(@Z+C+)lbuffer}" )
 local prev_word=$lbuffer_words[-1]
