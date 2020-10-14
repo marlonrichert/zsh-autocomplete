@@ -298,25 +298,20 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   if [[ $compstate[context] == command ]] &&
       (( CURRENT == 1 && $#words[CURRENT] < min_input )); then
-    _main_complete -
+    :
   elif (( nmatches == 0 )); then
     if [[ -n $mesg ]]; then
-      _main_complete -
       _autocomplete.explanation info $mesg
     else
-      _main_complete -
       zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
         mesg='No matching completions found.'
       _autocomplete.explanation error $mesg
     fi
   elif (( list_lines > _autocomplete__max_lines($max_lines) )); then
-    local +h -a comppostfuncs=( .autocomplete.no-op )
-    _main_complete -
     zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg ||
       mesg='Too long list. %S ↓ %s Down Arrow / %S ⇟ %s Page Down to expand. Type more to filter.'
     _autocomplete.explanation info $mesg
   else
-    local +h -a comppostfuncs=( _autocomplete.extras )
     _main_complete
   fi
   compstate[insert]=''

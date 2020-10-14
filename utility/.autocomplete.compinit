@@ -46,8 +46,11 @@ _main_complete() {
   local _autocomplete__alnum=${_autocomplete__tail##[^[:alnum:]]##}
   local _autocomplete__punct=${_autocomplete__tail%%$_autocomplete__alnum}
 
-  (( $#comppostfuncs == 0 )) &&
-    local +h -a comppostfuncs=( _autocomplete.extras _autocomplete.long_list )
+  local +h -a comppostfuncs=(
+    _autocomplete.extras
+    _autocomplete.long_list
+    "$comppostfuncs[@]"
+  )
   compstate[insert]='automenu'
   .autocomplete._main_complete "$@"
 }
@@ -57,7 +60,7 @@ _default() {
   .autocomplete._default
   local -i ret=$?
   _autocomplete.history_words
-  return ret || ?
+  return $(( ret && ? ))
 }
 
 .autocomplete.patch _description
