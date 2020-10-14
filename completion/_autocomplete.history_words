@@ -30,4 +30,6 @@ for line in $lines; do
     matches+=( $word )
   fi
 done
-compadd -fQ -a matches
+matches=( "${matches[@]:#(?|$words[CURRENT])}" )
+_description $group_opt history-words expl 'history word'
+compadd "$expl[@]" -fQ -a matches
