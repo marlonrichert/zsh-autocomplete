@@ -29,6 +29,10 @@
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
         prompt_\*
       )
+    [[ -v ZSH_AUTOSUGGEST_ACCEPT_WIDGETS ]] &&
+      ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(
+        "${ZSH_AUTOSUGGEST_ACCEPT_WIDGETS[@]:#*forward-char}"
+      )
     [[ -v ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(
         forward-char
