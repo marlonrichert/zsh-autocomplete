@@ -23,7 +23,7 @@ features.
 
   ![history lines](.img/history-lines.png)
 
-* History menu ([<kbd>↑</kbd>](# "up")):
+* History menu (<kbd>↑ Up Arrow</kbd> or <kbd>⇞ Page Up</kbd>):
 
   | ![history menu 1](.img/history-menu-1.png) | ![history menu 2](.img/history-menu-2.png) |
   | --- | --- |
@@ -33,12 +33,12 @@ features.
     | ![history search 1](.img/history-search-1.png) | ![history search 2](.img/history-search-2.png) |
     | --- | --- |
 
-* Multi-selection ([<kbd>⇥</kbd>](# "tab")) in completion menu ([<kbd>↓</kbd>](# "down")) and
-  history menu:
+* Multi-selection with <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> in completion menu
+  (<kbd>↓ Down Arrow</kbd> or <kbd>⇟ Page Up</kbd>) and history menu:
 
   | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
   | --- | --- |
-  * Single selection in menus with [<kbd>↩︎</kbd>](# "enter").
+  * Single selection in menus with <kbd>↩︎ Return</kbd>.
 
 * Context-sensitive completions:
   * Alias expansions
@@ -53,7 +53,7 @@ features.
 
     ![unambiguous](.img/unambiguous.png)
 
-* Hidden completions can be revealed with [<kbd>⇤</kbd>](# "shift-tab").
+* Hidden completions can be revealed with <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>.
 
   ![list expand](.img/list-expand.png)
 
@@ -62,39 +62,39 @@ features.
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
-| [<kbd>⇥</kbd>](# "tab") | Insert top completion | <sub>`complete-word`</sub> |
-| [<kbd>⇤</kbd>](# "shift-tab") | Insert bottom completion | <sub>`expand-word`</sub> |
-| [<kbd>↓</kbd>](# "down") | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
-| [<kbd>⇟</kbd>](# "page down") | Open completion menu (always) | <sub>`menu-select`</sub> |
-| [<kbd>↑</kbd>](# "up") | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
-| [<kbd>⇞</kbd>](# "page up") | Open history menu (always) | <sub>`history-search`</sub> |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
+| <kbd>⇥ Tab Right</kbd> | Insert top completion | <sub>`complete-word`</sub> |
+| <kbd>⇤ Tab Left</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
+| <kbd>↓ Down Arrow</kbd> | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
+| <kbd>⇟ Page Down</kbd> | Open completion menu (always) | <sub>`menu-select`</sub> |
+| <kbd>↑ Up Arrow</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
+| <kbd>⇞ Page Up</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
+| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>](# "arrow keys") | Change selection |
-| [<kbd>↩︎</kbd>](# "enter") | Accept and exit |
-| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Multi-select |
-| [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") | Reveal hidden completions and additional info |
-| [<kbd>↖︎</kbd>](# "home") | Beginning of line |
-| [<kbd>↘︎</kbd>](# "end") | End of line |
-| [<kbd>⇞</kbd>](# "page up") | Page up |
-| [<kbd>⇟</kbd>](# "page down") | Page down |
-| [<kbd>⌥</kbd><kbd>b</kbd>](# "alt-b") | Backward one group (if groups are shown) |
-| [<kbd>⌥</kbd><kbd>f</kbd>](# "alt-f") | Forward one group (if groups are shown) |
-| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
-| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
+| <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
+| <kbd>↩︎ Return</kbd> | Accept and exit |
+| <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
+| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Reveal hidden completions and additional info |
+| <kbd>↖︎ Home</kbd> | Beginning of line |
+| <kbd>↘︎ End</kbd> | End of line |
+| <kbd>⇞ Page Up</kbd> | Page up |
+| <kbd>⇟ Page Down</kbd> | Page down |
+| <kbd>⌥ Alt</kbd><kbd>B</kbd> | Backward one group (if groups are shown) |
+| <kbd>⌥ Alt</kbd><kbd>F</kbd> | Forward one group (if groups are shown) |
+| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of menu |
+| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of menu |
 | other | Accept selection and exit menu (then execute the key just typed) |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
-| [<kbd>↑</kbd><kbd>↓</kbd>](# "up or down") | Change selection |
-| [<kbd>↩︎</kbd>](# "enter") | Accept and exit menu |
-| [<kbd>⌥</kbd><kbd>␣</kbd>](# "alt-space") | Multi-select |
-| [<kbd>⌥</kbd><kbd><</kbd>](# "alt-<") | Beginning of menu |
-| [<kbd>⌥</kbd><kbd>></kbd>](# "alt->") | End of menu |
+| <kbd>↑ Up Arrow</kbd>/<kbd>↓ Down Arrow</kbd> | Change selection |
+| <kbd>↩︎ Return</kbd> | Accept and exit menu |
+| <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
+| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of menu |
+| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of menu |
 | other | Accept and exit menu (then execute the key just typed) |
 
 ## Requirements
@@ -150,10 +150,10 @@ You can set this to a percentage or to a fixed number of lines. Both work.
 
 ### Always show matches in named groups
 By default, completion groups and duplicates matches are shown only in certain circumstances or
-when you press [<kbd>⇤</kbd>](# "shift-tab"). This allows the automatic listing of completion
-matches to be as compact and fast as possible.
+when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>. This allows the automatic listing of
+completions to be as compact and fast as possible.
 
-To always show matches in groups (and thus show duplicate matches, too):
+To always show completions in groups (and thus show duplicates, too):
 ```shell
 zstyle ':autocomplete:*' groups always
 ```
@@ -167,7 +167,7 @@ by
 [`zstyle ':autocomplete:list-choices:*' max-lines`](#shorten-or-lengthen-the-autocompletion-list):
 ```shell
 zstyle ':autocomplete:*:too-many-matches' message \
-  '%F{yellow}Too long list. Press %B$ctrl-space%b %F{yellow}to open or type more to filter.'
+  'Too long list. Press ↓ or ⇟ to open. Type more to filter.'
 ```
 
 This is shown when, for the given input, the completion system cannot find any matching completions
@@ -176,17 +176,17 @@ at all:
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
-### Change <kbd>⇥</kbd> and <kbd>⇤</kbd> behavior
-By default, [<kbd>⇥</kbd>](# "tab") accepts the top match. The idea is that you keep typing until
+### Change Tab behavior
+By default, <kbd>⇥ Tab Right</kbd> accepts the top match. The idea is that you keep typing until
 the match you want is
-* _at_ the top, at which point you press [<kbd>⇥</kbd>](# "tab") to accept it immediately, or
-* _near_ the top, at which point you press [<kbd>⌃</kbd><kbd>␣</kbd>](# "ctrl-space") or (with
-`fzf`) [<kbd>↓</kbd>](# "down") to start menu selection. Then, inside the menu, use
-  * [<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>](# "arrow keys") to navigate the menu,
-  * [<kbd>↩︎</kbd>](# "enter") to accept a single match,
-  * [<kbd>⇥</kbd>](# "tab") to accept multiple matches, and
-  * [<kbd>⇤</kbd>](# "shift-tab") to reveal hidden matches/info (which also works from the command
-    line).
+* _at_ the top, at which point you press <kbd>⇥ Tab Right</kbd> to accept it immediately, or
+* _near_ the top, at which point you press <kbd>↓ Down Arrow</kbd> or <kbd>⇟ Page Down</kbd> to
+  start menu selection. Then, inside the menu, use
+  * <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to navigate the menu,
+  * <kbd>↩︎ Return</kbd> to accept a single match,
+  * <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> to accept multiple matches, and
+  * <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> to reveal hidden matches/info (which also works from the
+    command line).
 
 However, several alternative behaviors are available. The three settings for these (`widget-style`,
 `insert-unambiguous` and `fzf`) can be combined.
