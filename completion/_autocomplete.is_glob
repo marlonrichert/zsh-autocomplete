@@ -1,4 +1,4 @@
 #autoload
 
-[[ (! -e $words[CURRENT]) && $words[CURRENT] == *[${~${(b)patchars}}]* &&
+[[ $words[CURRENT] == *[$patchars]*~\~[^$patchars]# &&
   $words[CURRENT] == ${~${(q)words[CURRENT]}} ]]

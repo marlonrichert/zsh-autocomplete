@@ -94,12 +94,14 @@ _correct() {
 .autocomplete.patch _expand
 _expand() {
   if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
-    local ISUFFIX="*"
+    [[ $words[CURRENT] == *[*/] ]] ||
+      local ISUFFIX="*"
     {
       compadd() {
         setopt localoptions listtypes
-        builtin compadd -f "$@"
+        builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
       }
+      setopt localoptions NO_listtypes
       .autocomplete._expand "$@"
       local -i ret=$?
     } always {
