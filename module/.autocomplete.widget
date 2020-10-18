@@ -1,5 +1,17 @@
 #!/bin/zsh
 
+.autocomplete.widget.c() {
+  local func=.autocomplete.$3.completion-widget
+  autoload -Uz $func
+  zle -C $1 $2 $func
+}
+
+.autocomplete.widget.z() {
+  local func=.autocomplete.$2.zle-widget
+  autoload -Uz $func
+  zle -N $1 $func
+}
+
 .autocomplete.widget.precmd() {
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.widget.precmd
@@ -14,15 +26,6 @@
     .autocomplete.widget.c $tab_style $tab_style complete-word
   done
   .autocomplete.widget.c reverse-menu-complete reverse-menu-complete complete-word
-
-  .autocomplete.widget.c list-expand menu-select list-expand
-
-  .autocomplete.widget.c _history_search menu-select history-search
-  .autocomplete.widget.z history-search history-search
-  .autocomplete.widget.z up-line-or-search up-line-or-search
-
-  .autocomplete.widget.c reverse-menu-select menu-select menu-select
-  .autocomplete.widget.z down-line-or-select down-line-or-select
 
   if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
     [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
@@ -42,18 +45,15 @@
   fi
 }
 
-.autocomplete.widget.c() {
-  local func=.autocomplete.$3.completion-widget
-  autoload -Uz $func
-  zle -C $1 $2 $func
-}
-
-.autocomplete.widget.z() {
-  local func=.autocomplete.$2.zle-widget
-  autoload -Uz $func
-  zle -N $1 $func
-}
-
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+.autocomplete.widget.c list-expand menu-select list-expand
+
+.autocomplete.widget.c _history_search menu-select history-search
+.autocomplete.widget.z history-search history-search
+.autocomplete.widget.z up-line-or-search up-line-or-search
+
+.autocomplete.widget.c reverse-menu-select menu-select menu-select
+.autocomplete.widget.z down-line-or-select down-line-or-select
 
 add-zsh-hook precmd .autocomplete.widget.precmd

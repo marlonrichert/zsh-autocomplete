@@ -108,7 +108,7 @@ Minimum:
 ## Installation
 1. `git clone` this repo. (You can optionally use a plugin manager for this.)
 1. Add the following to your `.zshrc` file:
-   ```shell
+   ```zsh
    source path/to/zsh-autocomplete.plugin.zsh
    ```
 
@@ -134,7 +134,7 @@ the `zstyle` lines below to your `~/.zshrc` file to change your settings.
 By default, `zsh-autocomplete` will show completions as soon as you start typing.
 
 To make it stay silent until a minimum number of characters have been typed:
-```shell
+```zsh
 zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
@@ -143,7 +143,7 @@ By default, `zsh-autocomplete` limits the amount of automatically listed complet
 available screen space to prevent the prompt from jumping around too much while you are typing.
 
 To limit the list to a different height, use the following:
-```shell
+```zsh
 zstyle ':autocomplete:list-choices:*' max-lines 100%
 ```
 You can set this to a percentage or to a fixed number of lines. Both work.
@@ -154,7 +154,7 @@ when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>. This allows the autom
 completions to be as compact and fast as possible.
 
 To always show completions in groups (and thus show duplicates, too):
-```shell
+```zsh
 zstyle ':autocomplete:*' groups always
 ```
 **WARNING:** Enabling this setting can significantly decrease responsiveness.
@@ -165,14 +165,14 @@ You can customize the various completion messages shown.
 This is shown when the number of lines needed to display all completions exceeds the number given
 by
 [`zstyle ':autocomplete:list-choices:*' max-lines`](#shorten-or-lengthen-the-autocompletion-list):
-```shell
+```zsh
 zstyle ':autocomplete:*:too-many-matches' message \
   'Too long list. Press ↓ or ⇟ to open. Type more to filter.'
 ```
 
 This is shown when, for the given input, the completion system cannot find any matching completions
 at all:
-```shell
+```zsh
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
@@ -192,23 +192,37 @@ However, several alternative behaviors are available. The three settings for the
 `insert-unambiguous` and `fzf`) can be combined.
 
 To first insert any shared substrings, before completing entire words:
-```shell
+```zsh
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
 To use menu selection:
-```shell
+```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
 
 To cycle completions without using menu selection:
-```shell
+```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-complete
 ```
 
 To try Fzf's completion before using Zsh's completion:
-```shell
+```zsh
 zstyle ':autocomplete:tab:*' fzf yes
+```
+
+### Change other key bindings
+`zsh-autocomplete` includes a set of intuitive [keyboard shortcuts](#key-bindings), mimicking those
+offered by modern IDEs. However, you can override these with the `bindkey` command, if you do so
+_after_ sourcing `zsh-autocomplete`:
+
+```zsh
+source path/to/zsh-autocomplete
+# zsh-autocomplete defines an associative array `key` that you can use for this.
+# The following lines revert the given keys back to Zsh defaults.
+bindkey $key[Up] up-line-or-history
+bindkey $key[Down] down-line-or-history
+bindkey $key[ControlSpace] set-mark-command
 ```
 
 ### Disable recent dirs completion
@@ -216,21 +230,9 @@ zstyle ':autocomplete:tab:*' fzf yes
 tool, provided you have it set up to track your directory changes.
 
 To _not_ include recent dirs in your completions:
-```shell
+```zsh
 zstyle ':autocomplete:*' recent-dirs off
 ```
-
-### Advanced: Choose your own key bindings
-`zsh-autocomplete` includes a set of intuitive [keyboard shortcuts](#key-bindings), mimicking those
-offered by most IDEs. However, some users have their own very customized set of key bindings, into
-which the defaults might not fit in.
-
-To disable the default key bindings:
-```shell
-zstyle ':autocomplete:*' key-binding off
-```
-
-You can then use `zsh-autocomplete`'s [widgets](#key-bindings) to define your own key bindings.
 
 ### Advanced: Use your own completion config
 `zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
@@ -238,7 +240,7 @@ ensure you have the best possible out-of-the-box experience. However, some users
 build their own suite of completion settings, to fully customize the experience.
 
 To disable the pre-packaged config:
-```shell
+```zsh
 zstyle ':autocomplete:*' config off
 ```
 
