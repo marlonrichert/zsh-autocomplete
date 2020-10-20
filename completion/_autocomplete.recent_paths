@@ -2,25 +2,23 @@
 
 _autocomplete.recent_paths() {
   local -aU reply
+  local -i nmatches=$compstate[nmatches]
 
-  [[ $_comp_tags == *(directories|files)* ]] &&
-    _autocomplete.recent_dirs $words[CURRENT] &&
-    .autocomplete.recent_paths.add recent-directories 'recent directory' $reply
-  local -i ret=$?
+  _tags recent-directories recent-files
 
-  [[ -v functions[_autocomplete.recent_files] ]] ||
-    return ret
+  while _tags; do
+    _requested recent-directories &&
+      [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *(directories|files)* ]] &&
+      _autocomplete.recent_dirs $words[CURRENT] &&
+      .autocomplete.recent_paths.add recent-directories 'recent directory' $reply
 
-  local mopts tmp1; zparseopts -E -a mopts '/=tmp1'
-  [[ -z tmp1 ]] &&
-    return ret
+    _requested recent-files &&
+      [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *files* ]] &&
+      _autocomplete.recent_files $words[CURRENT] &&
+      .autocomplete.recent_paths.add recent-files 'recent file' $reply
+  done
 
-  [[ $_comp_tags == *files* ]] &&
-    _autocomplete.recent_files $words[CURRENT] &&
-    .autocomplete.recent_paths.add recent-files 'recent file' $reply
-  ret=$(( ret && ? ))
-
-  return ret
+  (( compstate[nmatches] > nmatches ))
 }
 
 .autocomplete.recent_paths.add() {
@@ -29,27 +27,26 @@ _autocomplete.recent_paths() {
   shift 2
 
   local -a display popt
-  local -i nmatches=$compstate[nmatches]
-  local disp prefix file_prefix suffix
+  local disp prefix
 
-  local max_lines max_matches
-  zstyle -s ":autocomplete:$curcontext" max-lines max_lines || max_lines='50%'
-  (( max_lines = _autocomplete__max_lines($max_lines) ))
-  (( max_matches = compstate[nmatches] + 4 ))
-
+  local max_lines=$(( _autocomplete__max_lines() ))
+  local -i max_matches=$(( compstate[nmatches] + 10 ))
   local word=${~words[CURRENT]:P}
 
   local path; for path in ${@:P}; do
-    (( compstate[list_lines] >= max_lines || compstate[nmatches] >= max_matches )) &&
+    (( compstate[list_lines] < max_lines && compstate[nmatches] < max_matches )) ||
       break
 
-    [[ ! -e $path ]] && continue
+    [[ -e $path ]] ||
+      continue
 
     disp=${(D)path}
-    (( $#disp <= 1 )) && continue
+    (( $#disp > 1 )) ||
+      continue
 
     prefix=$path:h
-    [[ $word = ($path|$path:h) || $prefix == ($word:h|$PWD) ]] && continue
+    [[ $word = ($path|$path:h) || $prefix == ($word:h|$PWD) ]] &&
+      continue
 
     if [[ $path == /* ]]; then
       path=${path#/}
@@ -61,8 +58,6 @@ _autocomplete.recent_paths() {
     _description -V $tag expl $group_name
     compadd "$expl[@]" -d display -fQ $popt - ${(b)path}
   done
-
-  (( compstate[nmatches] > nmatches ))
 }
 
 _autocomplete.recent_paths "$@"

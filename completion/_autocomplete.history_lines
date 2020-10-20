@@ -1,17 +1,25 @@
 #autoload
 
+local tag=history-lines
+_tags $tag
+_tags && _requested $tag ||
+  return 1
+
 (( $#words > 1 || CURRENT > 1 )) &&
   return 1
 [[ $curcontext == *(approximate|correct|spell)* ]] &&
   return 1
 
 local word=$words[1]
+local -i max_lines=$(( _autocomplete__max_lines() ))
+
 if [[ $curcontext != history-search:* ]]; then
   [[ -z $BUFFER ]] &&
     return 1
-  (( compstate[nmatches] > _autocomplete__max_lines() )) &&
+  (( compstate[nmatches] > max_lines )) &&
     return 1
 
+  max_lines=1
   word=${(b)word}
 fi
 
@@ -29,8 +37,6 @@ local q; for q in $queries[@]; do
     break
 done
 
-local -i max_lines=1; [[ $curcontext == history-search:* ]] &&
-  max_lines=$(( _autocomplete__max_lines() ))
 events=( ${(@aO)events[1,max_lines]} )
 
 displays=( $events[@] )
@@ -59,5 +65,5 @@ local -a suffix_opts=()
 
 local _comp_no_ignore=1
 local expl
-_description -2V history-lines expl 'history match'
+_description -2V $tag expl 'history match'
 compadd "$expl[@]" -QU $suffix_opts -ld displays - ${${events[@]}##$~numpat}

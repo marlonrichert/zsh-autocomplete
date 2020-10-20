@@ -307,7 +307,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
         mesg='No matching completions found.'
       _autocomplete.explanation error $mesg
     fi
-  elif (( list_lines > _autocomplete__max_lines($max_lines) )); then
+  elif (( list_lines > _autocomplete__max_lines() )); then
     zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg ||
       mesg='Too long list. %S ↓ %s Down Arrow / %S ⇟ %s Page Down to expand. Type more to filter.'
     _autocomplete.explanation info $mesg

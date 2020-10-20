@@ -163,8 +163,8 @@ zstyle ':autocomplete:*' groups always
 You can customize the various completion messages shown.
 
 This is shown when the number of lines needed to display all completions exceeds the number given
-by
-[`zstyle ':autocomplete:list-choices:*' max-lines`](#shorten-or-lengthen-the-autocompletion-list):
+by [`zstyle ':autocomplete:list-choices:*' max-lines`](
+#shorten-or-lengthen-the-autocompletion-list):
 ```zsh
 zstyle ':autocomplete:*:too-many-matches' message \
   'Too long list. Press ↓ or ⇟ to open. Type more to filter.'
@@ -225,16 +225,21 @@ bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
 ```
 
-### Disable recent dirs completion
-`zsh-autocomplete` will automatically list recent directories from your favorite directory jumping
-tool, provided you have it set up to track your directory changes.
+### Disable particular completions
+`zsh-autocomplete` adds a number of additional completions to Zsh's completion system. Any and all
+of these can be disabled.
 
-To _not_ include recent dirs in your completions:
+For example, to disable history words, recent directories and recent files:
 ```zsh
-zstyle ':autocomplete:*' recent-dirs off
+zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
 ```
 
-### Advanced: Use your own completion config
+**Note** that this setting requires the namespace `:completion:` (and not `:autocomplete:`),
+because it uses a built-in feature of Zsh's completion system. Please see [the documentation](
+http://zsh.sourceforge.net/Doc/Release/Completion-System.html#index-tag_002dorder_002c-completion-style)
+for more info
+
+### Use your own completion config
 `zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
 ensure you have the best possible out-of-the-box experience. However, some users might prefer to
 build their own suite of completion settings, to fully customize the experience.

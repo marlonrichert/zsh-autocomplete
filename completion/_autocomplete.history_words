@@ -1,5 +1,10 @@
 #autoload
 
+local tag=history-words
+_tags $tag
+_tags && _requested $tag ||
+  return 1
+
 (( CURRENT == 1 || compstate[nmatches] > 0 )) &&
   return 1
 
@@ -34,5 +39,6 @@ for line in $lines; do
   fi
 done
 matches=( "${matches[@]:#(?|$words[CURRENT])}" )
-_description $group_opt history-words expl 'history word'
+local expl
+_description $tag expl 'history word'
 compadd "$expl[@]" -fQ -a matches

@@ -1,5 +1,10 @@
 #autoload
 
+local tag=unambiguous
+_tags $tag
+_tags && _requested $tag ||
+  return 1
+
 (( compstate[nmatches] <= 1 )) &&
   return 1
 [[ -z $compstate[unambiguous] || $_comp_tags == *recent-(dirs|files)* ]] &&
@@ -19,5 +24,5 @@ local isuffix=$ISUFFIX$QISUFFIX
   return 1
 
 local expl
-_description unambiguous expl 'common substring'
+_description $tag expl 'common substring'
 compadd "$expl[@]" -QU - $unambiguous
