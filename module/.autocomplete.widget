@@ -53,7 +53,6 @@ export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 .autocomplete.widget.z history-search history-search
 .autocomplete.widget.z up-line-or-search up-line-or-search
 
-.autocomplete.widget.c reverse-menu-select menu-select menu-select
 .autocomplete.widget.z down-line-or-select down-line-or-select
 
 add-zsh-hook precmd .autocomplete.widget.precmd
