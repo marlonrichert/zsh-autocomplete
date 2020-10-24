@@ -53,7 +53,11 @@
 
     _autocomplete.recent_dirs() {
       cdr -r
-      reply=( "${(@o)reply}" )
+      [[ "$1:a" == "$1" ]] &&
+        reply=( "${(@M)reply:#$1*}" )
+      _autocomplete.sort-by-length "${(D)reply[@]}"
+      reply=( $~reply[@] )
+      (( $#reply > 0 ))
     }
   fi
 

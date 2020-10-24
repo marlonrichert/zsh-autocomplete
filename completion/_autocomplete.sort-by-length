@@ -1,0 +1,5 @@
+#autoload
+local -a len_to_val=( "${(Oa@)${(z@)${(MN)${(qqqq)@}[@]:#*}}}" )
+reply=()
+print -v reply -f "%s %s" "$len_to_val[@]"
+reply=( "${~${(nQ@)reply}[@]#[[:digit:]]## }" )
