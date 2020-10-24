@@ -5,7 +5,7 @@
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
   zmodload zsh/{system,zpty,zutil}
-  autoload -Uz .autocomplete.zle-flags
+  autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
 
   [[ -v _AUTOCOMPLETE__ASYNC_DELAY ]] ||
     typeset -gHF _AUTOCOMPLETE__ASYNC_DELAY=.75
@@ -35,6 +35,7 @@
   fi
 
   if [[ -v functions[_zsh_autosuggest_disable] ]]; then
+    _zsh_autosuggest_disable
     local action
     for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
     do
@@ -43,7 +44,6 @@
         _zsh_autosuggest_$action \$@
       }"
     done
-    _zsh_autosuggest_disable
   fi
 
   add-zle-hook-widget -d line-pre-redraw .autocomplete.async.line-pre-redraw
@@ -57,8 +57,7 @@
 add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.line-pre-redraw() {
-  region_highlight=( $_autocomplete__region_highlight )
-
+  .autocomplete.highlight
   .autocomplete.zle-flags $LASTWIDGET
 
   if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
@@ -105,10 +104,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.start() {
-  .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
+  .autocomplete.async.complete
   [[ -v functions[_zsh_autosuggest_async_request] ]] &&
     _zsh_autosuggest_async_request "$BUFFER"
-  .autocomplete.async.highlight
+  [[ -v functions[_zsh_highlight] ]] &&
+    .autocomplete.async.highlight
 
   # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
   # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
@@ -116,31 +116,22 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.highlight() {
-  if [[ -v functions[_zsh_highlight] || -v functions[_zsh_autosuggest_highlight_apply] ]]; then
-    .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
-    exec {_autocomplete__async_highlight_fd}< <(
-      {
-        setopt extendedglob noxtrace noverbose
+  .autocomplete.async.kill $_autocomplete__async_highlight_fd $_autocomplete__async_highlight_pid
+  exec {_autocomplete__async_highlight_fd}< <(
+    {
+      setopt extendedglob noxtrace noverbose
 
-        local pid=$sysparams[pid]
-        print $pid
-        if [[ -v functions[_zsh_autosuggest_fetch_suggestion] ]]; then
-          local suggestion
-          _zsh_autosuggest_fetch_suggestion "$BUFFER"
-          _zsh_autosuggest_suggest "$suggestion"
-        fi
-        [[ -v functions[_zsh_highlight] ]] &&
-          _zsh_highlight
-        [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-          _zsh_autosuggest_highlight_apply
-        print $pid$'\0'${(qq)region_highlight}$'\0'$'\0'
-      } always {
-        kill -TERM $pid
-      }
-    )
-    read _autocomplete__async_highlight_pid <&$_autocomplete__async_highlight_fd
-    zle -Fw "$_autocomplete__async_highlight_fd" .autocomplete.async.highlight.fd-widget
-  fi
+      local pid=$sysparams[pid]
+      print $pid
+
+      _zsh_highlight
+      print $pid$'\0'${(qq)region_highlight}$'\0'$'\0'
+    } always {
+      kill -TERM $pid
+    }
+  )
+  read _autocomplete__async_highlight_pid <&$_autocomplete__async_highlight_fd
+  zle -Fw "$_autocomplete__async_highlight_fd" .autocomplete.async.highlight.fd-widget
 }
 
 .autocomplete.async.highlight.fd-widget() {
@@ -156,11 +147,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
   .autocomplete.zle-flags
 
   _autocomplete__region_highlight=( ${(Q)${(@z)highlight}} )
-  region_highlight=( $_autocomplete__region_highlight )
+  .autocomplete.highlight
   zle -R
-
-  [[ $_autocomplete__buffer != $buffer || $_autocomplete__word != $word ]] &&
-    .autocomplete.async.complete "$LBUFFER" "$RBUFFER"
 }
 
 .autocomplete.async.complete() {
@@ -174,7 +162,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     print $pid
     {
       local REPLY
-      zpty _autocomplete__zpty .autocomplete.async.complete.inner '$1' '$2'
+      zpty _autocomplete__zpty .autocomplete.async.complete.inner '$LBUFFER' '$RBUFFER'
       zpty -w _autocomplete__zpty $'\t'
 
       local line
@@ -283,7 +271,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
     _autocomplete__word=$word
 
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
-    .autocomplete.refresh
+    .autocomplete.highlight
+    zle -R
   fi
 }
 
@@ -352,9 +341,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
   if ! zle _explain error 'Completion timed out.' 2> /dev/null; then
-
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
-    .autocomplete.refresh
+    .autocomplete.highlight
+    zle -R
   fi
 }
 

@@ -1,0 +1,6 @@
+#!/bin/zsh
+emulate -L zsh -o noshortloops -o extendedglob
+
+region_highlight=( "$_autocomplete__region_highlight[@]" )
+[[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+  _zsh_autosuggest_highlight_apply
