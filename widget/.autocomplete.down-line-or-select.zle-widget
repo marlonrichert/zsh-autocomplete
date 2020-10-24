@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 if (( BUFFERLINES == 1 )); then
+  setopt localoptions nolistbeep
   zle menu-select -w
 else
   zle .down-line || zle .end-of-line

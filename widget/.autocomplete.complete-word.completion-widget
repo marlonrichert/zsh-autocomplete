@@ -2,7 +2,6 @@
 setopt localoptions extendedglob
 
 _main_complete
-local -i ret=$?
 
 if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
     (( $#compstate[unambiguous] > $#words[CURRENT] )); then
@@ -24,4 +23,4 @@ else
   esac
 fi
 
-return ret
+(( compstate[nmatches] > 0 ))
