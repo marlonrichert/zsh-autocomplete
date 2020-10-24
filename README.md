@@ -69,6 +69,8 @@ features.
 | <kbd>↑ Up Arrow</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
 | <kbd>⇞ Page Up</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
 | <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
+| <kbd>→ Right Arrow</kbd> | Accept the leftmost character suggested by [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) |
+| <kbd>End</kbd> | Accept the entirety of the suggestion provided by [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) |
 
 ### Completion Menu
 | Key(s) | Action |
