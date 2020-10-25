@@ -5,5 +5,4 @@
   return 1
 
 compstate[old_list]='keep'
-compadd -QU - "${_lastcomp[unambiguous]}"
 return 0
