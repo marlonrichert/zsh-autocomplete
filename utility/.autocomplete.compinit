@@ -29,7 +29,7 @@ EOF
 fi
 
 local args; for args in $_autocomplete__compdef[@]; do
-  compdef ${(@Q)${(z)args}}
+  compdef "${(z@)${(Q)args}}"
 done
 
 _comp_options+=(

@@ -21,7 +21,7 @@
   typeset -gHa _autocomplete__compdef=()
   compdef() {
     emulate -L zsh -o extendedglob -o NO_shortloops -o warncreateglobal
-    _autocomplete__compdef+=( "${(q)@}" )
+    _autocomplete__compdef+=( "${(q)*}" )
   }
 
   autoload -Uz .autocomplete.patch
