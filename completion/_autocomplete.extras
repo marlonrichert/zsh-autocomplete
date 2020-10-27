@@ -23,7 +23,7 @@ local isuffix=$ISUFFIX$QISUFFIX
 _autocomplete__nmatches=$compstate[nmatches]
 if zstyle -t :autocomplete:tab: insert-unambiguous &&
     (( _autocomplete__nmatches > 1 && $#_autocomplete__unambiguous > $#words[CURRENT] )); then
-  ZLS_COLORS="=*(#bi)(${(b)_autocomplete__unambiguous/$words[CURRENT]})*==07:$ZLS_COLORS"
+  ZLS_COLORS="=*(#bi)(${(b)_autocomplete__unambiguous})*==07:$ZLS_COLORS"
   compadd -J unambiguous -nQU - $_autocomplete__unambiguous
   return
 fi

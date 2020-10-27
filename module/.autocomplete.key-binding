@@ -6,9 +6,26 @@
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
     tab_style=complete-word
-  local fzf_default_completion=$tab_style
-  zstyle -t :autocomplete:tab: fzf ||
+
+  if zstyle -t :autocomplete:tab: fzf; then
+    export -H fzf_default_completion=$tab_style
+
+    functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
+    fzf-completion() {
+      zle() {
+        builtin zle "$@" ${${(M)funcstack[2]:#.autocomplete.fzf-completion}:+-w}
+      }
+      {
+        .autocomplete.fzf-completion "$@"
+      } always {
+        [[ -v functions[zle] ]] &&
+          unfunction zle
+      }
+    }
+
+  else
     bindkey $key[Tab] $tab_style
+  fi
   bindkey $key[BackTab] ${tab_style:/menu-complete/reverse-menu-complete}
 
   bindkey -M menuselect $key[Tab] menu-complete
