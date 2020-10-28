@@ -56,7 +56,7 @@ _autocomplete.recent_paths() {
     display=( "$disp" )
     local _comp_no_ignore=1
     _description -V $tag expl $group_name
-    compadd "$expl[@]" -d display -fQ $popt - ${(b)path}
+    compadd "$expl[@]" -d display -f $popt - $path
   done
 }
 

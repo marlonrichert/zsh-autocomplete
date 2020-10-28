@@ -22,21 +22,21 @@
       zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( _zlua --complete $1 2> /dev/null )}##[[:digit:].]##[[:space:]]##}" )
+      reply=( "${(@)${(f)$( _zlua --complete $1 2> /dev/null )}##<->[[:space:]]##}" )
     }
 
   elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|[[:digit:]]##)[[:space:]]##}" )
+      reply=( "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|<->)[[:space:]]##}" )
     }
 
   elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__[[:digit:]]__}" )
+      reply=( "${(@)${(f)$( autojump --complete $1 2> /dev/null )}##${1}__<->__}" )
     }
 
   elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
