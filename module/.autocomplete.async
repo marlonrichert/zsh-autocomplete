@@ -44,6 +44,7 @@
         _zsh_autosuggest_$action \$@
       }"
     done
+    functions[.autocomplete._zsh_autosuggest_suggest]=$functions[_zsh_autosuggest_suggest]
   fi
 
   add-zle-hook-widget -d line-pre-redraw .autocomplete.async.line-pre-redraw
@@ -266,11 +267,14 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
-  if ! zle _list_choices $seconds $nmatches $list_lines $mesg 2> /dev/null; then
+  if zle _list_choices -w $seconds $nmatches $list_lines $mesg 2> /dev/null; then
+    functions[_zsh_autosuggest_suggest]=$functions[.autocomplete.no-op]
+  else
     _autocomplete__buffer=$buffer
     _autocomplete__word=$word
 
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
+    functions[_zsh_autosuggest_suggest]=$functions[.autocomplete._zsh_autosuggest_suggest]
     .autocomplete.highlight
     zle -R
   fi
@@ -340,8 +344,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
-  if ! zle _explain error 'Completion timed out.' 2> /dev/null; then
+  if zle _explain -w error 'Completion timed out.' 2> /dev/null; then
+    functions[_zsh_autosuggest_suggest]=$functions[.autocomplete.no-op]
+  else
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
+    functions[_zsh_autosuggest_suggest]=$functions[.autocomplete._zsh_autosuggest_suggest]
     .autocomplete.highlight
     zle -R
   fi
