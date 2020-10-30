@@ -8,7 +8,7 @@ features.
 * [Key Bindings](#key-bindings)
 * [Requirements](#requirements)
 * [Installation](#installation)
-* [Preferences](#preferences)
+* [Settings](#settings)
 * [Author](#author)
 * [License](#license)
 
@@ -126,9 +126,22 @@ Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you
 _instead_ of your framework's supplied completion module.
 
 
-## Preferences
-The behavior of `zsh-autocomplete` can be customized through the `zstyle` system. Just add any of
-the `zstyle` lines below to your `~/.zshrc` file to change your settings.
+## Settings
+The behavior of `zsh-autocomplete` can be customized through the `zstyle` system. Just copy-paste
+any of the `zstyle` lines below to your `~/.zshrc` file to change your settings.
+
+**Note** that most of the settings below use the `:autocomplete:` namespace, some of them use
+`:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
+former are unique to `zsh-autocomplete`.
+
+### Show completions in named groups
+Zsh's completion system has a useful feature that sorts completions into groups with informative
+headers. However, by default, this is turned off.
+
+To enable it:
+```zsh
+zstyle ':completion:*' group-name ''
+```
 
 ### Wait for a minimum amount of input
 By default, `zsh-autocomplete` will show completions as soon as you start typing.
@@ -147,17 +160,6 @@ To limit the list to a different height, use the following:
 zstyle ':autocomplete:list-choices:*' max-lines 100%
 ```
 You can set this to a percentage or to a fixed number of lines. Both work.
-
-### Always show matches in named groups
-By default, completion groups and duplicates matches are shown only in certain circumstances or
-when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>. This allows the automatic listing of
-completions to be as compact and fast as possible.
-
-To always show completions in groups (and thus show duplicates, too):
-```zsh
-zstyle ':autocomplete:*' groups always
-```
-**WARNING:** Enabling this setting can significantly decrease responsiveness.
 
 ### Customize the autocompletion messages
 You can customize the various completion messages shown.
@@ -227,17 +229,12 @@ bindkey $key[ControlSpace] set-mark-command
 
 ### Disable particular completions
 `zsh-autocomplete` adds a number of additional completions to Zsh's completion system. Any and all
-of these can be disabled.
+of these can be disabled through the internal mechanisms of Zsh's completion system.
 
 For example, to disable history words, recent directories and recent files:
 ```zsh
 zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
 ```
-
-**Note** that this setting requires the namespace `:completion:` (and not `:autocomplete:`),
-because it uses a built-in feature of Zsh's completion system. Please see [the documentation](
-http://zsh.sourceforge.net/Doc/Release/Completion-System.html#index-tag_002dorder_002c-completion-style)
-for more info
 
 ### Use your own completion config
 `zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
