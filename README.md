@@ -152,8 +152,8 @@ zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
 ### Shorten or lengthen the autocompletion list
-By default, `zsh-autocomplete` limits the amount of automatically listed completions to 50% of the
-available screen space to prevent the prompt from jumping around too much while you are typing.
+By default, `zsh-autocomplete` lists a maximum of about 10 lines, to prevent the prompt from
+jumping around too much while you type.
 
 To limit the list to a different height, use the following:
 ```zsh
