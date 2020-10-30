@@ -55,6 +55,10 @@
       cdr -r
       [[ "$1:a" == "$1" ]] &&
         reply=( "${(@M)reply:#$1*}" )
+
+      local MATCH MBEGIN MEND
+      reply=( "${reply[@]:#*${~1//(#m)?/$MATCH*}/*}" )
+
       _autocomplete.sort-by-length "${(D)reply[@]}"
       reply=( $~reply[@] )
       (( $#reply > 0 ))
