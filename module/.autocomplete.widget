@@ -13,12 +13,12 @@
 }
 
 .autocomplete.widget.precmd() {
-  emulate -L zsh -o extendedglob
+  emulate -L zsh -o extendedglob -o rcquotes
   add-zsh-hook -d precmd .autocomplete.widget.precmd
 
-  local ignore
-  if zstyle -s :autocomplete:tab: completion ignore; then
-    print -u2 'Bad news: `zstyle -s ":autocomplete:tab:*" completion` is no longer supported.'
+  local null
+  if zstyle -s :autocomplete:tab: completion null; then
+    print -u2 'Bad news: `zstyle -s '':autocomplete:tab:*'' completion` is no longer supported.'
     print -u2 'Good news: Different tab settings can now be combined! Please see the Readme.'
   fi
 

@@ -5,22 +5,23 @@ _tags $tag
 _tags && _requested $tag ||
   return 1
 
-(( $#words > 1 || CURRENT > 1 )) &&
+(( $#words > 1 )) &&
+  return 1
+(( CURRENT > 1 )) &&
   return 1
 [[ $curcontext == *(approximate|correct|spell)* ]] &&
   return 1
 
-local word=$words[1]
-local -i max_lines=$(( _autocomplete__max_lines() ))
-
-if [[ $curcontext != history-search:* ]]; then
-  [[ -z $BUFFER ]] &&
-    return 1
-  (( compstate[nmatches] > max_lines )) &&
-    return 1
-
+local -i max_lines
+local word
+if [[ $curcontext = history-search:* ]]; then
+  (( max_lines = _autocomplete__max_lines() ))
+  word=$words[1]
+elif [[ -z $BUFFER ]]; then
+  return 1
+else
   max_lines=1
-  word=${(b)word}
+  word=${(b)words[1]}
 fi
 
 local -a hits displays=()

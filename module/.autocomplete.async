@@ -209,21 +209,23 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   typeset -gH lbuffer=$1 rbuffer=$2
 
-  zle-widget() {
+  complete-word() {
     LBUFFER=$lbuffer
     RBUFFER=$rbuffer
-    zle completion-widget 2> /dev/null
+    zle list-choices -w 2> /dev/null
   }
 
   message() {
     typeset -gH message=$mesg
   }
 
-  completion-widget() {
-    unset 'compstate[vared]'
+  list-choices() {
     local curcontext; .autocomplete.curcontext list-choices
     local +h -a comppostfuncs=( _autocomplete.extras message )
+    unset 'compstate[vared]'
+
     _main_complete &> /dev/null
+
     compstate[insert]=''
     compstate[list]=''
     compstate[list_max]=0
@@ -232,9 +234,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
     print $'\0'$'\0'$nm$'\0'$ll$'\0'$BUFFER$'\0'${words[CURRENT]}$'\0'$message$'\0'$'\0'
   }
 
-  zle -N zle-widget
-  zle -C completion-widget list-choices completion-widget
-  bindkey '^I' zle-widget
+  zle -N complete-word
+  zle -C list-choices list-choices list-choices
+  bindkey '^I' complete-word
   vared LBUFFER 2>&1
 }
 
@@ -300,12 +302,16 @@ add-zsh-hook precmd .autocomplete.async.precmd
         mesg='No matching completions found.'
       _autocomplete.explanation error $mesg
     fi
-  elif (( list_lines > _autocomplete__max_lines() )); then
-    zstyle -s ":autocomplete:${curcontext}:too-many-matches" message mesg ||
-      mesg='Too long list. %S ↓ %s Down Arrow / %S ⇟ %s Page Down to expand. Type more to filter.'
-    _autocomplete.explanation info $mesg
   else
-    _main_complete
+    {
+      local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
+      (( list_lines > _autocomplete__max_lines )) &&
+        functions[compadd]=$functions[.autocomplete.async.compadd]
+      _main_complete
+    } always {
+      [[ -v functions[compadd] ]] &&
+        unfunction compadd
+    }
   fi
   compstate[insert]=''
   compstate[list]='list force'
@@ -314,6 +320,95 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
   return 2
+}
+
+.autocomplete.async.compadd() {
+  setopt localoptions listtypes
+
+  if [[ $funcstack == *(alias_expansions|requoted|unambiguous|history_lines)* ]]; then
+    .autocomplete.compadd "$@"
+    return
+  fi
+
+  local -i ml=$_autocomplete__max_lines ll=$compstate[list_lines]
+  local -i lines_available=$(( _autocomplete__max_lines - compstate[list_lines] ))
+  (( lines_available > 1 )) ||
+    return
+
+  local -A opts=()
+  local -i fd list_lines=0
+  local key=${${${(M)funcstack:#_describe}:+nmatches}:-list_lines}
+  {
+    exec {fd}< <(
+      zparseopts -D -E -A opts D O A X: E:
+      builtin compadd "$@"
+      print $compstate[$key]
+    )
+    read list_lines <&$fd
+  } always {
+    exec {fd}<&-
+  }
+
+  ll=$list_lines ml=$_autocomplete__max_lines
+  if (( list_lines < _autocomplete__max_lines )); then
+    .autocomplete.compadd "$@"
+    return
+  fi
+
+  local -a matches=()
+  local matches_
+  {
+    exec {fd}< <(
+      zparseopts -D -E -A opts D O A X: E:
+      builtin compadd -O matches "$@"
+      print -r - ${(pj:\0:)matches}
+    )
+    read matches_ <&$fd
+  } always {
+    exec {fd}<&-
+  }
+  matches=( "${(0)matches_}" )
+  (( $#matches > 0 )) ||
+    return
+
+  local -i lines_required=$(( list_lines - compstate[list_lines] ))
+  local -i matches_per_line=$(( ($#matches + lines_required - 1 ) / lines_required ))
+  local -i max_matches=$(( (lines_available - 1) * matches_per_line ))
+
+  opts=()
+  zparseopts -E -A opts - \
+    q Q f e n U l 1 2 C F: P: S: p: s: i: I: W: d: J: X: x: V: o:: r: R: D: O: A: E: M:
+
+  local hint=$'%{\e[02;39m%}'
+  local shortcut=$'%{\e[22;39m%}'
+  local end=$'%{\e[0m%}'
+  local info="  ${hint}(partial list; press ${shortcut}Control + Space${hint} for more)$end"
+  if [[ -v opts[-D] ]]; then
+    .autocomplete.compadd "$@"
+    local array_name=$opts[-D]
+    local -a d=( ${(P)array_name} )
+    local -i len=${#${(P)array_name}}
+    local -i max_len=$(( min(max_matches,len) ))
+    shift -p $(( len - max_len )) $array_name
+    (( max_len > 0 ))
+    if [[ -v _expl ]] && (( max_len < len )); then
+      local -i i=$_expl[(ie)-X]
+      if (( i < $#opts )); then
+        (( i++ ))
+        _expl[i]+="$info"
+      fi
+    fi
+  else
+    local -a null=()
+    zparseopts -D -E -a null - a: k:
+    if (( max_matches < $#matches )); then
+      local MATCH MBEGIN MEND
+      [[ -v opts[-X] ]] &&
+        opts[-X]+="$info"
+      matches=( "${(@)matches[1,max_matches]}" )
+    fi
+    .autocomplete.compadd ${(kv@)opts} -U -a matches
+  fi
 }
 
 .autocomplete.async.timeout.fd-widget() {

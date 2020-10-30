@@ -29,12 +29,11 @@ _autocomplete.recent_paths() {
   local -a display popt
   local disp prefix
 
-  local max_lines=$(( _autocomplete__max_lines() ))
   local -i max_matches=$(( compstate[nmatches] + 10 ))
   local word=${~words[CURRENT]:P}
 
   local path; for path in ${@:P}; do
-    (( compstate[list_lines] < max_lines && compstate[nmatches] < max_matches )) ||
+    (( compstate[nmatches] < max_matches )) ||
       break
 
     [[ -e $path ]] ||

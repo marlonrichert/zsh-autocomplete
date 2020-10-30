@@ -38,6 +38,14 @@ _comp_options+=(
   NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
 )
 
+.autocomplete.compadd() {
+  if [[ $_completer == expand* ]]; then
+    builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
+  else
+    builtin compadd "$@"
+  fi
+}
+
 .autocomplete.patch _main_complete
 _main_complete() {
   local word=$PREFIX$SUFFIX
@@ -54,7 +62,16 @@ _main_complete() {
     "$comppostfuncs[@]"
   )
   compstate[insert]='automenu'
-  .autocomplete._main_complete "$@"
+
+  {
+    [[ -v functions[compadd] ]] ||
+      functions[compadd]=$functions[.autocomplete.compadd]
+    .autocomplete._main_complete "$@"
+
+  } always {
+    [[ -v functions[compadd] ]] &&
+      unfunction compadd
+  }
 
   _lastcomp[nmatches]="$_autocomplete__nmatches"
   _lastcomp[unambiguous]="$_autocomplete__unambiguous"
@@ -101,19 +118,7 @@ _expand() {
   if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
     [[ $words[CURRENT] == *[*/] ]] ||
       local ISUFFIX="*"
-    {
-      compadd() {
-        setopt localoptions listtypes
-        builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-      }
-      setopt localoptions NO_listtypes
-      .autocomplete._expand "$@"
-      local -i ret=$?
-    } always {
-      unfunction compadd
-    }
-    return ret
-  else
-    .autocomplete._expand "$@"
+    setopt localoptions NO_listtypes
   fi
+  .autocomplete._expand "$@"
 }
