@@ -23,7 +23,7 @@ features.
 
   ![history lines](.img/history-lines.png)
 
-* History menu (<kbd>↑ Up Arrow</kbd> or <kbd>⇞ Page Up</kbd>):
+* History menu (<kbd>↑</kbd> or <kbd>⇞ Page Up</kbd>):
 
   | ![history menu 1](.img/history-menu-1.png) | ![history menu 2](.img/history-menu-2.png) |
   | --- | --- |
@@ -34,13 +34,13 @@ features.
     | --- | --- |
 
 * Multi-selection with <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> in completion menu
-  (<kbd>↓ Down Arrow</kbd> or <kbd>⇟ Page Up</kbd>) and history menu:
+  (<kbd>↓</kbd> or <kbd>⇟ Page Up</kbd>) and history menu:
 
   | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
   | --- | --- |
   * Single selection in menus with <kbd>↩︎ Return</kbd>.
 
-* Context-sensitive completions:
+* Additional context-sensitive completions:
   * Alias expansions
 
     ![alias expansions](.img/alias-expansions.png)
@@ -52,10 +52,6 @@ features.
   * Common substrings
 
     ![unambiguous](.img/unambiguous.png)
-
-* Hidden completions can be revealed with <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>.
-
-  ![list expand](.img/list-expand.png)
 
 
 ## Key Bindings
@@ -81,21 +77,21 @@ features.
 | <kbd>↘︎ End</kbd> | End of line |
 | <kbd>⇞ Page Up</kbd> | Page up |
 | <kbd>⇟ Page Down</kbd> | Page down |
-| <kbd>⌥ Alt</kbd><kbd>B</kbd> | Backward one group (if groups are shown) |
+| <kbd>⌥ Alt</kbd><kbd>B</kbd> | Backward one group ([if groups are shown](#show-completions-in-named-groups)) |
 | <kbd>⌥ Alt</kbd><kbd>F</kbd> | Forward one group (if groups are shown) |
-| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of menu |
-| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of menu |
-| other | Accept selection and exit menu (then execute the key just typed) |
+| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of list |
+| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of list |
+| other | Accept and exit (then execute the key just typed) |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑ Up Arrow</kbd>/<kbd>↓ Down Arrow</kbd> | Change selection |
-| <kbd>↩︎ Return</kbd> | Accept and exit menu |
+| <kbd>↩︎ Return</kbd> | Accept and exit |
 | <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
-| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of menu |
-| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of menu |
-| other | Accept and exit menu (then execute the key just typed) |
+| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of list |
+| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of list |
+| other | Accept and exit (then execute the key just typed) |
 
 ## Requirements
 Recommended:
@@ -106,8 +102,8 @@ Minimum:
 
 
 ## Installation
-1. `git clone` this repo. (You can optionally use a plugin manager for this.)
-1. Add the following to your `.zshrc` file:
+1. `git clone` this repo.
+1. Add to your `.zshrc` file:
    ```zsh
    source path/to/zsh-autocomplete.plugin.zsh
    ```
@@ -116,23 +112,27 @@ Minimum:
 1. `cd` into `zsh-autocomplete`'s directory.
 1. Do `git pull`.
 
-(Or use your plugin manager's update mechanism).
-
 ### As a Plugin
 `zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
 your framework's/plugin manager's documentation for instructions.
 
-Note for Oh My Zsh, Prezto and Zimfw users: `zsh-autocomplete` works best if you use it
-_instead_ of your framework's supplied completion module.
-
 
 ## Settings
-The behavior of `zsh-autocomplete` can be customized through the `zstyle` system. Just copy-paste
-any of the `zstyle` lines below to your `~/.zshrc` file to change your settings.
+To change your settings, just copy-paste any of the code below to your `~/.zshrc` file.
 
-**Note** that most of the settings below use the `:autocomplete:` namespace, some of them use
+**Note** that while most of the settings use the `:autocomplete:` namespace, some of them use
 `:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
 former are unique to `zsh-autocomplete`.
+
+* [Show completions in named groups](#show-completions-in-named-groups)
+* [Show more/less help text](#show-moreless-help-text)
+* [Disable particular completions](#disable-particular-completions)
+* [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
+* [Change the length of the autocompletion list](#change-the-length-of-the-autocompletion-list)
+* [Customize the autocompletion messages](#customize-the-autocompletion-messages)
+* [Use your own completion config](#use-your-own-completion-config)
+* [Change Tab behavior](#change-tab-behavior)
+* [Change other key bindings](#change-other-key-bindings)
 
 ### Show completions in named groups
 To categorize completions under informative headers:
@@ -161,34 +161,32 @@ To show more descriptions only when you press <kbd>⌃ Control</kbd><kbd>␣ Spa
 zstyle ':completion:list-expand:*' extra-verbose yes
 ```
 
-To enable it:
+### Disable particular completions
+Any of the extra completions added by `zsh-autocomplete` can be disabled through the completion
+system's `tag-order` setting. For example, to disable history words, recent directories and recent
+files:
 ```zsh
-zstyle ':completion:*' group-name ''
+zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
 ```
 
 ### Wait for a minimum amount of input
-By default, `zsh-autocomplete` will show completions as soon as you start typing.
-
-To make it stay silent until a minimum number of characters have been typed:
+To suppress autocompletion until a minimum number of characters have been typed:
 ```zsh
 zstyle ':autocomplete:list-choices:*' min-input 3
 ```
 
-### Shorten or lengthen the autocompletion list
-By default, `zsh-autocomplete` lists a maximum of about 10 lines, to prevent the prompt from
-jumping around too much while you type.
-
-To limit the list to a different height, use the following:
+### Change the length of the autocompletion list
+To change the list length from the default of 10 lines:
 ```zsh
 zstyle ':autocomplete:list-choices:*' max-lines 100%
 ```
-You can set this to a percentage or to a fixed number of lines. Both work.
+You can set this to a percentage of the available screen space or to a fixed number of lines. Both
+work.
 
 ### Customize the autocompletion messages
 To change the message shown when the list of completions is too long and gets truncated:
 ```zsh
-zstyle ':autocomplete:*:too-many-matches' message \
-  '(partial list; press Control + Space to expand)'
+zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Control + Space to expand)'
 ```
 
 To change the message shown when no matching completions can be found:
@@ -196,45 +194,45 @@ To change the message shown when no matching completions can be found:
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
 
+### Use your own completion config
+To disable `zsh-autocomplete`'s pre-packaged config:
+```zsh
+zstyle ':autocomplete:*' config off
+```
+
 ### Change Tab behavior
-By default, <kbd>⇥ Tab Right</kbd> accepts the top match. The idea is that you keep typing until
-the match you want is
-* _at_ the top, at which point you press <kbd>⇥ Tab Right</kbd> to accept it immediately, or
-* _near_ the top, at which point you press <kbd>↓ Down Arrow</kbd> or <kbd>⇟ Page Down</kbd> to
-  start menu selection. Then, inside the menu, use
-  * <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to navigate the menu,
-  * <kbd>↩︎ Return</kbd> to accept a single match,
-  * <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> to accept multiple matches, and
-  * <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> to reveal hidden matches/info (which also works from the
-    command line).
+By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift + Tab</kbd> inserts the bottom
+completion, and <kbd>↓</kbd> activates menu selection.
 
-However, several alternative behaviors are available. The three settings for these (`widget-style`,
-`insert-unambiguous` and `fzf`) can be combined.
-
-To first insert any shared substrings, before completing entire words:
+To <kbd>⇥ Tab</kbd> first insert any common substring, before inserting full completions:
 ```zsh
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To use menu selection:
+To make <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift + Tab</kbd> use menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
 
-To cycle completions without using menu selection:
+To make <kbd>⇥ Tab</kbd> and <kbd>⇤ Shift + Tab</kbd> cycle completions _without_ using menu
+selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-complete
 ```
 
-To try Fzf's completion before using Zsh's completion:
+To make <kbd>⇥ Tab</kbd> try Fzf's completion before using Zsh's:
 ```zsh
 zstyle ':autocomplete:tab:*' fzf yes
 ```
 
+`widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
+
+**Note** that, unlike most other settings, changing `widget-style` at runtime has no effect. It is
+usable in your `.zshrc` file only.
+
 ### Change other key bindings
-`zsh-autocomplete` includes a set of intuitive [keyboard shortcuts](#key-bindings), mimicking those
-offered by modern IDEs. However, you can override these with the `bindkey` command, if you do so
-_after_ sourcing `zsh-autocomplete`:
+Keybinding other than <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift + Tab</kbd> can be overridden with the
+`bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`:
 
 ```zsh
 source path/to/zsh-autocomplete
@@ -243,25 +241,6 @@ source path/to/zsh-autocomplete
 bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
-```
-
-### Disable particular completions
-`zsh-autocomplete` adds a number of additional completions to Zsh's completion system. Any and all
-of these can be disabled through the internal mechanisms of Zsh's completion system.
-
-For example, to disable history words, recent directories and recent files:
-```zsh
-zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
-```
-
-### Use your own completion config
-`zsh-autocomplete` comes preconfigured with its own set of sophisticated completion settings, to
-ensure you have the best possible out-of-the-box experience. However, some users might prefer to
-build their own suite of completion settings, to fully customize the experience.
-
-To disable the pre-packaged config:
-```zsh
-zstyle ':autocomplete:*' config off
 ```
 
 ## Author
