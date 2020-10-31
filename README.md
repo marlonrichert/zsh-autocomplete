@@ -120,7 +120,7 @@ your framework's/plugin manager's documentation for instructions.
 ## Settings
 To change your settings, just copy-paste any of the code below to your `~/.zshrc` file.
 
-**Note** that while most of the settings use the `:autocomplete:` namespace, some of them use
+⚠️ **Note** that while most of these settings use the `:autocomplete:` namespace, some of them use
 `:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
 former are unique to `zsh-autocomplete`.
 
@@ -204,11 +204,11 @@ zstyle ':autocomplete:*' config off
 By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift + Tab</kbd> inserts the bottom
 completion, and <kbd>↓</kbd> activates menu selection.
 
-**Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
+⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
 changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
 your `~/.zshrc` file only.
 
-To <kbd>⇥ Tab</kbd> first insert any common substring, before inserting full completions:
+To make <kbd>⇥ Tab</kbd> first insert any common substring, before inserting full completions:
 ```zsh
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
