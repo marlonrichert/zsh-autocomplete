@@ -332,7 +332,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   local -i ml=$_autocomplete__max_lines ll=$compstate[list_lines]
   local -i lines_available=$(( _autocomplete__max_lines - compstate[list_lines] ))
-  (( lines_available > 1 )) ||
+  (( lines_available > 0 )) ||
     return
 
   local -A opts=()
@@ -340,7 +340,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local key=${${${(M)funcstack:#_describe}:+nmatches}:-list_lines}
   {
     exec {fd}< <(
-      zparseopts -D -E -A opts D O A X: E:
+      zparseopts -D -E -A opts D O A
       builtin compadd "$@"
       print $compstate[$key]
     )
@@ -349,8 +349,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
     exec {fd}<&-
   }
 
-  ll=$list_lines ml=$_autocomplete__max_lines
-  if (( list_lines < _autocomplete__max_lines )); then
+  opts=()
+  zparseopts -E -A opts - \
+    q Q f e n U l 1 2 C F: P: S: p: s: i: I: W: d: J: X: x: V: o:: r: R: D: O: A: E: M:
+
+  if (( list_lines <= _autocomplete__max_lines )); then
     .autocomplete.compadd "$@"
     return
   fi
@@ -359,7 +362,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local matches_
   {
     exec {fd}< <(
-      zparseopts -D -E -A opts D O A X: E:
+      zparseopts -D -E -A opts D O A
       builtin compadd -O matches "$@"
       print -r - ${(pj:\0:)matches}
     )
@@ -371,18 +374,16 @@ add-zsh-hook precmd .autocomplete.async.precmd
   (( $#matches > 0 )) ||
     return
 
-  local -i lines_required=$(( list_lines - compstate[list_lines] ))
-  local -i matches_per_line=$(( ($#matches + lines_required - 1 ) / lines_required ))
-  local -i max_matches=$(( (lines_available - 1) * matches_per_line ))
-
-  opts=()
-  zparseopts -E -A opts - \
-    q Q f e n U l 1 2 C F: P: S: p: s: i: I: W: d: J: X: x: V: o:: r: R: D: O: A: E: M:
+  local -i header=1
+  local -i lines_of_new_matches=$(( list_lines - header - compstate[list_lines] ))
+  local -i matches_per_line=$(( ($#matches + lines_of_new_matches - 1 ) / lines_of_new_matches ))
+  local -i max_matches=$(( (lines_available - header) * matches_per_line ))
 
   local hint=$'%{\e[02;39m%}'
   local shortcut=$'%{\e[22;39m%}'
   local end=$'%{\e[0m%}'
-  local info="  ${hint}(partial list; press ${shortcut}Control + Space${hint} for more)$end"
+  local info; zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
+    info="${hint}(partial list; press ${shortcut}Control + Space${hint} to expand)$end"
   if [[ -v opts[-D] ]]; then
     .autocomplete.compadd "$@"
     local array_name=$opts[-D]
@@ -395,7 +396,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local -i i=$_expl[(ie)-X]
       if (( i < $#opts )); then
         (( i++ ))
-        _expl[i]+="$info"
+        _expl[i]+="  $info"
+      else
+        _expl+=( '-X' "$info" )
       fi
     fi
   else
@@ -403,8 +406,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
     zparseopts -D -E -a null - a: k:
     if (( max_matches < $#matches )); then
       local MATCH MBEGIN MEND
-      [[ -v opts[-X] ]] &&
-        opts[-X]+="$info"
+      if [[ -v opts[-X] ]]; then
+        opts[-X]+="  $info"
+      else
+        opts[-X]="$info"
+      fi
       matches=( "${(@)matches[1,max_matches]}" )
     fi
     .autocomplete.compadd ${(kv@)opts} -U -a matches
