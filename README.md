@@ -204,6 +204,10 @@ zstyle ':autocomplete:*' config off
 By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift + Tab</kbd> inserts the bottom
 completion, and <kbd>↓</kbd> activates menu selection.
 
+**Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
+changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
+your `~/.zshrc` file only.
+
 To <kbd>⇥ Tab</kbd> first insert any common substring, before inserting full completions:
 ```zsh
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
@@ -222,13 +226,10 @@ zstyle ':autocomplete:tab:*' widget-style menu-complete
 
 To make <kbd>⇥ Tab</kbd> try Fzf's completion before using Zsh's:
 ```zsh
-zstyle ':autocomplete:tab:*' fzf yes
+zstyle ':autocomplete:tab:*' fzf-completion yes
 ```
 
 `widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
-
-**Note** that, unlike most other settings, changing `widget-style` at runtime has no effect. It is
-usable in your `.zshrc` file only.
 
 ### Change other key bindings
 Keybinding other than <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift + Tab</kbd> can be overridden with the
