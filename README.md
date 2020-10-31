@@ -68,7 +68,7 @@ features.
 | <kbd>⇟ Page Down</kbd> | Open completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑ Up Arrow</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
 | <kbd>⇞ Page Up</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
-| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Reveal hidden completions and additional info | <sub>`list-expand`</sub> |
+| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Show the full list of completions | <sub>`list-expand`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
@@ -76,7 +76,7 @@ features.
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
 | <kbd>↩︎ Return</kbd> | Accept and exit |
 | <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
-| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Reveal hidden completions and additional info |
+| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Show the full list of completions |
 | <kbd>↖︎ Home</kbd> | Beginning of line |
 | <kbd>↘︎ End</kbd> | End of line |
 | <kbd>⇞ Page Up</kbd> | Page up |
@@ -135,8 +135,31 @@ any of the `zstyle` lines below to your `~/.zshrc` file to change your settings.
 former are unique to `zsh-autocomplete`.
 
 ### Show completions in named groups
-Zsh's completion system has a useful feature that sorts completions into groups with informative
-headers. However, by default, this is turned off.
+To categorize completions under informative headers:
+```zsh
+zstyle ':completion:*' group-name ''
+```
+
+To group completions only when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>:
+```zsh
+zstyle ':completion:list-expand:*' group-name ''
+```
+
+### Show more/less help text
+To show more descriptions:
+```zsh
+zstyle ':completion:*' extra-verbose yes
+```
+
+To show fewer descriptions:
+```zsh
+zstyle ':completion:*' verbose no
+```
+
+To show more descriptions only when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>:
+```zsh
+zstyle ':completion:list-expand:*' extra-verbose yes
+```
 
 To enable it:
 ```zsh
@@ -162,18 +185,13 @@ zstyle ':autocomplete:list-choices:*' max-lines 100%
 You can set this to a percentage or to a fixed number of lines. Both work.
 
 ### Customize the autocompletion messages
-You can customize the various completion messages shown.
-
-This is shown when the number of lines needed to display all completions exceeds the number given
-by [`zstyle ':autocomplete:list-choices:*' max-lines`](
-#shorten-or-lengthen-the-autocompletion-list):
+To change the message shown when the list of completions is too long and gets truncated:
 ```zsh
 zstyle ':autocomplete:*:too-many-matches' message \
-  'Too long list. Press ↓ or ⇟ to open. Type more to filter.'
+  '(partial list; press Control + Space to expand)'
 ```
 
-This is shown when, for the given input, the completion system cannot find any matching completions
-at all:
+To change the message shown when no matching completions can be found:
 ```zsh
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
