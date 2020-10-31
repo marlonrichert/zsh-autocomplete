@@ -172,13 +172,13 @@ zstyle ':completion:*' tag-order '! history-words recent-directories recent-file
 ### Wait for a minimum amount of input
 To suppress autocompletion until a minimum number of characters have been typed:
 ```zsh
-zstyle ':autocomplete:list-choices:*' min-input 3
+zstyle ':autocomplete:*' min-input 3
 ```
 
 ### Change the length of the autocompletion list
 To change the list length from the default of 10 lines:
 ```zsh
-zstyle ':autocomplete:list-choices:*' max-lines 100%
+zstyle ':autocomplete:*' max-lines 100%
 ```
 You can set this to a percentage of the available screen space or to a fixed number of lines. Both
 work.
