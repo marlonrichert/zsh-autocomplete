@@ -330,8 +330,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
   fi
 
-  local -i ml=$_autocomplete__max_lines ll=$compstate[list_lines]
-  local -i lines_available=$(( _autocomplete__max_lines - compstate[list_lines] ))
+  local -i extras=2
+  local -i lines_available=$(( _autocomplete__max_lines - extras - compstate[list_lines] ))
   (( lines_available > 0 )) ||
     return
 
