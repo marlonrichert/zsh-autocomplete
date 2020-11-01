@@ -1,20 +1,29 @@
 ---
 name: Feature request
-about: Do you have an idea for an improvement?
+about: Would you like to suggest an improvement?
 title: ''
 labels: 'Feature request'
 assignees: ''
 
 ---
 
-### Is your feature request related to a problem? Please describe.
-<!-- A clear and concise description of what the problem is. -->
+## What do you want?
+???<!-- Give a brief summary of the feature. -->
 
-### Describe the solution you'd like
-<!-- A clear and concise description of what you want to happen. -->
+## Why do you want this?
+???<!-- Explain what you need this for or how this would improve your experience. -->
 
-### Describe alternatives you've considered
-<!-- A clear and concise description of any alternative solutions or features you've considered. -->
+## Who else would benefit from this?
+???<!-- Describe what kind of users would enjoy this feature. -->
 
-### Additional context
-<!-- Add any other context or screenshots about the feature request here. -->
+## Explain in detail how you would expect this to work
+Given the following situation:
+* ???<!-- State the circumstance under which this feature would apply. -->
+
+When I perform the following steps:
+<!-- List what actions you would take in the situation described above. -->
+1. ???
+1. ... <!-- Numbering is automatic. -->
+
+Then I expect the following to happen:
+* ???<!-- Describe how you would expect the system to behave in response to your actions above. -->

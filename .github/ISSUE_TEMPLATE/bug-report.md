@@ -7,11 +7,13 @@ assignees: ''
 
 ---
 
-# Environment
-* Zsh version: **???**<!-- 5.3 or later should work, but I test with the latest version only. -->
-* `zsh-autocomplete` version: **???**<!-- Paste the raw commit hash here. GitHub will link it. -->
+## Environment
+* `zsh-autocomplete` version: ???<!-- Paste the raw commit hash here. GitHub will link it. -->
+* Zsh version: ???<!-- 5.3 or later should work, but I test with the latest version only. -->
+* Framework: ??? <!-- Oh My Zsh, Prezto, Zimfw… or just "none" -->
+* `~/.zshrc` file: ??? <!-- Link to your `~/.zshrc` file, if you have it online. -->
 
-Please report if the bug occurs without config files:
+Please test if the bug occurs without config files:
 ```zsh
 $ cd $(mktemp -d)  # Create a temp dir and enter it.
 $ ZDOTDIR=$PWD HOME=$PWD zsh -f  # Start a subshell in it without config files.
@@ -19,23 +21,22 @@ $ ZDOTDIR=$PWD HOME=$PWD zsh -f  # Start a subshell in it without config files.
 % # Try to reproduce your bug...
 ```
 Does the bug occur without config files?
-* [ ] Yes
-* [ ] No
+* ???<!-- Write your answer here. -->
 
 If not, gradually add lines from your config file to the subshell until the bug appears.
 
 Which combination of config causes the bug to appear?
+* ???<!-- Write your answer here. -->
 
-**???**<!-- Write your answer here. -->
-
-# Steps to reproduce
-<!-- How can I reproduce the bug? If I cannot reproduce it, then I cannot test it and thus cannot
-fix it. Please provide concrete steps: -->
-1. **???**
+## Steps to reproduce
+<!-- How can I reproduce the bug?
+If I cannot reproduce it, then I cannot test it and thus cannot fix it.
+Please provide concrete steps: -->
+1. ???
 2. ...
 
-## Expected behavior
-**???**<!-- What did you expect to happen? Why? -->
+### Expected behavior
+???<!-- What did you expect to happen? Why? -->
 
-## Actual behavior
-**???**<!-- What actually happened? Why is this a problem? -->
+### Actual behavior
+???<!-- What actually happened? Why is this a problem? -->
