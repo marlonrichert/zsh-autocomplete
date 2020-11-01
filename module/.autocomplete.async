@@ -47,11 +47,8 @@
     functions[.autocomplete._zsh_autosuggest_suggest]=$functions[_zsh_autosuggest_suggest]
   fi
 
-  add-zle-hook-widget -d line-pre-redraw .autocomplete.async.line-pre-redraw
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
-  add-zsh-hook -d preexec .autocomplete.async.stop
   add-zsh-hook preexec .autocomplete.async.stop
-  add-zsh-hook -d zshexit .autocomplete.async.stop
   add-zsh-hook zshexit .autocomplete.async.stop
 }
 
@@ -220,7 +217,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
   }
 
   list-choices() {
-    local curcontext; .autocomplete.curcontext list-choices
+    local curcontext=$curcontext; [[ -z $curcontext ]] &&
+      curcontext=list-choices:::
+
     local +h -a comppostfuncs=( _autocomplete.extras message )
     unset 'compstate[vared]'
 
@@ -269,6 +268,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
+
   if zle _list_choices -w $seconds $nmatches $list_lines $mesg 2> /dev/null; then
     functions[_zsh_autosuggest_suggest]=$functions[.autocomplete.no-op]
   else
@@ -283,6 +283,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.list-choices.completion-widget() {
+  local curcontext=$curcontext; [[ -z $curcontext ]] &&
+    curcontext=list-choices:::
+
   local -F seconds=$1
   local -i nmatches=$2 list_lines=$3
   local mesg=$4 reply

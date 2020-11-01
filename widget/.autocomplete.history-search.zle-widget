@@ -1,6 +1,5 @@
 #!/bin/zsh
 setopt localoptions extendedglob nobeep
-local curcontext; .autocomplete.curcontext history-search
 
 local -A keymap_historysearch=(
   $key[Left] .backward-char

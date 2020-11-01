@@ -1,9 +1,0 @@
-#!/bin/zsh
-emulate -L zsh -o extendedglob
-
-typeset -g curcontext=${curcontext:-}
-if [[ -z $curcontext ]]; then
-  curcontext=$1:::
-else
-  curcontext=$1:${curcontext#*:}
-fi

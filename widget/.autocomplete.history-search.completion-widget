@@ -1,4 +1,6 @@
 #!/bin/zsh
+local curcontext=$curcontext; [[ -z $curcontext ]] &&
+  curcontext=history-search:::
 
 _main_complete _autocomplete.history_lines
 local -i ret=$?

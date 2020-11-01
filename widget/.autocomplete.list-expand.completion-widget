@@ -1,4 +1,5 @@
 #!/bin/zsh
+local curcontext=$curcontext; [[ -z $curcontext ]] &&
+  curcontext=list-expand:::
 
-local curcontext; .autocomplete.curcontext list-expand
 _main_complete

@@ -1,5 +1,7 @@
 #!/bin/zsh
 setopt localoptions extendedglob
+local curcontext=$curcontext; [[ -z $curcontext ]] &&
+  curcontext=$WIDGET:::
 
 _main_complete
 
