@@ -186,7 +186,7 @@ work.
 ### Customize the autocompletion messages
 To change the message shown when the list of completions is too long and gets truncated:
 ```zsh
-zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Control + Space to expand)'
+zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Control+Space to expand)'
 ```
 
 To change the message shown when no matching completions can be found:
@@ -201,7 +201,7 @@ zstyle ':autocomplete:*' config off
 ```
 
 ### Change Tab behavior
-By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift + Tab</kbd> inserts the bottom
+By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift+Tab</kbd> inserts the bottom
 completion, and <kbd>↓</kbd> activates menu selection.
 
 ⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
@@ -213,12 +213,12 @@ To make <kbd>⇥ Tab</kbd> first insert any common substring, before inserting f
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To make <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift + Tab</kbd> use menu selection:
+To make <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift+Tab</kbd> use menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
 
-To make <kbd>⇥ Tab</kbd> and <kbd>⇤ Shift + Tab</kbd> cycle completions _without_ using menu
+To make <kbd>⇥ Tab</kbd> and <kbd>⇤ Shift+Tab</kbd> cycle completions _without_ using menu
 selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-complete
@@ -232,7 +232,7 @@ zstyle ':autocomplete:tab:*' fzf-completion yes
 `widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
 
 ### Change other key bindings
-Keybinding other than <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift + Tab</kbd> can be overridden with the
+Keybinding other than <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift+Tab</kbd> can be overridden with the
 `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`:
 
 ```zsh
