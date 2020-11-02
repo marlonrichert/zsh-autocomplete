@@ -340,8 +340,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
 
   opts=()
-  zparseopts -E -A opts - \
-    q Q f e n U l 1 2 C F: P: S: p: s: i: I: W: d: J: X: x: V: o:: r: R: D: O: A: E: M:
+  zparseopts -E -A opts - D: E: X:
 
   if [[ -v opts[-E] ]]; then
     .autocomplete.compadd "$@"
@@ -417,8 +416,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
 
   else
-    local -a null=()
-    zparseopts -D -E -a null - a: k:
+    zparseopts -D -E -A opts - a k X:
     if (( max_matches < $#matches )); then
       local MATCH MBEGIN MEND
       if [[ -v opts[-X] ]]; then
@@ -428,7 +426,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
       fi
       matches=( "${(@)matches[1,max_matches]}" )
     fi
-    .autocomplete.compadd ${(kv@)opts} -U -a matches
+    .autocomplete.compadd "${(@)@[1,$(( min(min($#, ${@[(i)(-|--)]}), ${@[(I)-*]}) + 1 ))]}" \
+      -X "$opts[-X]" -U -a matches
   fi
 }
 
