@@ -23,7 +23,7 @@ features.
 
   ![history lines](.img/history-lines.png)
 
-* History menu (<kbd>↑</kbd> or <kbd>⇞ Page Up</kbd>):
+* History menu (<kbd>↑</kbd>/<kbd>PgUp</kbd>):
 
   | ![history menu 1](.img/history-menu-1.png) | ![history menu 2](.img/history-menu-2.png) |
   | --- | --- |
@@ -33,12 +33,12 @@ features.
     | ![history search 1](.img/history-search-1.png) | ![history search 2](.img/history-search-2.png) |
     | --- | --- |
 
-* Multi-selection with <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> in completion menu
-  (<kbd>↓</kbd> or <kbd>⇟ Page Up</kbd>) and history menu:
+* Multi-selection with <kbd>Alt</kbd>+<kbd>Space</kbd> in completion menu
+  (<kbd>↓</kbd>/<kbd>PgDn</kbd>) and history menu:
 
   | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
   | --- | --- |
-  * Single selection in menus with <kbd>↩︎ Return</kbd>.
+  * Single selection in menus with <kbd>Enter</kbd>.
 
 * Additional context-sensitive completions:
   * Alias expansions
@@ -58,39 +58,39 @@ features.
 | Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
-| <kbd>⇥ Tab Right</kbd> | Insert top completion | <sub>`complete-word`</sub> |
-| <kbd>⇤ Tab Left</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
-| <kbd>↓ Down Arrow</kbd> | Open completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
-| <kbd>⇟ Page Down</kbd> | Open completion menu (always) | <sub>`menu-select`</sub> |
-| <kbd>↑ Up Arrow</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
-| <kbd>⇞ Page Up</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
-| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Show the full list of completions | <sub>`list-expand`</sub> |
+| <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
+| <kbd>Shift</kbd>+<kbd>Tab</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
+| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Show full completion menu | <sub>`list-expand`</sub> |
+| <kbd>↓</kbd> | Enter completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
+| <kbd>PgDn</kbd> | Enter completion menu (always) | <sub>`menu-select`</sub> |
+| <kbd>↑</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
+| <kbd>PgUp</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
-| <kbd>↩︎ Return</kbd> | Accept and exit |
-| <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
-| <kbd>⌃ Control</kbd><kbd>␣ Space</kbd> | Show the full list of completions |
-| <kbd>↖︎ Home</kbd> | Beginning of line |
-| <kbd>↘︎ End</kbd> | End of line |
-| <kbd>⇞ Page Up</kbd> | Page up |
-| <kbd>⇟ Page Down</kbd> | Page down |
-| <kbd>⌥ Alt</kbd><kbd>B</kbd> | Backward one group ([if groups are shown](#show-completions-in-named-groups)) |
-| <kbd>⌥ Alt</kbd><kbd>F</kbd> | Forward one group (if groups are shown) |
-| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of list |
-| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of list |
+| <kbd>Enter</kbd> | Accept and exit |
+| <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
+| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Show full completion menu |
+| <kbd>PgUp</kbd> | Page up |
+| <kbd>PgDn</kbd> | Page Down |
+| <kbd>Alt</kbd>+<kbd>B</kbd> | Backward one group ([if groups are shown](#show-completions-in-named-groups)) |
+| <kbd>Alt</kbd>+<kbd>F</kbd> | Forward one group (if groups are shown) |
+| <kbd>Home</kbd> | Beginning of line |
+| <kbd>End</kbd> | End of line |
+| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
+| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
 | other | Accept and exit (then execute the key just typed) |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
-| <kbd>↑ Up Arrow</kbd>/<kbd>↓ Down Arrow</kbd> | Change selection |
-| <kbd>↩︎ Return</kbd> | Accept and exit |
-| <kbd>⌥ Alt</kbd><kbd>␣ Space</kbd> | Multi-select |
-| <kbd>⌥ Alt</kbd><kbd><</kbd> | Beginning of list |
-| <kbd>⌥ Alt</kbd><kbd>></kbd> | End of list |
+| <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
+| <kbd>Enter</kbd> | Accept and exit |
+| <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
+| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
+| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
 | other | Accept and exit (then execute the key just typed) |
 
 ## Requirements
@@ -140,7 +140,7 @@ To categorize completions under informative headers:
 zstyle ':completion:*' group-name ''
 ```
 
-To group completions only when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>:
+To group completions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
 ```zsh
 zstyle ':completion:list-expand:*' group-name ''
 ```
@@ -156,7 +156,7 @@ To show fewer descriptions:
 zstyle ':completion:*' verbose no
 ```
 
-To show more descriptions only when you press <kbd>⌃ Control</kbd><kbd>␣ Space</kbd>:
+To show more descriptions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
 ```zsh
 zstyle ':completion:list-expand:*' extra-verbose yes
 ```
@@ -186,7 +186,7 @@ work.
 ### Customize the autocompletion messages
 To change the message shown when the list of completions is too long and gets truncated:
 ```zsh
-zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Control+Space to expand)'
+zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Ctrl+Space to expand)'
 ```
 
 To change the message shown when no matching completions can be found:
@@ -201,30 +201,30 @@ zstyle ':autocomplete:*' config off
 ```
 
 ### Change Tab behavior
-By default, <kbd>⇥ Tab</kbd> insert the top completion, <kbd>⇤ Shift+Tab</kbd> inserts the bottom
-completion, and <kbd>↓</kbd> activates menu selection.
+By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> inserts the
+bottom completion, and <kbd>↓</kbd> activates menu selection.
 
 ⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
 changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
 your `~/.zshrc` file only.
 
-To make <kbd>⇥ Tab</kbd> first insert any common substring, before inserting full completions:
+To make <kbd>Tab</kbd> first insert any common substring, before inserting full completions:
 ```zsh
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To make <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift+Tab</kbd> use menu selection:
+To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> use menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
 
-To make <kbd>⇥ Tab</kbd> and <kbd>⇤ Shift+Tab</kbd> cycle completions _without_ using menu
+To make <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> cycle completions _without_ using menu
 selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-complete
 ```
 
-To make <kbd>⇥ Tab</kbd> try Fzf's completion before using Zsh's:
+To make <kbd>Tab</kbd> try Fzf's completion before using Zsh's:
 ```zsh
 zstyle ':autocomplete:tab:*' fzf-completion yes
 ```
@@ -232,16 +232,16 @@ zstyle ':autocomplete:tab:*' fzf-completion yes
 `widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
 
 ### Change other key bindings
-Keybinding other than <kbd>⇥ Tab</kbd> or <kbd>⇤ Shift+Tab</kbd> can be overridden with the
-`bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`:
+Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> can be overridden with
+the `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`:
 
 ```zsh
-source path/to/zsh-autocomplete
+source path/to/zsh-autocomplete.plugin.zsh
 # zsh-autocomplete defines an associative array `key` that you can use for this.
-# The following lines revert the given keys back to Zsh defaults.
 bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
+# The lines above revert the given keys back to Zsh defaults.
 ```
 
 ## Author

@@ -389,10 +389,10 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local -i max_matches=$(( (lines_available - header) * matches_per_line ))
 
   local hint=$'%{\e[02;39m%}'
-  local shortcut=$'%{\e[22;39m%}'
+  local kbd=$'%{\e[22;39m%}'
   local end=$'%{\e[0m%}'
   local info; zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
-    info="${hint}(partial list; press ${shortcut}Control+Space${hint} to expand)$end"
+    info="${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
 
   if [[ -v opts[-D] ]]; then
     .autocomplete.compadd "$@"
