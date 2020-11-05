@@ -7,10 +7,7 @@
   zmodload zsh/{system,zpty,zutil}
   autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
 
-  [[ -v _AUTOCOMPLETE__ASYNC_DELAY ]] ||
-    typeset -gHF _AUTOCOMPLETE__ASYNC_DELAY=.75
-  [[ -v _AUTOCOMPLETE__ASYNC_TIMEOUT ]] ||
-    typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.5
+  typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.0
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -184,7 +181,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local complete_fd=$_autocomplete__async_complete_fd
       local pid=$sysparams[pid]
       print $pid
-      sleep $(( _AUTOCOMPLETE__ASYNC_TIMEOUT - SECONDS ))
+      sleep $(( 2.0 * _AUTOCOMPLETE__ASYNC_TIMEOUT - SECONDS ))
       print $pid$'\0'$complete_fd$'\0'$complete_pid$'\0'$'\0'
     } always {
       kill -TERM $pid
@@ -269,7 +266,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
 
-  if zle _list_choices -w $seconds $nmatches $list_lines $mesg 2> /dev/null; then
+  if zle && zle _list_choices -w $seconds $nmatches $list_lines $mesg; then
     functions[_zsh_autosuggest_suggest]=$functions[.autocomplete.no-op]
   else
     _autocomplete__buffer=$buffer
@@ -280,6 +277,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
     .autocomplete.highlight
     zle -R
   fi
+  (( _AUTOCOMPLETE__ASYNC_TIMEOUT = (10.0 * seconds + _AUTOCOMPLETE__ASYNC_TIMEOUT) / 2.0 ))
+  return 0
 }
 
 .autocomplete.list-choices.completion-widget() {
@@ -290,7 +289,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local -i nmatches=$2 list_lines=$3
   local mesg=$4 reply
 
-  (( seconds > _AUTOCOMPLETE__ASYNC_DELAY )) && zle -Rc "processing…"
+  (( seconds > _AUTOCOMPLETE__ASYNC_TIMEOUT )) &&
+    zle -Rc "processing…"
 
   local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
 
@@ -436,7 +436,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns 0.
   # Thus, we return non-0 on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
-  if zle _explain -w error 'Completion timed out.' 2> /dev/null; then
+  if zle && zle _explain -w error 'Completion timed out.'; then
     functions[_zsh_autosuggest_suggest]=$functions[.autocomplete.no-op]
   else
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
@@ -444,6 +444,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
     .autocomplete.highlight
     zle -R
   fi
+  (( _AUTOCOMPLETE__ASYNC_TIMEOUT = 2 * _AUTOCOMPLETE__ASYNC_TIMEOUT ))
+  return 0
 }
 
 .autocomplete.async.explain.completion-widget() {
