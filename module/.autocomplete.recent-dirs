@@ -50,16 +50,21 @@
     autoload -Uz cdr chpwd_recent_dirs
     add-zsh-hook chpwd chpwd_recent_dirs
     zstyle ':chpwd:*' recent-dirs-max 0
+    zstyle ':chpwd:*' recent-dirs-prune "pattern:$TMPDIR:A/*"
 
     _autocomplete.recent_dirs() {
       cdr -r
-      [[ "$1:a" == "$1" ]] &&
-        reply=( "${(@M)reply:#$1*}" )
 
-      local MATCH MBEGIN MEND
-      reply=( "${reply[@]:#*${~1//(#m)?/$MATCH*}/*}" )
+      if [[ -n $1 ]]; then
+        [[ "$1:a" == "$1" ]] &&
+          reply=( "${(@M)reply:#$1*}" )
 
-      _autocomplete.sort-by-length "${(D)reply[@]}"
+        local MATCH MBEGIN MEND
+        reply=( "${reply[@]:#*${~1//(#m)?/$MATCH*}/*}" )
+
+        _autocomplete.sort-by-length "${(D)reply[@]}"
+      fi
+
       reply=( $~reply[@] )
       (( $#reply > 0 ))
     }
