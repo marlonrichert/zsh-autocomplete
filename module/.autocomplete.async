@@ -7,6 +7,12 @@
   zmodload zsh/{system,zpty,zutil}
   autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
 
+  # Speed up completion by preloading essential functions.
+  autoload +X -Uz _all_labels _alternative _arguments _cache_invalid _call_function _combination \
+    _command_names _comp_locale _describe _description _dispatch _files _guard _message \
+    _multi_parts _next_label _normal _parameters _path_files _pick_variant _requested \
+    _retrieve_cache _sep_parts _setup _store_cache _tags _tilde_files _values _wanted
+
   typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.0
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
@@ -54,6 +60,13 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.line-pre-redraw() {
   .autocomplete.highlight
   .autocomplete.zle-flags $LASTWIDGET
+
+  local -a words=( ${(Z+Cn+)LBUFFER##*[$'\n';|<>{}]} )
+  local w; for w in $words[@]; do
+    w=_$w
+    [[ -v functions[$w] && -z $functions_source[$w] ]] &&
+      autoload +X -Uz $w
+  done
 
   if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
     .autocomplete.async.stop
