@@ -334,100 +334,77 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
   fi
 
-  local -i extras=2
-  local -i lines_available=$(( _autocomplete__max_lines - extras - compstate[list_lines] ))
-  (( lines_available > 0 )) ||
-    return
+  local -a __opts=()
+  zparseopts -E -A __opts - D: E: X:
 
-  opts=()
-  zparseopts -E -A opts - D: E: X:
-
-  if [[ -v opts[-E] ]]; then
+  if [[ -v __opts[-E] ]]; then
     .autocomplete.compadd "$@"
     return
   fi
 
-  local -i header=0; [[ -v opts[-X] ]] &&
-    header=1
-
+  local -a __matches=()
   local -i fd list_lines=0
-  local key=${${${(M)funcstack[2]:#_describe}:+nmatches}:-list_lines}
   {
     exec {fd}< <(
-      opts=()
-      zparseopts -D -E -A opts D O A X:
-      builtin compadd "$@"
-      print $compstate[$key]
+      __opts=()
+      zparseopts -D -E -A __opts - O: A: D: X:
+      builtin compadd -O __matches "$@"
+
+      _autocomplete.compadd_opts_len "$@"
+      builtin compadd "${(@)@[1,?]}" -U -a __matches
+
+      print $compstate[list_lines]
+      print -r - ${(pj:\0:)__matches}
     )
-    read list_lines <&$fd
+    IFS=$'\0' read list_lines <&$fd
+    IFS=$'\0' read -A __matches <&$fd
   } always {
     exec {fd}<&-
   }
+  __matches=( $__matches[@] )  # Filter out blanks.
 
-  if (( list_lines + header <= _autocomplete__max_lines )); then
+  local -i lines_of_new_matches=$#__matches; [[ $funcstack[2] == _describe ]] ||
+    lines_of_new_matches=$(( list_lines - compstate[list_lines] ))
+  local -i header=$+__opts[-X]
+  local -i max_lines=$(( _autocomplete__max_lines ))
+  if (( compstate[list_lines] + lines_of_new_matches + header <= max_lines )); then
     .autocomplete.compadd "$@"
     return
   fi
 
-  local -a matches=()
-  {
-    exec {fd}< <(
-      opts=()
-      zparseopts -D -E -A opts D O A X:
-      builtin compadd -O matches "$@"
-      print -r - ${(pj:\0:)matches}
-    )
-    IFS=$'\0' read -A matches <&$fd
-  } always {
-    exec {fd}<&-
-  }
-  (( $#matches > 0 )) ||
-    return
+  local -i max_matches
+  if (( lines_of_new_matches > 0 )); then
+    local -i matches_per_line=$((
+      ($#__matches + lines_of_new_matches - 1 ) / lines_of_new_matches ))
+    local -i lines_available=$(( max(0, max_lines - compstate[list_lines] - header) ))
+    max_matches=$(( lines_available * matches_per_line ))
+  else
+    max_matches=$#__matches
+  fi
 
-  local -i lines_of_new_matches=$(( list_lines  - compstate[list_lines] ))
-  local -i matches_per_line=$(( ($#matches + lines_of_new_matches - 1 ) / lines_of_new_matches ))
-  local -i max_matches=$(( (lines_available - header) * matches_per_line ))
-
-  local hint=$'%{\e[02;39m%}'
-  local kbd=$'%{\e[22;39m%}'
-  local end=$'%{\e[0m%}'
-  local info; zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
+  local info hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
+  zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
     info="${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
 
-  if [[ -v opts[-D] ]]; then
+  if [[ -v __opts[-D] ]]; then
     .autocomplete.compadd "$@"
 
-    local array_name=$opts[-D]
+    local array_name=$__opts[-D]
     local -i len=${#${(P)array_name}}
-    local -i max_len=$(( min(max_matches,len) ))
-    shift -p $(( len - max_len )) $array_name
-
-    if [[ -v _expl ]] && (( max_len < len )); then
-      local -i i=$_expl[(ie)-X]
-      if (( i < $#opts )); then
-        (( i++ ))
-        _expl[i]+="  $info"
-      else
-        _expl+=( '-X' "$info" )
-      fi
+    if (( max_matches < len )); then
+      shift -p $(( len - max_matches )) $array_name
+      builtin compadd -x $info
     fi
-
-    (( max_len > 0 ))
-    return
+    (( max_matches > 0 ))
 
   else
-    zparseopts -D -E -A opts - a k X:
-    if (( max_matches < $#matches )); then
-      local MATCH MBEGIN MEND
-      if [[ -v opts[-X] ]]; then
-        opts[-X]+="  $info"
-      else
-        opts[-X]="$info"
-      fi
-      matches=( "${(@)matches[1,max_matches]}" )
+    if (( max_matches < $#__matches )); then
+      shift -p $(( $#__matches - max_matches )) __matches
+      builtin compadd -x $info
     fi
-    .autocomplete.compadd "${(@)@[1,$(( min(min($#, ${@[(i)(-|--)]}), ${@[(I)-*]}) + 1 ))]}" \
-      -X "$opts[-X]" -U -a matches
+    zparseopts -D -E -A __opts - a k U
+    _autocomplete.compadd_opts_len "$@"
+    .autocomplete.compadd "${(@)@[1,?]}" -U -a __matches
   fi
 }
 

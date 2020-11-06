@@ -14,4 +14,4 @@ _autocomplete__max_lines() {
   return max_lines
 }
 
-functions -Ms _autocomplete__max_lines
+functions -M _autocomplete__max_lines

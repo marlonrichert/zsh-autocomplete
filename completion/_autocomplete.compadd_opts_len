@@ -1,0 +1,10 @@
+#autoload
+
+local -i len=$(( ${@[(i)(-|--)]} - 1 ))
+(( len < $# )) &&
+  return len
+
+len=${@[(I)-*]}
+[[ $@[len] == -*[PSpsiIdJVXrRWFMOAD] ]] &&
+  (( len++ ))
+return len
