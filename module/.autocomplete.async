@@ -63,7 +63,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   local -a words=( ${(Z+Cn+)LBUFFER##*[$'\n';|<>{}]} )
   local w; for w in $words[@]; do
-    w=_$w
+    w=_${(q)w}
     [[ -v functions[$w] && -z $functions_source[$w] ]] &&
       autoload +X -Uz $w
   done
