@@ -50,7 +50,7 @@ local -A subs=(
 )
 local k v num
 local -i i wid=$(( $COLUMNS - 1 ))
-for i in {1..$#displays[@]}; do
+for (( i = 1; i < ${#displays[@]}; i++ )); do
   num=${(M)displays[i]#$~numpat}
   displays[i]=${(Z+C+j: :)displays[i]#$num}
   for k v in ${(@kv)subs}; do
