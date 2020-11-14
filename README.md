@@ -69,8 +69,8 @@ features.
 ### Completion Menu
 | Key(s) | Action |
 | --- | --- |
+| <kbd>Enter</kbd> | Execute the current command line |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
-| <kbd>Enter</kbd> | Accept and exit |
 | <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
 | <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Show full completion menu |
 | <kbd>PgUp</kbd> | Page up |
@@ -81,17 +81,15 @@ features.
 | <kbd>End</kbd> | End of line |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
-| other | Accept and exit (then execute the key just typed) |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
+| <kbd>Enter</kbd> | Execute the current command line |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
-| <kbd>Enter</kbd> | Accept and exit |
 | <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
-| other | Accept and exit (then execute the key just typed) |
 
 ## Requirements
 Recommended:

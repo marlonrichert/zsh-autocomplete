@@ -33,6 +33,8 @@
 
   bindkey -M menuselect \
     -s $key[ControlSpace] "$key[DeleteList]$key[Undo]$key[Undo]$key[ControlSpace]"
+
+  bindkey -M menuselect $key[Return] .accept-line
   bindkey -M menuselect $key[AltSpace] accept-and-hold
   bindkey -M menuselect $key[BackwardWord] vi-backward-blank-word
   bindkey -M menuselect $key[ForwardWord] vi-forward-blank-word
