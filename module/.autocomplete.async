@@ -13,7 +13,7 @@
     _multi_parts _next_label _normal _parameters _path_files _pick_variant _requested \
     _retrieve_cache _sep_parts _setup _store_cache _tags _tilde_files _values _wanted
 
-  typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=1.0
+  typeset -gHF _AUTOCOMPLETE__ASYNC_TIMEOUT=.1
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -194,7 +194,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local complete_fd=$_autocomplete__async_complete_fd
       local pid=$sysparams[pid]
       print $pid
-      sleep $(( 2.0 * _AUTOCOMPLETE__ASYNC_TIMEOUT - SECONDS ))
+      sleep $(( 10.0 * _AUTOCOMPLETE__ASYNC_TIMEOUT - SECONDS ))
       print $pid$'\0'$complete_fd$'\0'$complete_pid$'\0'$'\0'
     } always {
       kill -TERM $pid
@@ -290,7 +290,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     .autocomplete.highlight
     zle -R
   fi
-  (( _AUTOCOMPLETE__ASYNC_TIMEOUT = (10.0 * seconds + _AUTOCOMPLETE__ASYNC_TIMEOUT) / 2.0 ))
+  (( _AUTOCOMPLETE__ASYNC_TIMEOUT = .2 * seconds + .8 * _AUTOCOMPLETE__ASYNC_TIMEOUT ))
   return 0
 }
 
@@ -302,7 +302,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local -i nmatches=$2 list_lines=$3
   local mesg=$4 reply
 
-  (( seconds > _AUTOCOMPLETE__ASYNC_TIMEOUT )) &&
+  (( seconds > 2.0 * _AUTOCOMPLETE__ASYNC_TIMEOUT )) &&
     zle -Rc "processing…"
 
   local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
