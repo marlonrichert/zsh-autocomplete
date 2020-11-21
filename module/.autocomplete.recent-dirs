@@ -52,20 +52,16 @@
     zstyle ':chpwd:*' recent-dirs-max 0
     zstyle ':chpwd:*' recent-dirs-prune "pattern:$TMPDIR:A/*"
 
-    _autocomplete.recent_dirs() {
+    .autocomplete.recent_dirs.chpwd() {
       cdr -r
+      _autocomplete.sort-by-length "${(D)reply[@]}"
+      typeset -gHa _autocomplete__recent_dirs=( $~reply[@] )
+    }
+    add-zsh-hook chpwd .autocomplete.recent_dirs.chpwd
+    .autocomplete.recent_dirs.chpwd
 
-      if [[ -n $1 ]]; then
-        [[ "$1:a" == "$1" ]] &&
-          reply=( "${(@M)reply:#$1*}" )
-
-        local MATCH MBEGIN MEND
-        reply=( "${reply[@]:#*${~1//(#m)?/$MATCH*}/*}" )
-
-        _autocomplete.sort-by-length "${(D)reply[@]}"
-      fi
-
-      reply=( $~reply[@] )
+    _autocomplete.recent_dirs() {
+      reply=( $_autocomplete__recent_dirs[@] )
       (( $#reply > 0 ))
     }
   fi
@@ -77,8 +73,6 @@
       reply=( "$( fasd -flR $1 2> /dev/null )" )
     }
   fi
-
-  typeset -gH _AUTOCOMPLETE__RECENT_DIRS=1
 }
 
 add-zsh-hook precmd .autocomplete.recent-dirs.precmd

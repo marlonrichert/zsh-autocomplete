@@ -1,20 +1,22 @@
 #autoload
 
 _autocomplete.recent_paths() {
-  local -aU reply
   local -i nmatches=$compstate[nmatches]
+  (( nmatches > 0 )) &&
+    return 1
 
+  local -aU reply
   _tags recent-directories recent-files
-
   while _tags; do
+
     _requested recent-directories &&
-      [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *(directories|files)* ]] &&
-      _autocomplete.recent_dirs $words[CURRENT] &&
+        [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *(directories|files)* ]] &&
+        _autocomplete.recent_dirs $words[CURRENT] &&
       .autocomplete.recent_paths.add recent-directories 'recent directory' $reply
 
     _requested recent-files &&
-      [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *files* ]] &&
-      _autocomplete.recent_files $words[CURRENT] &&
+        [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *files* ]] &&
+        _autocomplete.recent_files $words[CURRENT] &&
       .autocomplete.recent_paths.add recent-files 'recent file' $reply
   done
 
@@ -22,17 +24,14 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  local tag=$1
-  local group_name=$2
+  local expl
+  _description -V $1 expl $2
   shift 2
 
-  local -a display popt
-  local disp prefix
-
+  local -a display=()
   local -i max_matches=$(( compstate[nmatches] + 10 ))
-  local word=${~words[CURRENT]:P}
-
-  local path; for path in ${@:P}; do
+  local disp path prefix word=$~words[CURRENT]:a
+  for path in ${@:a}; do
     (( compstate[nmatches] < max_matches )) ||
       break
 
@@ -44,18 +43,12 @@ _autocomplete.recent_paths() {
       continue
 
     prefix=$path:h
-    [[ $word = ($path|$path:h) || $prefix == ($word:h|$PWD) ]] &&
+    [[ $word == ($path|$prefix) || $prefix == ($word:h|$PWD) ]] &&
       continue
 
-    if [[ $path == /* ]]; then
-      path=${path#/}
-      popt=( -P '/' -W '/' )
-    fi
-
+    prefix+=${${prefix:#/}:+/}
     display=( "$disp" )
-    local _comp_no_ignore=1
-    _description -V $tag expl $group_name
-    compadd "$expl[@]" -d display -f $popt - $path
+    compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)path:t}
   done
 }
 
