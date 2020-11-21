@@ -1,9 +1,0 @@
-#autoload
-
-compstate[list_max]=0
-if (( compstate[list_lines] + BUFFERLINES + 1 > LINES )); then
-  compstate[list]=''
-  if [[ $WIDGET != list-choices ]]; then
-    compstate[insert]='automenu'
-  fi
-fi

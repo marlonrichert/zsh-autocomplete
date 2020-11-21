@@ -3,3 +3,6 @@ local curcontext=$curcontext; [[ -z $curcontext ]] &&
   curcontext=list-expand:::
 
 _main_complete
+compstate[insert]=''; (( compstate[list_lines] + BUFFERLINES + 1 > LINES )) &&
+  compstate[insert]='menu'
+(( compstate[nmatches] > 0 ))

@@ -38,7 +38,7 @@
 
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
-.autocomplete.widget.c list-expand menu-select list-expand
+.autocomplete.widget.c list-expand complete-word list-expand
 
 .autocomplete.widget.c _history_search menu-select history-search
 .autocomplete.widget.z history-search history-search

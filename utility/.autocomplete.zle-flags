@@ -3,8 +3,10 @@
 .autocomplete.zle-flags() {
   emulate -L zsh -o noshortloops -o extendedglob
 
+  # If no arg, assume same widget as last time.
   [[ -n $1 ]] &&
     _autocomplete__last_widget=$1
+
   case $_autocomplete__last_widget in
     *kill*)
       zle -f kill

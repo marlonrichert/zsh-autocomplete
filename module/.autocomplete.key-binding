@@ -38,8 +38,7 @@ bindkey $key[ControlSpace] list-expand
 bindkey -M menuselect $key[Tab] menu-complete
 bindkey -M menuselect $key[BackTab] reverse-menu-complete
 
-  bindkey -M menuselect \
-    -s $key[ControlSpace] "$key[DeleteList]$key[Undo]$key[Undo]$key[ControlSpace]"
+bindkey -M menuselect $key[ControlSpace] send-break
 
 bindkey -M menuselect $key[Return] .accept-line
 bindkey -M menuselect $key[AltSpace] accept-and-hold

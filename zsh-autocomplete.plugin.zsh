@@ -47,4 +47,6 @@
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] && .zinit-shade-on "${___mode:-load}"
+
+  return 0
 }

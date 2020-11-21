@@ -4,7 +4,7 @@ _autocomplete__max_lines() {
   emulate -L zsh -o extendedglob
 
   local max_lines; zstyle -s ":autocomplete:$curcontext" max-lines max_lines ||
-    max_lines='10'
+    max_lines='40%'
 
   local -i screen_space=$((LINES - BUFFERLINES - 1))
   [[ $curcontext == history-search:* ]] ||

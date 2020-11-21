@@ -5,6 +5,6 @@ local -i len=$(( ${@[(i)(-|--)]} - 1 ))
   return len
 
 len=${@[(I)-*]}
-[[ $@[len] == -*[PSpsiIdJVXrRWFMOAD] ]] &&
+[[ $@[len] == -*[PSpsiIdJVXxrRWFMOAD] ]] &&
   (( len++ ))
 return len

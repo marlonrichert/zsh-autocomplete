@@ -181,12 +181,7 @@ zstyle ':autocomplete:*' max-lines 100%
 You can set this to a percentage of the available screen space or to a fixed number of lines. Both
 work.
 
-### Customize the autocompletion messages
-To change the message shown when the list of completions is too long and gets truncated:
-```zsh
-zstyle ':autocomplete:*:too-many-matches' message '(partial list; press Ctrl+Space to expand)'
-```
-
+### Customize "No matching completions" message
 To change the message shown when no matching completions can be found:
 ```zsh
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
