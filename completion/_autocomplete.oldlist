@@ -1,7 +1,15 @@
 #autoload
 
-[[ ! -v compstate[old_list] || $_autocomplete__buffer != $BUFFER ||
-    $_autocomplete__word != $words[CURRENT] || $WIDGET == _complete_help ]] &&
+zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
+  return 1
+
+[[ $WIDGET == _complete_help ]] &&
+  return 1
+[[ -v compstate[old_list] ]] ||
+  return 1
+[[ $_autocomplete__words == $words ]] ||
+  return 1
+[[ $_autocomplete__current -eq $CURRENT ]] ||
   return 1
 
 compstate[old_list]='keep'

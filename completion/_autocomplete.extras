@@ -1,30 +1,13 @@
 #autoload
 
+[[ $curcontext == history-search:* ]] &&
+  return 1
 [[ -z $BUFFER ]] &&
   return 1
 
-[[ $curcontext == history-search:* ]] &&
-  return 1
-
-if [[ $compstate[old_list] == keep ]]; then
-  _autocomplete__unambiguous=$_lastcomp[unambiguous]
-  _autocomplete__nmatches=$_lastcomp[nmatches]
-  return 1
-fi
-
-_autocomplete__unambiguous=$compstate[unambiguous];
-local iprefix=$QIPREFIX$IPREFIX
-local isuffix=$ISUFFIX$QISUFFIX
-[[ -n $iprefix ]] &&
-  _autocomplete__unambiguous=${_autocomplete__unambiguous#$iprefix}
-[[ -n $isuffix ]] &&
-  _autocomplete__unambiguous=${_autocomplete__unambiguous%$isuffix}
-
-_autocomplete__nmatches=$compstate[nmatches]
 if zstyle -t :autocomplete:tab: insert-unambiguous &&
-    (( _autocomplete__nmatches > 1 && $#_autocomplete__unambiguous > $#words[CURRENT] )); then
-  ZLS_COLORS="=*(#bi)(${(b)_autocomplete__unambiguous})*==07:$ZLS_COLORS"
-  compadd -J unambiguous -nQU - $_autocomplete__unambiguous
+    (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
+  ZLS_COLORS="=*(#bi)(${(b)compstate[unambiguous]})*==07:$ZLS_COLORS"
   return
 fi
 

@@ -8,14 +8,13 @@ _tags $tag
 _tags && _requested $tag ||
   return 1
 
-[[ -z $_autocomplete__unambiguous ]] &&
+(( compstate[nmatches] > 1 )) ||
   return 1
-(( _autocomplete__nmatches > 1 )) ||
+(( $#compstate[unambiguous] > 1 )) ||
   return 1
-[[ $_autocomplete__unambiguous == (?|(#i)${words[CURRENT]}?) ||
-    ${words[CURRENT]} == (#i)$_autocomplete__unambiguous* ]] &&
+[[ ${words[CURRENT]} == (#i)*${compstate[unambiguous]}* ]] &&
   return 1
 
 local expl
 _description $tag expl 'common substring'
-compadd "$expl[@]" -QU - $_autocomplete__unambiguous
+compadd "$expl[@]" -QU - $compstate[unambiguous]

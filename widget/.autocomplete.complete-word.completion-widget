@@ -1,29 +1,34 @@
 #!/bin/zsh
-setopt localoptions extendedglob
-local curcontext=$curcontext; [[ -z $curcontext ]] &&
-  curcontext=$WIDGET:::
 
-_main_complete
+.autocomplete.complete-word.completion-widget() {
+  local curcontext=$curcontext; [[ -z $curcontext ]] &&
+    curcontext=$WIDGET:::
 
-compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}"
+  local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.complete-word.comppostfunc )
+  _main_complete
+}
 
-if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
-    (( _lastcomp[nmatches] > 1 && $#_lastcomp[unambiguous] > $#words[CURRENT] )); then
-  compstate[insert]+='0'
-  return 0
-fi
+.autocomplete.complete-word.comppostfunc() {
+  if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
+      (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
+    compstate[insert]="${${(M)WIDGET:#menu-*}:+automenu-}unambiguous"
+    return 0
+  fi
 
-case $KEYS in
-  $key[BackTab])
-    compstate[insert]+='0'
-    ;;
-  *)
-    compstate[insert]+='1'
-    ;|
-  $key[Tab])
-    if (( _lastcomp[nmatches] == 1 || CURRENT == 1 )) || [[ $compstate[context] == command ]]; then
-      compstate[insert]+=' '
-    fi
-    ;;
-esac
-(( compstate[nmatches] > 0 ))
+  compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}"
+  case $KEYS in
+    $key[BackTab])
+      compstate[insert]+='0'
+      ;;
+    *)
+      compstate[insert]+='1'
+      ;|
+    $key[Tab])
+      [[ $compstate[context] == command ]] &&
+        compstate[insert]+=' '
+      ;;
+  esac
+  (( _lastcomp[nmatches] > 0 ))
+}
+
+.autocomplete.complete-word.completion-widget "$@"

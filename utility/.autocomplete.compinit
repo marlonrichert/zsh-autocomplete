@@ -21,7 +21,7 @@ if [[ -z "$functions[_autocomplete.extras]" || ! -e "$_comp_dumpfile" || -e $new
 
   # Prevent Oh My Zsh from deleting comp dump file.
   [[ -e "$ZSH_COMPDUMP" ]] &&
-    tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+    tee -a "$ZSH_COMPDUMP" &> /dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
@@ -54,8 +54,6 @@ _main_complete() {
   local _autocomplete__alnum=${_autocomplete__tail##[^[:alnum:]]##}
   local _autocomplete__punct=${_autocomplete__tail%%$_autocomplete__alnum}
 
-  local _autocomplete__nmatches _autocomplete__unambiguous
-
   local +h -a comppostfuncs=(
     _autocomplete.extras
     _autocomplete.long_list
@@ -72,9 +70,6 @@ _main_complete() {
     [[ -v functions[compadd] ]] &&
       unfunction compadd
   }
-
-  _lastcomp[nmatches]="$_autocomplete__nmatches"
-  _lastcomp[unambiguous]="$_autocomplete__unambiguous"
 }
 
 .autocomplete.patch _default

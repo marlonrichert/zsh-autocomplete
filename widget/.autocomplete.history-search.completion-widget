@@ -1,11 +1,16 @@
 #!/bin/zsh
-local curcontext=$curcontext; [[ -z $curcontext ]] &&
-  curcontext=history-search:::
 
-_main_complete _autocomplete.history_lines
-local -i ret=$?
+.autocomplete.history-search.completion-widget() {
+  local curcontext=$curcontext; [[ -z $curcontext ]] &&
+    curcontext=history-search:::
 
-compstate[insert]='menu:0'
-compstate[list]='list force'
+  local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.history-search.comppostfunc )
+  _main_complete _autocomplete.history_lines
+}
 
-return ret
+.autocomplete.history-search.comppostfunc() {
+  compstate[insert]='menu:0'
+  compstate[list]='list force'
+}
+
+.autocomplete.history-search.completion-widget "$@"
