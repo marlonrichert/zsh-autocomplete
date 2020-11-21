@@ -27,21 +27,6 @@
     bindkey $key[Tab] $tab_style
   fi
   bindkey $key[BackTab] ${tab_style:/menu-complete/reverse-menu-complete}
-
-  bindkey -M menuselect $key[Tab] menu-complete
-  bindkey -M menuselect $key[BackTab] reverse-menu-complete
-
-  bindkey -M menuselect \
-    -s $key[ControlSpace] "$key[DeleteList]$key[Undo]$key[Undo]$key[ControlSpace]"
-
-  bindkey -M menuselect $key[Return] .accept-line
-  bindkey -M menuselect $key[AltSpace] accept-and-hold
-  bindkey -M menuselect $key[BackwardWord] vi-backward-blank-word
-  bindkey -M menuselect $key[ForwardWord] vi-forward-blank-word
-  bindkey -M menuselect $key[PageUp] backward-word
-  bindkey -M menuselect $key[PageDown] forward-word
-  bindkey -M menuselect $key[BeginningOfBuffer] beginning-of-history
-  bindkey -M menuselect $key[EndOfBuffer] end-of-history
 }
 
 bindkey $key[Up] up-line-or-search
@@ -49,5 +34,20 @@ bindkey $key[Down] down-line-or-select
 bindkey $key[PageUp] history-search
 bindkey $key[PageDown] menu-select
 bindkey $key[ControlSpace] list-expand
+
+bindkey -M menuselect $key[Tab] menu-complete
+bindkey -M menuselect $key[BackTab] reverse-menu-complete
+
+  bindkey -M menuselect \
+    -s $key[ControlSpace] "$key[DeleteList]$key[Undo]$key[Undo]$key[ControlSpace]"
+
+bindkey -M menuselect $key[Return] .accept-line
+bindkey -M menuselect $key[AltSpace] accept-and-hold
+bindkey -M menuselect $key[BackwardWord] vi-backward-blank-word
+bindkey -M menuselect $key[ForwardWord] vi-forward-blank-word
+bindkey -M menuselect $key[PageUp] backward-word
+bindkey -M menuselect $key[PageDown] forward-word
+bindkey -M menuselect $key[BeginningOfBuffer] beginning-of-history
+bindkey -M menuselect $key[EndOfBuffer] end-of-history
 
 add-zsh-hook precmd .autocomplete.key-binding.precmd

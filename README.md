@@ -193,7 +193,7 @@ zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions foun
 ```
 
 ### Use your own completion config
-To disable `zsh-autocomplete`'s pre-packaged config:
+To disable `zsh-autocomplete`'s pre-packaged completion config:
 ```zsh
 zstyle ':autocomplete:*' config off
 ```
@@ -201,10 +201,6 @@ zstyle ':autocomplete:*' config off
 ### Change Tab behavior
 By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> inserts the
 bottom completion, and <kbd>↓</kbd> activates menu selection.
-
-⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
-changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
-your `~/.zshrc` file only.
 
 To make <kbd>Tab</kbd> first insert any common substring, before inserting full completions:
 ```zsh
@@ -227,19 +223,24 @@ To make <kbd>Tab</kbd> try Fzf's completion before using Zsh's:
 zstyle ':autocomplete:tab:*' fzf-completion yes
 ```
 
+⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
+changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
+your `~/.zshrc` file only.
+
 `widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
 
 ### Change other key bindings
 Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> can be overridden with
-the `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`:
+the `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`. To make this easier,
+`zsh-autocomplete` defines an associative array `$key` that you can use:
 
 ```zsh
 source path/to/zsh-autocomplete.plugin.zsh
-# zsh-autocomplete defines an associative array `key` that you can use for this.
+# The following lines revert the given keys back to Zsh defaults:
 bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
-# The lines above revert the given keys back to Zsh defaults.
+bindkey -M menuselect $key[Return] accept-line
 ```
 
 ## Author
