@@ -5,16 +5,10 @@ _autocomplete__max_lines() {
 
   local max_lines; zstyle -s ":autocomplete:$curcontext" max-lines max_lines ||
     max_lines='40%'
-
-  local -i screen_space=$((LINES - BUFFERLINES - 1))
-  [[ $curcontext == history-search:* ]] ||
-    (( screen_space -= 3 ))
-
-  if [[ $max_lines == *% ]]; then
+  local -i screen_space=$(( LINES - BUFFERLINES - ${#${(f@)PS1}} + 2 ))
+  [[ $max_lines == *% ]] &&
     (( max_lines = screen_space * ${max_lines%%\%} / 100 ))
-  else
-    (( max_lines = min(max_lines, screen_space) ))
-  fi
+  (( max_lines = min(max_lines, screen_space) ))
 
   return max_lines
 }
