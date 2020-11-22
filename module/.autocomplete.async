@@ -105,7 +105,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      print $pid$'\0'$SECONDS$'\0'$line
+      print -rNC1 - "$pid" "$SECONDS" "$line"
     } always {
       zpty -d _autocomplete__zpty
       kill -TERM $pid
@@ -124,7 +124,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local pid=$sysparams[pid]
       print $pid
       sleep $(( max(0, 2 * _autocomplete__async_avg_duration - SECONDS) ))
-      print $pid$'\0'$complete_fd$'\0'$complete_pid$'\0'$'\0'
+      print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
     } always {
       kill -TERM $pid
     }
@@ -168,7 +168,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     unset 'compstate[vared]'
     {
       .autocomplete.async.list-choices.complete
-      print $'\0'$'\0'$compstate[nmatches]$'\0'$CURRENT$'\0'$words$'\0'$message$'\0'$'\0'
+      print -rNC1 - $'\0' "$compstate[nmatches]" "$CURRENT" "$words" "$message" ''
     } always {
       compstate[insert]=''
       compstate[list]=''
@@ -188,7 +188,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local words__ mesg eof
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r -u "$1" pid seconds nmatches current words__ mesg eof
+      IFS=$'\0' read -r pid seconds nmatches current words__ mesg eof <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
@@ -367,7 +367,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local eof
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r -u "$1" pid complete_fd complete_pid eof
+      IFS=$'\0' read -r pid complete_fd complete_pid eof <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
