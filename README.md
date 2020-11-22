@@ -149,14 +149,14 @@ To show more descriptions:
 zstyle ':completion:*' extra-verbose yes
 ```
 
-To show fewer descriptions:
-```zsh
-zstyle ':completion:*' verbose no
-```
-
 To show more descriptions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
 ```zsh
 zstyle ':completion:list-expand:*' extra-verbose yes
+```
+
+To hide all descriptions:
+```zsh
+zstyle ':completion:*' verbose no
 ```
 
 ### Disable particular completions

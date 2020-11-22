@@ -21,7 +21,7 @@ if [[ -z "$functions[_autocomplete.extras]" || ! -e "$_comp_dumpfile" || -e $new
 
   # Prevent Oh My Zsh from deleting comp dump file.
   [[ -e "$ZSH_COMPDUMP" ]] &&
-    tee -a "$ZSH_COMPDUMP" &> /dev/null <<EOF
+    tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF

@@ -74,16 +74,17 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.kill() {
   local -i fd=$1 pid=$2
 
-  if (( fd > 9 )) && { : <&$fd } 2> /dev/null; then
+  if (( fd > 9 )) && { : <&$fd } 2>/dev/null; then
     # Close the file descriptor and remove the handler widget.
     exec {fd}<&-
-    zle -F $fd 2> /dev/null
+    zle -F $fd 2>/dev/null
   fi
 
   if (( pid != 0 )); then
     # Zsh will make a new process group for the child process only if job control is enabled.
-    local group='-' && [[ -o MONITOR ]] || group=''
-    kill -TERM $group$pid 2> /dev/null
+    local group=''; [[ -o MONITOR ]] &&
+      group='-'
+    kill -TERM $group$pid 2>/dev/null
   fi
 }
 
@@ -141,18 +142,18 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   zmodload -ui zsh/complist
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
-  unset ${^hooks}_functions &> /dev/null
-  unfunction $hooks &> /dev/null
+  unset ${^hooks}_functions &>/dev/null
+  unfunction $hooks &>/dev/null
   hooks=( isearch-exit isearch-update line-pre-redraw
     line-init line-finish history-line-set keymap-select )
-  zle -D zle-${^hooks} &> /dev/null
+  zle -D zle-${^hooks} &>/dev/null
 
   typeset -gH lbuffer=$1 rbuffer=$2
 
   complete-word() {
     LBUFFER=$lbuffer
     RBUFFER=$rbuffer
-    zle list-choices -w 2> /dev/null
+    zle list-choices -w
   }
 
   message() {
@@ -165,22 +166,20 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
     local +h -a comppostfuncs=( message )
     unset 'compstate[vared]'
-
-    .autocomplete.async.list-choices.complete
-
-    compstate[insert]=''
-    compstate[list]=''
-    compstate[list_max]=0
-
-    print $'\0'$'\0'$compstate[nmatches]$'\0'$CURRENT$'\0'$words$'\0'$message$'\0'$'\0'
-
-    kill -TERM $sysparams[pid]
+    {
+      .autocomplete.async.list-choices.complete
+      print $'\0'$'\0'$compstate[nmatches]$'\0'$CURRENT$'\0'$words$'\0'$message$'\0'$'\0'
+    } always {
+      compstate[insert]=''
+      compstate[list]=''
+      compstate[list_max]=0
+    }
   }
 
   zle -N complete-word
   zle -C list-choices list-choices list-choices
   bindkey '^I' complete-word
-  vared LBUFFER 2>&1
+  vared BUFFER
 }
 
 .autocomplete.async.complete.fd-widget() {
@@ -211,7 +210,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
-  if ! zle .autocomplete.list-choices -w $seconds $nmatches $mesg 2> /dev/null; then
+  if ! zle .autocomplete.list-choices -w $seconds $nmatches $mesg 2>/dev/null; then
     # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
     .autocomplete.highlight
     typeset -gH _autocomplete__words=$words__
@@ -253,16 +252,16 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.list-choices.complete() {
-    {
-      local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
-      functions[compadd]=$functions[.autocomplete.async.compadd]
-      _main_complete
-    } always {
-      [[ -v functions[compadd] ]] &&
-        unfunction compadd
+  {
+    local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
+    functions[compadd]=$functions[.autocomplete.async.compadd]
+    _main_complete
+  } always {
+    [[ -v functions[compadd] ]] &&
+      unfunction compadd
     [[ -v functions[comptags] ]] &&
       unfunction comptags
-    }
+  }
 }
 
 .autocomplete.async.compadd() {
