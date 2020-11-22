@@ -7,7 +7,7 @@
   zmodload zsh/{system,zpty,zutil}
   autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
 
-  typeset -gHF _autocomplete__async_avg_duration=0.25
+  typeset -gHF _autocomplete__async_avg_duration=0.3
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -379,6 +379,6 @@ add-zsh-hook precmd .autocomplete.async.precmd
       $complete_pid == $_autocomplete__async_complete_pid )) ||
     return
 
-  (( _autocomplete__async_avg_duration *= 1.1 ))
+  (( _autocomplete__async_avg_duration *= 1.2 ))
   .autocomplete.async.start
 }
