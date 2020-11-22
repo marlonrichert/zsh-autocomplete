@@ -61,7 +61,7 @@
     .autocomplete.recent_dirs.chpwd
 
     _autocomplete.recent_dirs() {
-      reply=( $_autocomplete__recent_dirs[@] )
+      reply=( ${(M@)_autocomplete__recent_dirs[@]:#*/[^/]#$word[-1][^/]#} )
       (( $#reply > 0 ))
     }
   fi
