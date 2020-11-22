@@ -54,7 +54,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   .autocomplete.highlight
 
   [[ $LASTWIDGET == list-expand ]] ||
-  .autocomplete.async.start
+    .autocomplete.async.start
 }
 
 .autocomplete.async.stop() {
@@ -273,27 +273,27 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
   fi
 
-  local -a __opts=()
-  zparseopts -E -A __opts - D: E: X:
+  local -a _opts_=()
+  zparseopts -E -A _opts_ - D: E: X:
 
-  if [[ -v __opts[-E] ]]; then
+  if [[ -v _opts_[-E] ]]; then
     .autocomplete.compadd "$@"
     return
   fi
 
-  local -a __matches=()
-  local -i ret header=$+__opts[-X] lines_of_new_matches extras=2
+  local -a _matches_=()
+  local -i ret header=$+_opts_[-X] lines_of_new_matches extras=2
   local -i lines_available=$((
     max(0, _autocomplete__max_lines - header - compstate[list_lines] - extras) ))
 
-  if [[ -v __opts[-D] ]]; then
+  if [[ -v _opts_[-D] ]]; then
     .autocomplete.compadd "$@"; ret=$?
 
     [[ $funcstack[2] == _describe ]] ||
       return ret
 
-    local array_name=$__opts[-D]
-    __matches=( ${(P@)array_name} )
+    local array_name=$_opts_[-D]
+    _matches_=( ${(P@)array_name} )
     local -aU uniques=( ${${(P@)array_name}#*:} )
     lines_of_new_matches=$#uniques[@]
     (( lines_available -= _autocomplete__reserved_lines ))
@@ -302,27 +302,27 @@ add-zsh-hook precmd .autocomplete.async.precmd
     local -i fd list_lines=0
     {
       exec {fd}< <(
-        __opts=()
-        zparseopts -D -E -A __opts - A: D: O: X:
-        builtin compadd -O __matches "$@"
+        _opts_=()
+        zparseopts -D -E -A _opts_ - A: D: O: X:
+        builtin compadd -O _matches_ "$@"
 
         _autocomplete.compadd_opts_len "$@"
-          builtin compadd "${(@)@[1,?]}" -U -a __matches
+          builtin compadd "${(@)@[1,?]}" -U -a _matches_
 
         print $compstate[list_lines]
-          print -r - ${(pj:\0:)__matches}
+          print -r - ${(pj:\0:)_matches_}
       )
       IFS=$'\0' read list_lines <&$fd
-      IFS=$'\0' read -A __matches <&$fd
+      IFS=$'\0' read -A _matches_ <&$fd
     } always {
       exec {fd}<&-
     }
-    __matches=( $__matches[@] )  # Filter out blanks.
+    _matches_=( $_matches_[@] )  # Filter out blanks.
     lines_of_new_matches=$(( list_lines - compstate[list_lines] ))
   fi
 
   if (( lines_of_new_matches <= lines_available )); then
-    if [[ $funcstack[2] == _describe && -v __opts[-D] ]]; then
+    if [[ $funcstack[2] == _describe && -v _opts_[-D] ]]; then
       (( _autocomplete__reserved_lines += $lines_of_new_matches ))
       return ret
     fi
@@ -335,7 +335,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     info="${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
   (( lines_available-- ))
 
-  if [[ -v __opts[-D] ]]; then
+  if [[ -v _opts_[-D] ]]; then
     local -i trim=$(( $#uniques - max(0, lines_available) ))
     if (( trim > 0 )); then
       shift -p $trim uniques
@@ -348,18 +348,18 @@ add-zsh-hook precmd .autocomplete.async.precmd
   fi
 
   if (( lines_of_new_matches > 0 )); then
-    local -F matches_per_line=$(( 1.0 * $#__matches / lines_of_new_matches ))
-    local -i trim=$(( $#__matches - max(0, matches_per_line * lines_available) ))
-    if (( trim > 0 && $#__matches > 0 )); then
-      shift -p $trim __matches
-      (( $#__matches > 0 )) ||
+    local -F matches_per_line=$(( 1.0 * $#_matches_ / lines_of_new_matches ))
+    local -i trim=$(( $#_matches_ - max(0, matches_per_line * lines_available) ))
+    if (( trim > 0 && $#_matches_ > 0 )); then
+      shift -p $trim _matches_
+      (( $#_matches_ > 0 )) ||
         comptags() { false }
       builtin compadd -x $info
     fi
   fi
-  zparseopts -D -E -A __opts - a k U
+  zparseopts -D -E -A _opts_ - a k U
   _autocomplete.compadd_opts_len "$@"
-  .autocomplete.compadd "${(@)@[1,?]}" -U -a __matches
+  .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
 }
 
 .autocomplete.async.timeout.fd-widget() {
