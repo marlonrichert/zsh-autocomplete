@@ -1,12 +1,21 @@
 #!/bin/zsh
-setopt localoptions extendedglob nobeep
+setopt localoptions extendedglob nolistbeep
 
-local buffer=$BUFFER
-BUFFER="${(j:*:)${(bZ+C+)BUFFER}}"
+local lbuffer=$LBUFFER rbuffer=$RBUFFER delim=$'[|&!;\n<>]' context
+local -i index
+index=$LBUFFER[(I)$~delim]
+if (( index <= $#LBUFFER )); then
+  context=$LBUFFER[1,index]
+  LBUFFER="${context:+$context }${(j:*:)${(Z+C+@)LBUFFER[index+1,-1]}}"
+fi
+index=$RBUFFER[(i)$~delim]
+if (( index <= $#RBUFFER )); then
+  context=$RBUFFER[index,-1]
+  RBUFFER="${(j:*:)${(Z+C+@)RBUFFER[1,index-1]}}${context:+ $context}"
+fi
 zle -R
 
 local keymap_menuselect="$(bindkey -M menuselect -L)"
-local -i ret=1
 {
   local -A keymap_historysearch=(
     $key[Left] .backward-char
@@ -20,12 +29,13 @@ local -i ret=1
     bindkey -M menuselect $k $v
   done
 
-  zle _history_search
-  ret=$?
+  zle _history_search; local -i ret=$?
+  if (( ret > 0 )); then
+    LBUFFER=$lbuffer
+    RBUFFER=$rbuffer
+  fi
 
 } always {
   eval "$keymap_menuselect"
-  (( ret == 0 )) ||
-    BUFFER=$buffer
 }
 return ret

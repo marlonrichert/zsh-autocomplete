@@ -62,9 +62,10 @@ done
 
 local -a suffix_opts=()
 [[ $curcontext == history-search:* ]] &&
-  suffix_opts=( -S ';' -r '^ ' )
+  suffix_opts=( -S ';' -r '\-' )
 
 local _comp_no_ignore=1
 local expl
 _description -2V $tag expl 'history match'
-compadd "$expl[@]" -QU $suffix_opts -ld displays - ${${events[@]}##$~numpat}
+compadd "$expl[@]" -QU $suffix_opts -ld displays - \
+  ${(@)${(@)${(@)events[@]##$~numpat}##${BUFFER%$words*}}%%${BUFFER#*$words}}
