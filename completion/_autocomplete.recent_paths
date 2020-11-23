@@ -5,17 +5,15 @@ _autocomplete.recent_paths() {
   (( nmatches > 0 )) &&
     return 1
 
-  local -aU reply
+  local -aU reply=()
   _tags recent-directories recent-files
   while _tags; do
 
-    _requested recent-directories &&
-        [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *(directories|files)* ]] &&
+    _requested recent-directories && [[ -v functions[_autocomplete.recent_dirs] ]] &&
         _autocomplete.recent_dirs $words[CURRENT] &&
       .autocomplete.recent_paths.add recent-directories 'recent directory' $reply
 
-    _requested recent-files &&
-        [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *files* ]] &&
+    _requested recent-files && [[ -v functions[_autocomplete.recent_files] ]] &&
         _autocomplete.recent_files $words[CURRENT] &&
       .autocomplete.recent_paths.add recent-files 'recent file' $reply
   done

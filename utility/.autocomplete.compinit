@@ -85,30 +85,34 @@ _default() {
 
 .autocomplete.patch _description
 _description() {
-  .autocomplete._description "$@"
-  local -i ret=$?
-  if [[ $3 == corrections ]]; then
+  .autocomplete._description "$@"; local -i ret=$?
+  [[ $3 == corrections ]] &&
     _lastdescr=( "${(@)_lastdescr[1,-2]}" )
-  fi
+  return ret
+}
+
+.autocomplete.patch _path_files
+_path_files() {
+  .autocomplete._path_files "$@"; local -i ret=$?
+  _autocomplete.recent_paths
   return ret
 }
 
 .autocomplete.patch _complete
 _complete() {
   local -i nmatches=$compstate[nmatches]
-  .autocomplete._complete "$@"
-  local -i ret=$?
-  (( compstate[nmatches] == nmatches )) && _comp_mesg=''
+  .autocomplete._complete "$@"; local -i ret=$?
+  (( compstate[nmatches] == nmatches )) &&
+    _comp_mesg=''
   return ret
 }
 
-.autocomplete.patch _correct
-_correct() {
+.autocomplete.patch _approximate _correct
+_approximate _correct () {
   if [[ -v compstate[quote] || $words[CURRENT] == [$histchars]* ]] || _autocomplete.is_glob; then
     return 1
   fi
-
-  .autocomplete._correct "$@"
+  .autocomplete.$funcstack[1] "$@"
 }
 
 .autocomplete.patch _expand

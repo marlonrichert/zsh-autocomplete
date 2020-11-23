@@ -1,6 +1,9 @@
 #!/bin/zsh
 emulate -L zsh -o extendedglob
 
-[[ -v functions[$1] ]] && unfunction $1
-autoload +X -Uz $1
-functions[.autocomplete.$1]=$functions[$1]
+local func; for func in $@; do
+  [[ -v functions[$func] ]] &&
+    unfunction $func
+  autoload +X -Uz $func
+  functions[.autocomplete.$func]=$functions[$func]
+done

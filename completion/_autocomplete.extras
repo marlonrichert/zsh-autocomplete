@@ -11,9 +11,6 @@ if zstyle -t :autocomplete:tab: insert-unambiguous &&
   return
 fi
 
-_autocomplete.recent_paths ||
-  _autocomplete.history_words
-
 _autocomplete.alias_expansions ||
   _autocomplete.requoted ||
   _autocomplete.unambiguous ||
