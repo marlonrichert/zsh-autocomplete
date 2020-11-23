@@ -69,10 +69,10 @@ features.
 ### Completion Menu
 | Key(s) | Action |
 | --- | --- |
-| <kbd>Enter</kbd> | Execute the current command line |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
-| <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
-| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Show full completion menu |
+| <kbd>Enter</kbd> | Exit menu & execute command line |
+| <kbd>Alt</kbd>+<kbd>Enter</kbd> | Exit menu |
+| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Multi-select |
 | <kbd>PgUp</kbd> | Page up |
 | <kbd>PgDn</kbd> | Page Down |
 | <kbd>Alt</kbd>+<kbd>B</kbd> | Backward one group ([if groups are shown](#show-completions-in-named-groups)) |
@@ -85,9 +85,11 @@ features.
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
-| <kbd>Enter</kbd> | Execute the current command line |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
-| <kbd>Alt</kbd>+<kbd>Space</kbd> | Multi-select |
+| <kbd>←</kbd>/<kbd>→</kbd> | Exit menu & move cursor |
+| <kbd>Enter</kbd> | Exit menu & execute command line |
+| <kbd>Alt</kbd>+<kbd>Enter</kbd> | Exit menu |
+| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Multi-select |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
 

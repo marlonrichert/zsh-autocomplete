@@ -29,19 +29,19 @@
   bindkey $key[BackTab] ${tab_style:/menu-complete/reverse-menu-complete}
 }
 
+bindkey $key[ControlSpace] list-expand
 bindkey $key[Up] up-line-or-search
 bindkey $key[Down] down-line-or-select
 bindkey $key[PageUp] history-search
 bindkey $key[PageDown] menu-select
-bindkey $key[ControlSpace] list-expand
 
 bindkey -M menuselect $key[Tab] menu-complete
 bindkey -M menuselect $key[BackTab] reverse-menu-complete
 
-bindkey -M menuselect $key[ControlSpace] send-break
-
 bindkey -M menuselect $key[Return] .accept-line
-bindkey -M menuselect $key[AltSpace] accept-and-hold
+bindkey -M menuselect $key[Alt]$key[Return] accept-line
+bindkey -M menuselect $key[ControlSpace] accept-and-hold
+
 bindkey -M menuselect $key[BackwardWord] vi-backward-blank-word
 bindkey -M menuselect $key[ForwardWord] vi-forward-blank-word
 bindkey -M menuselect $key[PageUp] backward-word
