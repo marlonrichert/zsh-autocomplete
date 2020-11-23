@@ -75,14 +75,6 @@ _main_complete() {
   }
 }
 
-.autocomplete.patch _default
-_default() {
-  .autocomplete._default
-  local -i ret=$?
-  _autocomplete.history_words
-  return $(( ret && ? ))
-}
-
 .autocomplete.patch _description
 _description() {
   .autocomplete._description "$@"; local -i ret=$?

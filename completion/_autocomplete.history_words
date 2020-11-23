@@ -1,44 +1,43 @@
 #autoload
 
+(( $#words > 0 )) ||
+  return 1
+
 local tag=history-words
 _tags $tag
 _tags && _requested $tag ||
   return 1
 
-(( CURRENT == 1 || compstate[nmatches] > 0 )) &&
-  return 1
-
-local lbuffer=${(b)LBUFFER%$PREFIX}
-local -a lbuffer_words=( "${(@Z+C+)lbuffer}" )
-local prev_word=$lbuffer_words[-1]
-local -a lines=( "${(@)history[(R)*$lbuffer*]}" )
 local -a line_words disp=() matches=()
-local -i index
 local line word
-for line in $lines; do
-  line_words=( "${(@Z+C+)line}" )
-  (( index = $line_words[(ie)$prev_word] + 1 ))
-  (( index > $#line_words )) && continue
-  word=${line_words[index]}
-  case $word in
-    \$\'*)
-      word=${(QQQQ)word}
-      ;;
-    \"*)
-      word=${(QQQ)word}
-      ;;
-    \'*)
-      word=${(QQ)word}
-      ;;
-    *)
-      word=${(Q)word}
-      ;;
-  esac
-  if (( $#word > 1 )); then
-    matches+=( $word )
-  fi
+for line in ${(@)history[(R)*$words[1]*]}; do
+  line_words=( "${(Z+C+@)line}" )
+  line_words=( ${(@)line_words[$line_words[(ie)$words[1]],-1]} )
+  line_words=( ${(@)line_words[1,$line_words[(ie);]]} )
+
+  (( $#line_words > 0 )) ||
+    continue
+  shift line_words
+
+  for word in $line_words[@]; do
+    case $word in
+      \$\'*)
+        word=${(QQQQ)word}
+        ;;
+      \"*)
+        word=${(QQQ)word}
+        ;;
+      \'*)
+        word=${(QQ)word}
+        ;;
+      *)
+        word=${(Q)word}
+        ;;
+    esac
+    matches+=( "$word" )
+    done
 done
-matches=( "${matches[@]:#(?|$words[CURRENT])}" )
-local expl
+
+local expl _comp_no_ignore=yes
 _description $tag expl 'history word'
-compadd "$expl[@]" -fQ -a matches
+compadd "$expl[@]" -fQ - ${matches[@]:#(?|$words[CURRENT])}
