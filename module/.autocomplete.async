@@ -282,7 +282,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   fi
 
   local -a _matches_=()
-  local -i ret header=$+_opts_[-X] lines_of_new_matches extras=2
+  local -i extras=2 header=$+_opts_[-X] lines_of_new_matches ret
   local -i lines_available=$((
     max(0, _autocomplete__max_lines - header - compstate[list_lines] - extras) ))
 
@@ -306,11 +306,12 @@ add-zsh-hook precmd .autocomplete.async.precmd
         zparseopts -D -E -A _opts_ - A: D: O: X:
         builtin compadd -O _matches_ "$@"
 
+        zparseopts -D -E -A _opts_ - a
         _autocomplete.compadd_opts_len "$@"
-          builtin compadd "${(@)@[1,?]}" -U -a _matches_
+        builtin compadd "${(@)@[1,?]}" -U -a _matches_
 
         print $compstate[list_lines]
-          print -r - ${(pj:\0:)_matches_}
+        print -r - ${(pj:\0:)_matches_}
       )
       IFS=$'\0' read list_lines <&$fd
       IFS=$'\0' read -A _matches_ <&$fd
@@ -347,19 +348,39 @@ add-zsh-hook precmd .autocomplete.async.precmd
     return
   fi
 
+  zparseopts -D -E -A _opts_ - a d: k l U
+  local -a dopt=()
+  if [[ -v _opts_[-d] ]]; then
+    if [[ -v _opts_[-l] ]]; then
+      dopt+=( -ld )
+    else
+      dopt+=( -d )
+    fi
+    dopt+=( "$_opts_[-d]" )
+  fi
   if (( lines_of_new_matches > 0 )); then
     local -F matches_per_line=$(( 1.0 * $#_matches_ / lines_of_new_matches ))
-    local -i trim=$(( $#_matches_ - max(0, matches_per_line * lines_available) ))
-    if (( trim > 0 && $#_matches_ > 0 )); then
-      shift -p $trim _matches_
-      (( $#_matches_ > 0 )) ||
-        comptags() { false }
-      builtin compadd -x $info
+    if (( matches_per_line < 1 )); then
+      dopt[1]=-ld
+      array_name=$_opts_[-d]
+      if [[ -z $array_name ]]; then
+        array_name=displ
+        local -a displ=( "$_matches_[@]" )
+        dopt[2]=displ
+      fi
+      set -A $array_name ${(r:COLUMNS-1:@)${(P@)array_name}//$'\n'/\n}
+      matches_per_line=1
     fi
-  fi
-  zparseopts -D -E -A _opts_ - a k U
+      local -i trim=$(( $#_matches_ - max(0, matches_per_line * lines_available) ))
+      if (( trim > 0 && $#_matches_ > 0 )); then
+        shift -p $trim _matches_
+        (( $#_matches_ > 0 )) ||
+          comptags() { false }
+        builtin compadd -x $info
+      fi
+    fi
   _autocomplete.compadd_opts_len "$@"
-  .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
+  .autocomplete.compadd "${(@)@[1,?]}" $dopt -U -a _matches_
 }
 
 .autocomplete.async.timeout.fd-widget() {

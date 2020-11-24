@@ -124,7 +124,6 @@ To change your settings, just copy-paste any of the code below to your `~/.zshrc
 `:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
 former are unique to `zsh-autocomplete`.
 
-* [Show completions in named groups](#show-completions-in-named-groups)
 * [Show more/less help text](#show-moreless-help-text)
 * [Disable particular completions](#disable-particular-completions)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
@@ -133,17 +132,6 @@ former are unique to `zsh-autocomplete`.
 * [Use your own completion config](#use-your-own-completion-config)
 * [Change Tab behavior](#change-tab-behavior)
 * [Change other key bindings](#change-other-key-bindings)
-
-### Show completions in named groups
-To categorize completions under informative headers:
-```zsh
-zstyle ':completion:*' group-name ''
-```
-
-To group completions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
-```zsh
-zstyle ':completion:list-expand:*' group-name ''
-```
 
 ### Show more/less help text
 To show more descriptions:
