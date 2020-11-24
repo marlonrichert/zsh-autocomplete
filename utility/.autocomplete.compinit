@@ -93,10 +93,13 @@ _path_files() {
 .autocomplete.patch _complete
 _complete() {
   local -i nmatches=$compstate[nmatches]
-  .autocomplete._complete "$@"; local -i ret=$?
-  (( compstate[nmatches] == nmatches )) &&
-    _comp_mesg=''
-  return ret
+  .autocomplete._complete "$@"
+
+  (( compstate[nmatches] > nmatches )) &&
+    return 0
+
+  _comp_mesg=''
+  return 1
 }
 
 .autocomplete.patch _approximate _correct

@@ -9,15 +9,22 @@ _tags && _requested $tag ||
   return 1
 
 local -a line_words disp=() matches=()
-local line word
-for line in ${(@)history[(R)*$words[1]*]}; do
-  line_words=( "${(Z+C+@)line}" )
-  line_words=( ${(@)line_words[$line_words[(ie)$words[1]],-1]} )
-  line_words=( ${(@)line_words[1,$line_words[(ie);]]} )
+local -i index
+local delim=$'[|&!;\n<>]' lbuffer rbuffer line word
 
-  (( $#line_words > 0 )) ||
-    continue
-  shift line_words
+index=$LBUFFER[(I)$~delim]
+if (( index <= $#LBUFFER )); then
+  lbuffer="${(j:*:)${(Z+C+@)LBUFFER[index+1,-1]}}"
+fi
+index=$RBUFFER[(i)$~delim]
+if (( index <= $#RBUFFER )); then
+  rbuffer="${(j:*:)${(Z+C+@)RBUFFER[1,index-1]}}"
+fi
+
+for line in ${(@)history[(R)*$~lbuffer*$~rbuffer*]}; do
+  line_words=( "${(Z+C+@)line}" )
+  line_words=( ${(@)line_words[$line_words[(ie)$words[1]]+1,-1]} )
+  line_words=( ${(@)line_words[1,$line_words[(ie)$~delim]-1]} )
 
   for word in $line_words[@]; do
     case $word in
@@ -40,4 +47,4 @@ done
 
 local expl _comp_no_ignore=yes
 _description $tag expl 'history word'
-compadd "$expl[@]" -fQ - ${matches[@]:#(?|$words[CURRENT])}
+compadd "$expl[@]" -fQ -a matches
