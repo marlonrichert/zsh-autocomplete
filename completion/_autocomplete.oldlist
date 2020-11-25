@@ -1,6 +1,7 @@
 #autoload
 
 zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
+    (( _lastcomp[nmatches] > 1 && $#_lastcomp[unambiguous] > $#words[CURRENT] )) &&
   return 1
 
 [[ $WIDGET == _complete_help ]] &&
