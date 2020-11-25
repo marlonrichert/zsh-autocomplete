@@ -4,6 +4,9 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.key-binding.precmd
 
+  [[ -z $key[Tab] || -z $key[BackTab] ]] &&
+    .autocomplete.key
+
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
     tab_style=complete-word
 
