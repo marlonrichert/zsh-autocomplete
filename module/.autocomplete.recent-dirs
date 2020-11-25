@@ -4,6 +4,8 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.recent-dirs.precmd
 
+  zmodload -F zsh/parameter p:commands
+
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
 

@@ -1,13 +1,18 @@
 #autoload
+zmodload -F zsh/parameter p:aliases
 
-local tag=alias-expansions
-_tags $tag
-_tags && _requested $tag ||
-  return 1
+_autocomplete.alias_expansions() {
+  local tag=alias-expansions
+  _tags $tag
+  _tags && _requested $tag ||
+    return 1
 
-local expansion=$aliases[$words[CURRENT]]
-[[ -z $expansion ]] && return 1
+  local expansion=$aliases[$words[CURRENT]]
+  [[ -z $expansion ]] && return 1
 
-local expl
-_description $tag expl 'alias expansion'
-compadd "$expl[@]" -qS ' ' -QU - $expansion
+  local expl
+  _description $tag expl 'alias expansion'
+  compadd "$expl[@]" -qS ' ' -QU - $expansion
+}
+
+_autocomplete.alias_expansions "$@"

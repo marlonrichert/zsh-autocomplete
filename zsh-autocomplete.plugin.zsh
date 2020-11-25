@@ -2,19 +2,20 @@
 () {
   emulate -L zsh -o extendedglob
 
-  # Get access to `functions` & `commands` arrays.
-  zmodload zsh/parameter
+  zmodload zsh/complist
+  zmodload -F zsh/parameter p:functions
+  zmodload -Fa zsh/parameter p:funcstack p:history
+  zmodload -F zsh/zutil b:zstyle
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] && .zinit-shade-off "${___mode:-load}"
 
-  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath )
+  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
 
   .autocomplete.no-op() {
     :
   }
 
-  zmodload zsh/complist
   functions[compinit]=$functions[.autocomplete.no-op]
   autoload -Uz .autocomplete.compinit
 
