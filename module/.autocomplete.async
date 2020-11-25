@@ -53,7 +53,12 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   .autocomplete.highlight
 
-  [[ $LASTWIDGET == list-expand ]] ||
+  if [[ $LASTWIDGET == list-expand ||
+      -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
+    .autocomplete.async.stop
+    return
+  fi
+
     .autocomplete.async.start
 }
 
@@ -116,13 +121,13 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
-    {
       setopt extendedglob noxtrace noverbose
 
       local complete_pid=$_autocomplete__async_complete_pid
       local complete_fd=$_autocomplete__async_complete_fd
       local pid=$sysparams[pid]
       print $pid
+    {
       sleep $(( max(0, 2 * _autocomplete__async_avg_duration - SECONDS) ))
       print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
     } always {
@@ -194,8 +199,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
   }
   if (( $1 == $_autocomplete__async_complete_fd &&
       $pid == $_autocomplete__async_complete_pid )); then
-    _autocomplete__async_complete_fd=-1
-    _autocomplete__async_complete_pid=-1
+    _autocomplete__async_complete_fd=0
+    _autocomplete__async_complete_pid=0
   fi
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
