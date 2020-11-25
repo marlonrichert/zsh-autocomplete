@@ -1,16 +1,15 @@
 #!/bin/zsh
+autoload -Uz zmathfunc; zmathfunc
 
 _autocomplete__max_lines() {
-  emulate -L zsh -o extendedglob
-
-  local max_lines; zstyle -s ":autocomplete:$curcontext" max-lines max_lines ||
-    max_lines='40%'
-  local -i screen_space=$(( LINES - BUFFERLINES - ${#${(f@)PS1}} + 2 ))
-  [[ $max_lines == *% ]] &&
-    (( max_lines = screen_space * ${max_lines%%\%} / 100 ))
-  (( max_lines = min(max_lines, screen_space) ))
-
-  return max_lines
+  (( _autocomplete__screen_space = min(
+    ++_autocomplete__screen_space, LINES - BUFFERLINES - _autocomplete__pslines() )))
+  return $(( max( 5, _autocomplete__screen_space) ))
 }
 
-functions -M _autocomplete__max_lines
+_autocomplete__pslines() {
+  return ${#${(f@)PS1}}
+}
+
+functions -M _autocomplete__max_lines 0
+functions -M _autocomplete__pslines 0

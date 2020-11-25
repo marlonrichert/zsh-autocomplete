@@ -127,7 +127,6 @@ former are unique to `zsh-autocomplete`.
 * [Show more/less help text](#show-moreless-help-text)
 * [Disable particular completions](#disable-particular-completions)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
-* [Change the length of the autocompletion list](#change-the-length-of-the-autocompletion-list)
 * [Customize the autocompletion messages](#customize-the-autocompletion-messages)
 * [Use your own completion config](#use-your-own-completion-config)
 * [Change Tab behavior](#change-tab-behavior)
@@ -162,14 +161,6 @@ To suppress autocompletion until a minimum number of characters have been typed:
 ```zsh
 zstyle ':autocomplete:*' min-input 3
 ```
-
-### Change the length of the autocompletion list
-To change the list length from the default of 10 lines:
-```zsh
-zstyle ':autocomplete:*' max-lines 100%
-```
-You can set this to a percentage of the available screen space or to a fixed number of lines. Both
-work.
 
 ### Customize "No matching completions" message
 To change the message shown when no matching completions can be found:

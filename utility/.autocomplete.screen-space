@@ -1,0 +1,7 @@
+#!/bin/zsh
+emulate -L zsh -o extendedglob
+
+echoti sc
+print -r $'\e[6n'; IFS=$'\e[;' read -Asd R
+echoti rc
+_autocomplete__screen_space=$(( LINES - reply[-2] ))
