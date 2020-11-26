@@ -8,7 +8,7 @@ _autocomplete__max_lines() {
 }
 
 _autocomplete__pslines() {
-  return ${#${(f@)PS1}}
+  return ${#${(fA)PS1}}
 }
 
 functions -M _autocomplete__max_lines 0
