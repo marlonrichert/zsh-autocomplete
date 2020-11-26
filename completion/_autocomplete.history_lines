@@ -48,16 +48,16 @@ local -A subs=(
   '= ()' '=()'
   $'\n'   '\n'
 )
-local k v num
-local -i i wid=$(( $COLUMNS - 1 ))
-for (( i = 1; i < ${#displays[@]}; i++ )); do
+local k v num MATCH
+local -i wid=$(( $COLUMNS - 1 )) i MBEGIN MEND
+for (( i = 1; i < $#displays[@]; i++ )); do
   num=${(M)displays[i]#$~numpat}
   displays[i]=${(Z+C+j: :)displays[i]#$num}
   for k v in ${(@kv)subs}; do
     displays[i]=${displays[i]//$k/$v}
   done
   displays[i]=${displays[i]// \;/\;}
-  displays[i]=${(r:$wid:):-$num$displays[i]}
+  displays[i]=${(r:$wid:):-$num${displays[i]//(#m)[^[:print:]]/${(q+)MATCH}}}
 done
 
 local -a suffix_opts=()
