@@ -275,8 +275,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.compadd() {
   setopt localoptions listtypes
 
-  if [[ $funcstack[2] == _autocomplete.(alias_expansions|requoted|unambiguous|history_lines) ]]
-      then
+  if [[ $funcstack[2] ==
+      _autocomplete.(alias_expansions|history_lines|requoted|unambiguous) ]]; then
     .autocomplete.compadd "$@"
     return
   fi
@@ -387,7 +387,12 @@ add-zsh-hook precmd .autocomplete.async.precmd
       if (( trim > 0 && $#_matches_ > 0 )); then
         shift -p $trim _matches_
         (( $#_matches_ > 0 )) ||
-          comptags() { false }
+          comptags() {
+            [[ $funcstack[3] ==
+                _autocomplete.(alias_expansions|history_lines|requoted|unambiguous) ]] ||
+              return 1
+            builtin comptags "$@"
+          }
         builtin compadd -x $info
       fi
     fi
