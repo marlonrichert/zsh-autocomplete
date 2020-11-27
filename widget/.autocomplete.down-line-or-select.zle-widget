@@ -1,8 +1,8 @@
 #!/bin/zsh
 
-if (( BUFFERLINES == 1 )); then
+if [[ $RBUFFER == *$'\n'* ]]; then
+  zle .down-line
+else
   setopt localoptions nolistbeep
   zle menu-select -w
-else
-  zle .down-line || zle .end-of-line
 fi
