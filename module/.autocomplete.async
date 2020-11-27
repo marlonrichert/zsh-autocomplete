@@ -49,7 +49,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.line-pre-redraw() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  if (( KEYS_QUEUED_COUNT + PENDING > 0 )) || [[ -z $BUFFER ]]; then
+  if (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
     .autocomplete.async.stop
     return 0
   fi
@@ -240,6 +240,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.list-choices.completion-widget() {
+  setopt localoptions extendedglob
+
   local curcontext=$curcontext; [[ -z $curcontext ]] &&
     curcontext=list-choices:::
 
@@ -247,10 +249,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local -i nmatches=$2
   local mesg=$3 reply
 
-  local min_input; zstyle -s ":autocomplete:$curcontext" min-input min_input || min_input=1
-
-  if [[ $compstate[context] == command ]] &&
-      (( CURRENT == 1 && $#words[CURRENT] < min_input )); then
+  local min_input; zstyle -s :autocomplete: min-input min_input ||
+    min_input=1
+  local ignored; zstyle -s :autocomplete: ignored-input ignored ||
+    ignored=' '
+  if (( CURRENT == 1 && $#words[1] < min_input )) || [[ $words[CURRENT] == $~ignored ]]; then
     :
   elif (( nmatches == 0 )); then
     if [[ -n $mesg ]]; then

@@ -127,9 +127,10 @@ former are unique to `zsh-autocomplete`.
 * [Show more/less help text](#show-moreless-help-text)
 * [Disable particular completions](#disable-particular-completions)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
-* [Customize the autocompletion messages](#customize-the-autocompletion-messages)
+* [Ignore certain inputs](#ignore-certain-inputs)
+* [Change the "No matching completions" message](#change-the-no-matching-completions-message)
 * [Use your own completion config](#use-your-own-completion-config)
-* [Change Tab behavior](#change-tab-behavior)
+* [Change <kbd>Tab</kbd> behavior](#change-tab-behavior)
 * [Change other key bindings](#change-other-key-bindings)
 
 ### Show more/less help text
@@ -162,8 +163,17 @@ To suppress autocompletion until a minimum number of characters have been typed:
 zstyle ':autocomplete:*' min-input 3
 ```
 
-### Customize "No matching completions" message
-To change the message shown when no matching completions can be found:
+### Ignore certain inputs
+To not trigger autocompletion when the current word consists solely of two or more dots:
+```zsh
+zstyle ':autocomplete:*' ignored-input '..##'
+```
+
+The pattern syntax supported here is that of [Zsh's extended glob
+operators](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators).
+
+### Change the "No matching completions" message
+To alter the message shown when no matching completions can be found:
 ```zsh
 zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
 ```
@@ -174,7 +184,7 @@ To disable `zsh-autocomplete`'s pre-packaged completion config:
 zstyle ':autocomplete:*' config off
 ```
 
-### Change Tab behavior
+### Change `Tab` behavior
 By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> inserts the
 bottom completion, and <kbd>↓</kbd> activates menu selection.
 
@@ -183,7 +193,7 @@ To make <kbd>Tab</kbd> first insert any common substring, before inserting full 
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> use menu selection:
+To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> do menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
