@@ -17,6 +17,8 @@
 
 emulate -L zsh -o extendedglob
 
+typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
+
 # Don't let `|` remove suffixes.
 [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
   export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'

@@ -10,13 +10,13 @@ _tags && _requested $tag ||
 
 local -a line_words disp=() matches=()
 local -i index
-local delim=$'[|&!;\n<>]' lbuffer rbuffer line word
+local lbuffer rbuffer line word
 
-index=$LBUFFER[(I)$~delim]
+index=$LBUFFER[(I)$~_autocomplete__sublist_delim]
 if (( index <= $#LBUFFER )); then
   lbuffer="${(j:*:)${(Z+C+@)LBUFFER[index+1,-1]}}"
 fi
-index=$RBUFFER[(i)$~delim]
+index=$RBUFFER[(i)$~_autocomplete__sublist_delim]
 if (( index <= $#RBUFFER )); then
   rbuffer="${(j:*:)${(Z+C+@)RBUFFER[1,index-1]}}"
 fi
@@ -24,7 +24,7 @@ fi
 for line in ${(@)history[(R)*$~lbuffer*$~rbuffer*]}; do
   line_words=( "${(Z+C+@)line}" )
   line_words=( ${(@)line_words[$line_words[(ie)$words[1]]+1,-1]} )
-  line_words=( ${(@)line_words[1,$line_words[(ie)$~delim]-1]} )
+  line_words=( ${(@)line_words[1,$line_words[(ie)$~_autocomplete__sublist_delim]-1]} )
 
   for word in $line_words[@]; do
     case $word in

@@ -225,7 +225,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  setopt localoptions nobanghist
+  setopt localoptions NO_banghist NO_completeinword
   if ! zle .autocomplete.list-choices -w $seconds $nmatches $mesg 2>/dev/null; then
     typeset -gH _autocomplete__words=$words__
     typeset -gHi _autocomplete__current=$current

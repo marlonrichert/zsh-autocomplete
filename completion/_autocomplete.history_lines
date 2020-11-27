@@ -1,71 +1,47 @@
 #autoload
 
+(( $#words > 1 )) &&
+  return 1
+[[ $curcontext == *(approximate|correct|spell)* ]] &&
+  return 1
+
 local tag=history-lines
 _tags $tag
 _tags && _requested $tag ||
   return 1
 
-(( $#words > 1 )) &&
-  return 1
-(( CURRENT > 1 )) &&
-  return 1
-[[ $curcontext == *(approximate|correct|spell)* ]] &&
-  return 1
-
-local -i max_lines
-local word
-if [[ $curcontext = history-search:* ]]; then
-  (( max_lines = _autocomplete__max_lines() ))
-  word=$words[1]
+words=( "${(0@)words[CURRENT]}" )
+local -i max_lines=1
+if [[ $curcontext == history-search:* ]]; then
+  max_lines=16
 elif [[ -z $BUFFER ]]; then
   return 1
-else
-  max_lines=1
-  word=${(b)words[1]}
 fi
 
-local -a hits displays=()
-local numpat="[ [:digit:]](#c$#HISTNO)  "
-
-local -aU events=()
+local -aU events
 local -a queries=( '*' ); [[ -z $BUFFER ]] ||
-  queries=( '*(#ia'{0..7}")$~word*" )
-local q; for q in $queries[@]; do
-  hits=()
-  print -v hits -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
-  events+=( ${hits[@]:#$~numpat$word} )
-  [[ -n $events ]] &&
+  queries=( '*(#ia'{0..7}")${(j:*:)${(b)words[@]}}*" )
+local q numpat="[ [:digit:]](#c$#HISTNO)  "
+for q in $queries[@]; do
+  print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
+  events=( ${events[@]:#$~numpat$words} )
+  (( $#events[@] > 0 )) &&
     break
 done
+events=( ${(Oa@)events[1,max_lines]} )
 
-events=( ${(@aO)events[1,max_lines]} )
-
-displays=( $events[@] )
-local -A subs=(
-  '{ ;'   '{'
-  '; }'   '}'
-  ' () {' '() {'
-  '= ()' '=()'
-  $'\n'   '\n'
+local MATCH; local -i MBEGIN MEND
+local -a displays=(
+  "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
 )
-local k v num MATCH
-local -i wid=$(( $COLUMNS - 1 )) i MBEGIN MEND
-for (( i = 1; i < $#displays[@]; i++ )); do
-  num=${(M)displays[i]#$~numpat}
-  displays[i]=${(Z+C+j: :)displays[i]#$num}
-  for k v in ${(@kv)subs}; do
-    displays[i]=${displays[i]//$k/$v}
-  done
-  displays[i]=${displays[i]// \;/\;}
-  displays[i]=${(r:$wid:):-$num${displays[i]//(#m)[^[:print:]]/${(q+)MATCH}}}
-done
 
-local -a suffix_opts=()
-[[ $curcontext == history-search:* ]] &&
+local -a suffix_opts=(); [[ $curcontext == history-search:* ]] &&
   suffix_opts=( -S ';' -r '\-' )
 
 local _comp_no_ignore=1
+local prefix=${${LBUFFER%${PREFIX:-''}}%%[[:space:]]#}
+local suffix=${${RBUFFER#${SUFFIX:-''}}##[[:space:]]#}
 local expl
 _description -2V $tag expl 'history match'
 compadd "$expl[@]" -QU $suffix_opts -ld displays - \
-  ${(@)${(@)${(@)events[@]##$~numpat}##${BUFFER%$words*}}%%${BUFFER#*$words}}
+  ${(@)${(@)${(@)events[@]##$~numpat}#$prefix}%suffix}
