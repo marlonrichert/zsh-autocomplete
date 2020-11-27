@@ -14,9 +14,13 @@ local -a newer=( ${^fpath}/***/*(Ne:'[[ $REPLY -nt $_comp_dumpfile ]]:':Y1) )
 if [[ -z "$functions[_autocomplete.extras]" || ! -e "$_comp_dumpfile" || -e $newer ]]; then
 
   # Decrease Oh My Zsh start-up time. See below.
-  [[ -e "$ZSH_COMPDUMP" ]] && local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
+  [[ -e "$ZSH_COMPDUMP" ]] &&
+    local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
 
-  [[ -e "$_comp_dumpfile" ]] && command rm -f "$_comp_dumpfile"
+  if [[ -e "$_comp_dumpfile" ]]; then
+    zmodload -F zsh/files b:zf_rm
+    zf_rm -f "$_comp_dumpfile"
+  fi
   compinit -C -d "$_comp_dumpfile"
 
   # Prevent Oh My Zsh from deleting comp dump file.
