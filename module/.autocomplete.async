@@ -27,7 +27,7 @@
     }
   fi
 
-  typeset -gH ZSH_AUTOSUGGEST_USE_ASYNC=1
+  typeset -gHi ZSH_AUTOSUGGEST_USE_ASYNC=1
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
     local action
     for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
@@ -49,24 +49,30 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.line-pre-redraw() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  if [[ -z $BUFFER ]] || (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
+  if (( KEYS_QUEUED_COUNT + PENDING > 0 )) || [[ -z $BUFFER ]]; then
     .autocomplete.async.stop
     return 0
   fi
 
-  .autocomplete.highlight
+  [[ -v functions[_zsh_highlight] ]] &&
+    _zsh_highlight
+  typeset -gHa _autocomplete__highlight=( $region_highlight[@] )
+
+  [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+    _zsh_autosuggest_highlight_apply
 
   if [[ $LASTWIDGET == list-expand ||
       -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
     .autocomplete.async.stop
-    return
+    return 0
   fi
 
-    .autocomplete.async.start
+  .autocomplete.async.start
+  return 0
 }
 
 .autocomplete.async.stop() {
-  emulate -L zsh -o extendedglob
+  emulate -L zsh
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   _autocomplete__async_complete_fd=0
@@ -80,6 +86,8 @@ add-zsh-hook precmd .autocomplete.async.precmd
 }
 
 .autocomplete.async.kill() {
+  emulate -L zsh
+
   local -i fd=$1 pid=$2
 
   if (( fd > 9 )) && { : <&$fd } 2>/dev/null; then
@@ -219,10 +227,14 @@ add-zsh-hook precmd .autocomplete.async.precmd
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions nobanghist
   if ! zle .autocomplete.list-choices -w $seconds $nmatches $mesg 2>/dev/null; then
-    # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
-    .autocomplete.highlight
     typeset -gH _autocomplete__words=$words__
     typeset -gHi _autocomplete__current=$current
+    region_highlight=( "$_autocomplete__highlight[@]" )
+    [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+      _zsh_autosuggest_highlight_apply
+
+    # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
+    zle -R
   fi
   return 0
 }

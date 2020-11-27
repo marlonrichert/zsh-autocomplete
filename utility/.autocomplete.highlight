@@ -1,8 +1,0 @@
-#!/bin/zsh
-emulate -L zsh -o noshortloops -o extendedglob
-
-[[ -v functions[_zsh_highlight] ]] && (( KEYS_QUEUED_COUNT + PENDING == 0 )) &&
-  _zsh_highlight
-[[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-  _zsh_autosuggest_highlight_apply
-zle -R

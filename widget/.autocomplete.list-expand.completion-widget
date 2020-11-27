@@ -9,9 +9,9 @@ if (( compstate[list_lines] > realestate )); then
   compstate[insert]='menu'
   _autocomplete__screen_space=$realestate
 else
+  unset MENUSELECT
   compstate[insert]='';
   _autocomplete__screen_space=$(( max(_autocomplete__screen_space, compstate[list_lines]) ))
 fi
-
 
 (( compstate[nmatches] > 0 ))
