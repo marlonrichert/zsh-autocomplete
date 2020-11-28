@@ -121,7 +121,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      print -rNC1 - "$pid" "$SECONDS" "$line"
+      print -rNC1 - "$SECONDS" "$pid" "$line"
     } always {
       zpty -d _autocomplete__zpty
       kill -TERM $pid
@@ -159,10 +159,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
   zmodload -ui zsh/complist
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &>/dev/null
-  unfunction $hooks &>/dev/null
-  hooks=( isearch-exit isearch-update line-pre-redraw
-    line-init line-finish history-line-set keymap-select )
-  zle -D zle-${^hooks} &>/dev/null
+  $hooks[@] () { : }
+  local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
+      history-line-set keymap-select; do
+    zle -N zle-$h .autocomplete.no-op
+  done
 
   typeset -gH lbuffer=$1 rbuffer=$2
 
@@ -184,7 +185,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
     unset 'compstate[vared]'
     {
       .autocomplete.async.list-choices.complete
-      print -rNC1 - $'\0' "$compstate[nmatches]" "$CURRENT" "$words" "$message" ''
+      print -rNC1 - '' '' "$compstate[nmatches]" "$CURRENT" "$words" "$message" ''
     } always {
       compstate[insert]=''
       compstate[list]=''
@@ -195,16 +196,17 @@ add-zsh-hook precmd .autocomplete.async.precmd
   zle -N complete-word
   zle -C list-choices list-choices list-choices
   bindkey '^I' complete-word
-  vared BUFFER
+  local __tmp__
+  vared __tmp__
 }
 
 .autocomplete.async.complete.fd-widget() {
   local -F seconds
   local -i pid nmatches current
   local words__ mesg eof
-  {
+    {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r pid seconds nmatches current words__ mesg eof <&$1
+      IFS=$'\0' read -r seconds pid nmatches current words__ mesg eof <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
