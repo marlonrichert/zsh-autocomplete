@@ -20,7 +20,7 @@ fi
 
 local -aU events
 local -a queries=( '*' ); [[ -z $BUFFER ]] ||
-  queries=( '*(#ia'{0..7}")${(j:*:)${(b)words[@]}}*" )
+  queries=( '*(#ia'{0..2}")${(j:*:)${(b)words[@]}}*" )
 local q numpat="[ [:digit:]](#c$#HISTNO)  "
 for q in $queries[@]; do
   print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
