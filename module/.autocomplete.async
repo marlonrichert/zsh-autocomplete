@@ -156,7 +156,6 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.complete.inner() {
   setopt extendedglob nobanghist noxtrace noverbose
 
-  zmodload -ui zsh/complist
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &>/dev/null
   $hooks[@] () { : }
@@ -174,18 +173,18 @@ add-zsh-hook precmd .autocomplete.async.precmd
   }
 
   message() {
-    typeset -gH message=$mesg
+    typeset -gH _message_=$mesg
   }
 
   list-choices() {
     local curcontext=$curcontext; [[ -z $curcontext ]] &&
       curcontext=list-choices:::
 
-    local +h -a comppostfuncs=( message )
     unset 'compstate[vared]'
+    local +h -a comppostfuncs=( message )
     {
       .autocomplete.async.list-choices.complete
-      print -rNC1 - '' '' "$compstate[nmatches]" "$CURRENT" "$words" "$message" ''
+      print -rNC1 - '' '' "$compstate[nmatches]" "$CURRENT" "${(q+)words}" "${(q+)_message_}" ''
     } always {
       compstate[insert]=''
       compstate[list]=''
@@ -203,10 +202,11 @@ add-zsh-hook precmd .autocomplete.async.precmd
 .autocomplete.async.complete.fd-widget() {
   local -F seconds
   local -i pid nmatches current
-  local words__ mesg eof
-    {
+  local debug _words_ message eof
+
+  {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r seconds pid nmatches current words__ mesg eof <&$1
+      IFS=$'\0' read -r seconds pid nmatches current _words_ message eof <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
@@ -221,15 +221,17 @@ add-zsh-hook precmd .autocomplete.async.precmd
   .autocomplete.zle-flags ||
     return 0
 
-  [[ -v _autocomplete__words && $_autocomplete__words == $words__ &&
+  _words_="${(Q)_words_}"
+  [[ -v _autocomplete__words && $_autocomplete__words == $_words_ &&
       -v _autocomplete__current && $_autocomplete__current -eq $current ]] &&
     return 0
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions NO_banghist NO_completeinword
-  if ! zle .autocomplete.list-choices -w $seconds $nmatches $mesg 2>/dev/null; then
-    typeset -gH _autocomplete__words=$words__
+  if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null
+  then
+    typeset -gH _autocomplete__words=$_words_
     typeset -gHi _autocomplete__current=$current
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
@@ -247,25 +249,19 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local curcontext=$curcontext; [[ -z $curcontext ]] &&
     curcontext=list-choices:::
 
-  local -F seconds=$1
-  local -i nmatches=$2
-  local mesg=$3 reply
+  local -i nmatches=$1
+  local message=$2
 
   local min_input; zstyle -s :autocomplete: min-input min_input ||
     min_input=1
   local ignored; zstyle -s :autocomplete: ignored-input ignored ||
     ignored=' '
-  if (( CURRENT == 1 && $#words[1] < min_input )) || [[ $words[CURRENT] == $~ignored ]]; then
-    :
-  elif (( nmatches == 0 )); then
-    if [[ -n $mesg ]]; then
-      _autocomplete.explanation info $mesg
-    else
-      zstyle -s ":autocomplete:${curcontext}:no-matches-at-all" message mesg ||
-        mesg='No matching completions found.'
-      _autocomplete.explanation error $mesg
-    fi
-  else
+
+  if (( nmatches == 0 )) && [[ -n $message ]]; then
+    local msg
+    zformat -f msg "$message"
+    compadd -x "$msg"
+  elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
     .autocomplete.async.list-choices.complete
   fi
 
@@ -299,9 +295,9 @@ add-zsh-hook precmd .autocomplete.async.precmd
   fi
 
   local -a _opts_=()
-  zparseopts -E -A _opts_ - D: E: X:
+  zparseopts -E -A _opts_ - D: E: x: X:
 
-  if [[ -v _opts_[-E] ]]; then
+  if [[ -v _opts_[-E] || -v _opts_[-x] ]]; then
     .autocomplete.compadd "$@"
     return
   fi

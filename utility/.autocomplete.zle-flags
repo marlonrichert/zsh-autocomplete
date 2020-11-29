@@ -7,6 +7,7 @@
   [[ -n $1 ]] &&
     _autocomplete__last_widget=$1
 
+  # Return 0 to continue, 1 to abort.
   case $_autocomplete__last_widget in
     *kill*)
       zle -f kill
