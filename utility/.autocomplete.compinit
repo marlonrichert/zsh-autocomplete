@@ -68,6 +68,7 @@ _main_complete() {
   compstate[insert]='automenu'
 
   {
+    # Don't break `_complete_help`.
     [[ -v functions[compadd] ]] ||
       functions[compadd]=$functions[.autocomplete.compadd]
 
@@ -75,7 +76,8 @@ _main_complete() {
 
     compstate[list_max]=0
   } always {
-    [[ -v functions[compadd] ]] &&
+    # Don't break `_complete_help`.
+    [[ $functions[compadd] == $functions[.autocomplete.compadd] ]] &&
       unfunction compadd
   }
 }
@@ -83,8 +85,9 @@ _main_complete() {
 .autocomplete.patch _description
 _description() {
   .autocomplete._description "$@"; local -i ret=$?
-  [[ $3 == corrections ]] &&
-    _lastdescr=( "${(@)_lastdescr[1,-2]}" )
+  _lastdescr=( ${(@)_lastdescr[@]:#(corrections|history word)} )
+  [[ -n $_autocomplete__head ]] &&
+    _lastdescr=( ${(@)_lastdescr[@]:#recent directory} )
   return ret
 }
 
@@ -111,7 +114,7 @@ _complete() {
   [[ -v functions[builtin] ]] &&
     unfunction builtin
   {
-    if [[ $1 == compadd ]]; then
+    if [[ $1 == compadd && $funcstack[2] == compadd ]]; then
       shift $(( $#_correct_expl[@] + 1 ))
       builtin compadd "$@"
     else
@@ -124,12 +127,18 @@ _complete() {
 
 .autocomplete.patch _approximate _correct
 _approximate _correct () {
-  if [[ -v compstate[quote] || $words[CURRENT] == [$histchars]* ]] || _autocomplete.is_glob; then
+  [[ -z $words[CURRENT] ]] &&
     return 1
-  fi
+  [[ -v compstate[quote] ]] &&
+    return 1
+  [[ -o banghist && $words[CURRENT] == [$histchars]* ]] &&
+    return 1
+  _autocomplete.is_glob &&
+    return 1
+
   local -i ret=1
   {
-    [[ -v functions[compadd] ]] &&
+    [[ $functions[compadd] == $functions[.autocomplete.compadd] ]] &&
       unfunction compadd
     functions[builtin]=$functions[.autocomplete.builtin]
 
@@ -148,7 +157,6 @@ _expand() {
   if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
     [[ $words[CURRENT] == *[^*] ]] &&
       local ISUFFIX="*"
-    setopt localoptions NO_listtypes
   fi
   .autocomplete._expand "$@"
 }

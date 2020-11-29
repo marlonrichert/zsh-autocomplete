@@ -45,6 +45,6 @@ for line in ${(@)history[(R)*$~lbuffer*$~rbuffer*]}; do
     done
 done
 
-local expl _comp_no_ignore=yes
+local expl
 _description $tag expl 'history word'
 compadd "$expl[@]" -fQ -a matches

@@ -337,7 +337,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
 
         zparseopts -D -E -A _opts_ - a
         _autocomplete.compadd_opts_len "$@"
-        builtin compadd "${(@)@[1,?]}" -U -a _matches_
+        .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
 
         print $compstate[list_lines]
         print -r - ${(pj:\0:)_matches_}
