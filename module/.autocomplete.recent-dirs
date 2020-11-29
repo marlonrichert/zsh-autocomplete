@@ -13,7 +13,7 @@
       reply=( "$( zshz --complete -l $1 2>/dev/null )" )
     }
 
-  elif [[ -v commands[zoxide] && -v functions[_zoxide_hook] ]] &&
+  elif [[ -v commands[zoxide] && -v functions[__zoxide_hook] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
 
     _autocomplete.recent_dirs() {
