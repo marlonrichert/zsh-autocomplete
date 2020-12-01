@@ -33,12 +33,11 @@ features.
     | ![history search 1](.img/history-search-1.png) | ![history search 2](.img/history-search-2.png) |
     | --- | --- |
 
-* Multi-selection with <kbd>Alt</kbd>+<kbd>Space</kbd> in completion menu
+* Multi-selection with <kbd>Ctrl</kbd>+<kbd>Space</kbd> in completion menu
   (<kbd>↓</kbd>/<kbd>PgDn</kbd>) and history menu:
 
   | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
   | --- | --- |
-  * Single selection in menus with <kbd>Enter</kbd>.
 
 * Additional context-sensitive completions:
   * Alias expansions
@@ -93,6 +92,7 @@ features.
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
 
+
 ## Requirements
 Recommended:
 * **[Zsh](http://zsh.sourceforge.net) 5.8** or later.
@@ -103,10 +103,11 @@ Minimum:
 
 ## Installation
 1. `git clone` this repo.
-1. Add to your `.zshrc` file:
+1. Add near the top of your `~/.zshrc` file:
    ```zsh
    source path/to/zsh-autocomplete.plugin.zsh
    ```
+1. If you have any calls to `compinit` in your `~/.zshrc` file, you can now remove those.
 
 ### Updating
 1. `cd` into `zsh-autocomplete`'s directory.

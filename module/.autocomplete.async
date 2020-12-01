@@ -4,7 +4,7 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
-  zmodload -ab zsh/zpty zpty
+  zmodload -Fa zsh/zpty b:zpty
   zmodload -Fa zsh/system p:sysparams
   zmodload -Fa zsh/zutil b:zparseopts
 
@@ -41,11 +41,8 @@
 
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
   add-zle-hook-widget line-finish .autocomplete.async.stop
-  add-zsh-hook preexec .autocomplete.async.stop
   add-zsh-hook zshexit .autocomplete.async.stop
 }
-
-add-zsh-hook precmd .autocomplete.async.precmd
 
 .autocomplete.async.line-pre-redraw() {
   .autocomplete.zle-flags $LASTWIDGET
@@ -160,6 +157,7 @@ add-zsh-hook precmd .autocomplete.async.precmd
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &>/dev/null
   $hooks[@] () { : }
+  .autocomplete.no-op() { : }
   local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
       history-line-set keymap-select; do
     zle -N zle-$h .autocomplete.no-op
@@ -434,3 +432,5 @@ add-zsh-hook precmd .autocomplete.async.precmd
   (( _autocomplete__async_avg_duration *= 1.2 ))
   .autocomplete.async.start
 }
+
+add-zsh-hook precmd .autocomplete.async.precmd

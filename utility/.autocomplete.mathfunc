@@ -1,5 +1,6 @@
 #!/bin/zsh
-builtin autoload -Uz zmathfunc; zmathfunc
+builtin autoload -Uz zmathfunc
+zmathfunc
 
 _autocomplete__max_lines() {
   (( _autocomplete__screen_space = min(
