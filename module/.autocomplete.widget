@@ -2,13 +2,13 @@
 
 .autocomplete.widget.c() {
   local func=.autocomplete.$3.completion-widget
-  autoload -Uz $func
+  builtin autoload -Uz $func
   zle -C $1 $2 $func
 }
 
 .autocomplete.widget.z() {
   local func=.autocomplete.$2.zle-widget
-  autoload -Uz $func
+  builtin autoload -Uz $func
   zle -N $1 $func
 }
 

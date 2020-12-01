@@ -5,7 +5,7 @@ emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
 
   unfunction compinit
-  autoload -Uz compinit
+  builtin autoload -Uz compinit
 
   local REPLY
   typeset -g _comp_dumpfile="${_comp_dumpfile:-${ZDOTDIR:-$HOME}/.zcompdump}"

@@ -8,7 +8,7 @@
   zmodload -Fa zsh/system p:sysparams
   zmodload -Fa zsh/zutil b:zparseopts
 
-  autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
+  builtin autoload -Uz .autocomplete.highlight .autocomplete.zle-flags
 
   typeset -gHF _autocomplete__async_avg_duration=0.3
 

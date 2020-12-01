@@ -49,7 +49,7 @@
     }
 
   else
-    autoload -Uz cdr chpwd_recent_dirs
+    builtin autoload -Uz cdr chpwd_recent_dirs
     add-zsh-hook chpwd chpwd_recent_dirs
     zstyle ':chpwd:*' recent-dirs-max 0
     zstyle ':chpwd:*' recent-dirs-prune "pattern:$TMPDIR:A/*"

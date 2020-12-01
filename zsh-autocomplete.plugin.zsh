@@ -13,15 +13,14 @@
   zmodload -F zsh/zutil b:zstyle
 
   typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
-  autoload -Uz add-zle-hook-widget add-zsh-hook
-  autoload -Uz .autocomplete.patch
+  builtin autoload -Uz add-zle-hook-widget add-zsh-hook
+  builtin autoload -Uz .autocomplete.patch
 
   .autocomplete.no-op() { : }
   functions[compinit]=$functions[.autocomplete.no-op]
 
   typeset -gHa _autocomplete__compdef=()
   compdef() {
-    emulate -L zsh -o extendedglob -o NO_shortloops -o warncreateglobal
     _autocomplete__compdef+=( "${(q)*}" )
   }
 
@@ -32,15 +31,15 @@
   .autocomplete.patch add-zsh-hook
   add-zsh-hook() {
     # Prevent `_zsh_autosuggest_start` from being added.
-    [[ ${@[(ie)_zsh_autosuggest_start]} -gt ${#@} ]] &&
+    [[ ${@[(ie)_zsh_autosuggest_start]} -gt $# ]] &&
       .autocomplete.add-zsh-hook "$@"
   }
 
-  autoload -Uz .autocomplete.__init__ && .autocomplete.__init__
+  builtin autoload -Uz .autocomplete.__init__ && .autocomplete.__init__
   local mod; for mod in compinit config widget key key-binding recent-dirs async; do
     if ! zstyle -t ':autocomplete:' $mod false no off 0; then
       mod=.autocomplete.$mod
-      autoload -Uz $mod && $mod
+      builtin autoload -Uz $mod && $mod
     fi
   done
 
