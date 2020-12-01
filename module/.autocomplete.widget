@@ -27,6 +27,13 @@
   done
   .autocomplete.widget.c reverse-menu-complete reverse-menu-complete complete-word
 
+  # Declare these again, because compinit overrides them. See below.
+  .autocomplete.widget.c list-expand complete-word list-expand
+  .autocomplete.widget.c _history_search menu-select history-search
+  .autocomplete.widget.z history-search history-search
+  .autocomplete.widget.z up-line-or-search up-line-or-search
+  .autocomplete.widget.z down-line-or-select down-line-or-select
+
   if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
     [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
@@ -38,12 +45,11 @@
 
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
+# Declare these already, so syntax highlighting doesn't complain. See above.
 .autocomplete.widget.c list-expand complete-word list-expand
-
 .autocomplete.widget.c _history_search menu-select history-search
 .autocomplete.widget.z history-search history-search
 .autocomplete.widget.z up-line-or-search up-line-or-search
-
 .autocomplete.widget.z down-line-or-select down-line-or-select
 
 add-zsh-hook precmd .autocomplete.widget.precmd

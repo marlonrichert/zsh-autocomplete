@@ -9,22 +9,19 @@
 
   add-zsh-hook -d precmd .autocomplete.__init__.precmd
 
-  .autocomplete.compinit
-
-  typeset -gHi _autocomplete__screen_space=$(( LINES - _autocomplete__pslines() - 2 ))
+  autoload -Uz .autocomplete.mathfunc
+  .autocomplete.mathfunc
   add-zsh-hook precmd .autocomplete.screen-space
+
+  typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
+
+  # Don't let `|` remove suffixes.
+  [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
+    export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+
+  # Workaround for issue #43
+  # https://github.com/marlonrichert/zsh-autocomplete/issues/43
+  zle -N zle-line-finish azhw:zle-line-finish
 }
-
-emulate -L zsh -o extendedglob
-
-typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
-
-# Don't let `|` remove suffixes.
-[[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
-  export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
-
-# Workaround for issue #43
-# https://github.com/marlonrichert/zsh-autocomplete/issues/43
-zle -N zle-line-finish azhw:zle-line-finish
 
 add-zsh-hook precmd .autocomplete.__init__.precmd

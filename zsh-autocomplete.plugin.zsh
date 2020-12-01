@@ -14,8 +14,7 @@
 
   typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
   autoload -Uz add-zle-hook-widget add-zsh-hook
-  autoload -Uz .autocomplete.mathfunc; .autocomplete.mathfunc
-  autoload -Uz .autocomplete.compinit .autocomplete.patch
+  autoload -Uz .autocomplete.patch
 
   .autocomplete.no-op() { : }
   functions[compinit]=$functions[.autocomplete.no-op]
@@ -38,7 +37,7 @@
   }
 
   autoload -Uz .autocomplete.__init__ && .autocomplete.__init__
-  local mod; for mod in config widget key key-binding recent-dirs async; do
+  local mod; for mod in compinit config widget key key-binding recent-dirs async; do
     if ! zstyle -t ':autocomplete:' $mod false no off 0; then
       mod=.autocomplete.$mod
       autoload -Uz $mod && $mod

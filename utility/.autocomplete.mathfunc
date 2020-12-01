@@ -13,3 +13,5 @@ _autocomplete__pslines() {
 
 functions -M _autocomplete__max_lines 0
 functions -M _autocomplete__pslines 0
+
+typeset -gHi _autocomplete__screen_space=$(( LINES - _autocomplete__pslines() - 2 ))

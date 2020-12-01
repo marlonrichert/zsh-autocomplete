@@ -40,6 +40,7 @@
   fi
 
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
+  add-zle-hook-widget line-finish .autocomplete.async.stop
   add-zsh-hook preexec .autocomplete.async.stop
   add-zsh-hook zshexit .autocomplete.async.stop
 }
