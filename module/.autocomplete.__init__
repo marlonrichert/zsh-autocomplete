@@ -9,15 +9,21 @@
 
   add-zsh-hook -d precmd .autocomplete.__init__.precmd
 
-  autoload -Uz .autocomplete.mathfunc
-  .autocomplete.mathfunc
-  add-zsh-hook precmd .autocomplete.screen-space
-
-  typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
-
   # Don't let `|` remove suffixes.
   [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
     export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+
+  export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${ZDOTDIR:-$HOME}/.cache}"
+  if [[ ! -d $XDG_CACHE_HOME ]]; then
+    zmodload -F zsh/files b:zf_mkdir
+    zf_mkdir -p $XDG_CACHE_HOME
+  fi
+
+  typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
+
+  autoload -Uz .autocomplete.mathfunc
+  .autocomplete.mathfunc
+  add-zsh-hook precmd .autocomplete.screen-space
 
   # Workaround for issue #43
   # https://github.com/marlonrichert/zsh-autocomplete/issues/43
