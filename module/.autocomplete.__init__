@@ -13,7 +13,7 @@
   [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
     export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
 
-  export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${ZDOTDIR:-$HOME}/.cache}"
+  export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
   if [[ ! -d $XDG_CACHE_HOME ]]; then
     zmodload -F zsh/files b:zf_mkdir
     zf_mkdir -p $XDG_CACHE_HOME
