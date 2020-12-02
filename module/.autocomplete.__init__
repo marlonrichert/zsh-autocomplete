@@ -9,9 +9,6 @@
 
   add-zsh-hook -d precmd .autocomplete.__init__.precmd
 
-  zmodload -Fa zsh/terminfo b:echoti p:terminfo
-  builtin autoload -Uz add-zle-hook-widget
-
   # Don't let `|` remove suffixes.
   [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
     export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
@@ -33,5 +30,4 @@
   zle -N zle-line-finish azhw:zle-line-finish
 }
 
-zmodload zsh/complist
 add-zsh-hook precmd .autocomplete.__init__.precmd

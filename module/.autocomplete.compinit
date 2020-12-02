@@ -18,6 +18,7 @@
       fi
     fi
     () {
+      zmodload zsh/complist
       unfunction compinit 2>/dev/null
       builtin autoload -Uz compinit
       compinit -C -d $_comp_dumpfile
@@ -62,6 +63,8 @@ EOF
       builtin compadd "$@"
     fi
   }
+
+  builtin autoload -Uz .autocomplete.patch
 
   .autocomplete.patch _main_complete
   _main_complete() {

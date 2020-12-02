@@ -14,6 +14,7 @@
 
 .autocomplete.widget.precmd() {
   emulate -L zsh -o extendedglob -o rcquotes
+
   add-zsh-hook -d precmd .autocomplete.widget.precmd
 
   local null
@@ -46,6 +47,7 @@
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
 # Declare these already, so syntax highlighting doesn't complain. See above.
+zmodload zsh/complist
 .autocomplete.widget.c list-expand complete-word list-expand
 .autocomplete.widget.c _history_search menu-select history-search
 .autocomplete.widget.z history-search history-search
