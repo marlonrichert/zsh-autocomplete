@@ -50,6 +50,7 @@
 
   if (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
     .autocomplete.async.stop
+    unset _autocomplete__words _autocomplete__current
     return 0
   fi
 
@@ -80,8 +81,6 @@
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   _autocomplete__async_timeout_fd=0
   _autocomplete__async_timeout_pid=0
-
-  unset _autocomplete__words _autocomplete__current
 }
 
 .autocomplete.async.kill() {
@@ -184,7 +183,7 @@
     local +h -a comppostfuncs=( message )
     {
       .autocomplete.async.list-choices.complete
-      print -rNC1 - '' '' "$compstate[nmatches]" "$CURRENT" "${(q+)words}" "${(q+)_message_}" ''
+      print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     } always {
       compstate[insert]=''
       compstate[list]=''
@@ -202,11 +201,10 @@
 .autocomplete.async.complete.fd-widget() {
   local -F seconds
   local -i pid nmatches current
-  local debug _words_ message eof
-
+  local message eof
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r seconds pid nmatches current _words_ message eof <&$1
+      IFS=$'\0' read -r seconds pid nmatches message eof <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
@@ -221,23 +219,16 @@
   .autocomplete.zle-flags ||
     return 0
 
-  _words_="${(Q)_words_}"
-  [[ -v _autocomplete__words && $_autocomplete__words == $_words_ &&
-      -v _autocomplete__current && $_autocomplete__current -eq $current ]] &&
-    return 0
-
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt localoptions NO_banghist NO_completeinword
   if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null
   then
-    typeset -gH _autocomplete__words=$_words_
-    typeset -gHi _autocomplete__current=$current
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
 
-    # Refresh if and only if our widget got called. Otherwise, ZLE will crash (eventually).
+    # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
     zle -R
   fi
   return 0
@@ -336,14 +327,14 @@
         .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
 
         print $compstate[list_lines]
-        print -r - ${(pj:\0:)_matches_}
+        print -rNC1 - "$_matches_[@]"
       )
       IFS=$'\0' read list_lines <&$fd
       IFS=$'\0' read -A _matches_ <&$fd
     } always {
       exec {fd}<&-
     }
-    _matches_=( $_matches_[@] )  # Filter out blanks.
+    _matches_=( ${(@)_matches_[@]:#} )
     lines_of_new_matches=$(( list_lines - compstate[list_lines] ))
   fi
 

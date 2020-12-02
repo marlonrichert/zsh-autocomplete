@@ -80,8 +80,7 @@ EOF
       _autocomplete.extras
       "$comppostfuncs[@]"
     )
-    compstate[insert]='automenu'
-
+    compstate[insert]='menu'
     {
       # Don't break `_complete_help` widget.
       [[ -v functions[compadd] ]] ||
@@ -89,12 +88,15 @@ EOF
 
       .autocomplete._main_complete "$@"
 
-      compstate[list_max]=0
     } always {
       # Don't break `_complete_help` widget.
       [[ $functions[compadd] == $functions[.autocomplete.compadd] ]] &&
         unfunction compadd
     }
+    typeset -gHi _autocomplete__current=$CURRENT
+    typeset -gH _autocomplete__words="$words"
+    compstate[list_max]=0
+    (( compstate[nmatches] > 0 ))
   }
 
   .autocomplete.patch _description
