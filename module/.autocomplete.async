@@ -258,7 +258,6 @@
 
   compstate[insert]=''
   _lastcomp[insert]=''
-  compstate[list_max]=0
   unset MENUSELECT
   return 2
 }

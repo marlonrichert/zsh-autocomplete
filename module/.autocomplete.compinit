@@ -15,9 +15,9 @@
       # Decrease Oh My Zsh start-up time. See below.
       [[ -v ZSH_COMPDUMP ]] &&
         local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
-        zmodload -F zsh/files b:zf_rm
-        zf_rm -f $_comp_dumpfile
-      fi
+      zmodload -F zsh/files b:zf_rm
+      zf_rm -f $_comp_dumpfile
+    fi
 
     if ! [[ -v _comp_dumpfile && -f $_comp_dumpfile ]]; then
       zmodload zsh/complist
@@ -26,14 +26,14 @@
       compinit -C -d ${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
       local -i fd
       exec {fd}< <(
-      local bin=$_comp_dumpfile.zwc
-      if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
+        local bin=$_comp_dumpfile.zwc
+        if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
           zcompile -Uz $_comp_dumpfile 2>/dev/null
-      fi
+        fi
 
-    # Prevent Oh My Zsh from deleting comp dump file.
-      (( $#omzdump > 0 )) &&
-      tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+        # Prevent Oh My Zsh from deleting comp dump file.
+        (( $#omzdump > 0 )) &&
+          tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
@@ -41,7 +41,7 @@ EOF
       zle -F "$fd" .autocomplete.compinit.zle-f
 
       break
-  fi
+    fi
   done
 
   local cache_dir; zstyle -s ':completion:*' cache-path cache_dir && () {
@@ -76,19 +76,14 @@ EOF
 
   .autocomplete.patch _main_complete
   _main_complete() {
-    local word=$PREFIX$SUFFIX
-    local _autocomplete__tail=${word##*/}
-    local _autocomplete__head=${word%%$_autocomplete__tail}
-    local _autocomplete__alnum=${_autocomplete__tail##[^[:alnum:]]##}
-    local _autocomplete__punct=${_autocomplete__tail%%$_autocomplete__alnum}
-
     local -i _autocomplete__reserved_lines=0
 
     local +h -a comppostfuncs=(
       _autocomplete.extras
       "$comppostfuncs[@]"
     )
-    compstate[insert]='menu'
+    compstate[insert]=''
+    compstate[list]='list force'
     {
       # Don't break `_complete_help` widget.
       [[ -v functions[compadd] ]] ||
@@ -111,7 +106,7 @@ EOF
   _description() {
     .autocomplete._description "$@"; local -i ret=$?
     _lastdescr=( ${(@)_lastdescr[@]:#(corrections|history word)} )
-    [[ -n $_autocomplete__head ]] &&
+    [[ ${${:-$PREFIX$SUFFIX}:h} == . ]] ||
       _lastdescr=( ${(@)_lastdescr[@]:#recent directory} )
     return ret
   }
@@ -125,14 +120,10 @@ EOF
 
   .autocomplete.patch _complete
   _complete() {
-    local -i nmatches=$compstate[nmatches]
-    .autocomplete._complete "$@"
-
-    (( compstate[nmatches] > nmatches )) &&
-      return 0
-
-    _comp_mesg=''
-    return 1
+    .autocomplete._complete "$@"; local -i ret=$?
+    (( ret > 0 )) &&
+      _comp_mesg=''
+    return ret
   }
 
   .autocomplete.builtin() {
@@ -164,8 +155,10 @@ EOF
 
     local -i ret=1
     {
-      [[ $functions[compadd] == $functions[.autocomplete.compadd] ]] &&
+      if [[ -v functions[compadd] ]]; then
+        functions[.autocomplete.__tmp__]=$functions[compadd]
         unfunction compadd
+      fi
       functions[builtin]=$functions[.autocomplete.builtin]
 
       .autocomplete.$0 "$@"; ret=$?
@@ -173,6 +166,11 @@ EOF
     } always {
       [[ -v functions[builtin] ]] &&
         unfunction builtin
+      if [[ -v functions[.autocomplete.__tmp__] ]]; then
+        functions[compadd]=$functions[.autocomplete.__tmp__]
+        unfunction .autocomplete.__tmp__
+      fi
+
       functions[compadd]=$functions[.autocomplete.compadd]
     }
     return ret
