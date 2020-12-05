@@ -1,5 +1,10 @@
 #!/bin/zsh
 
+.autocomplete.compinit.zle-f() {
+  exec {1}<&-
+  zle -F $1 2>/dev/null
+}
+
 .autocomplete.compinit.precmd() {
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
@@ -19,12 +24,12 @@
       unfunction compinit 2>/dev/null
       builtin autoload -Uz compinit
       compinit -C -d ${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
-      () {
+      local -i fd
+      exec {fd}< <(
       local bin=$_comp_dumpfile.zwc
       if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
           zcompile -Uz $_comp_dumpfile 2>/dev/null
       fi
-    }
 
     # Prevent Oh My Zsh from deleting comp dump file.
       (( $#omzdump > 0 )) &&
@@ -32,6 +37,9 @@
 $omzdump[-2]
 $omzdump[-1]
 EOF
+      )
+      zle -F "$fd" .autocomplete.compinit.zle-f
+
       break
   fi
   done
