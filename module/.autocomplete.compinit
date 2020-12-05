@@ -4,40 +4,40 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
 
-  typeset -g _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
-  if [[ -z $functions[_autocomplete.extras] ]]; then
-    if [[ -e $_comp_dumpfile ]]; then
+  local f; for f in $^fpath/_*~*.zwc(N-.); do
+    if [[ -v _comp_dumpfile &&
+        ( ! -v functions[$f] || -f $_comp_dumpfile && $f -nt $_comp_dumpfile ) ]]; then
       # Decrease Oh My Zsh start-up time. See below.
-      [[ $_comp_dumpfile == $ZSH_COMPDUMP ]] &&
+      [[ -v ZSH_COMPDUMP ]] &&
         local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
-
-      local -a newest=( $^fpath/***/_*(Nom) )
-      if [[ $newest[1] -nt $_comp_dumpfile ]]; then
         zmodload -F zsh/files b:zf_rm
         zf_rm -f $_comp_dumpfile
       fi
-    fi
-    () {
+
+    if ! [[ -v _comp_dumpfile && -f $_comp_dumpfile ]]; then
       zmodload zsh/complist
       unfunction compinit 2>/dev/null
       builtin autoload -Uz compinit
-      compinit -C -d $_comp_dumpfile
+      compinit -C -d ${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
+      () {
       local bin=$_comp_dumpfile.zwc
       if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
-        zcompile -Uz $_comp_dumpfile
+          zcompile -Uz $_comp_dumpfile 2>/dev/null
       fi
     }
 
     # Prevent Oh My Zsh from deleting comp dump file.
-    [[ $_comp_dumpfile == $ZSH_COMPDUMP ]] &&
+      (( $#omzdump > 0 )) &&
       tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
+      break
   fi
+  done
 
-  local src bin cache_dir;
-  zstyle -s ':completion:*' cache-path cache_dir && () {
+  local cache_dir; zstyle -s ':completion:*' cache-path cache_dir && () {
+    local src bin
     for src in $cache_dir/*~*.zwc(N-.); do
       bin=$src.zwc
       if [[ ! -e $bin || $bin -ot $src ]]; then
