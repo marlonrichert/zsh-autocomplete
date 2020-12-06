@@ -1,8 +1,9 @@
 # `zsh-autocomplete`
-`zsh-autocomplete` adds **real-time type-ahead autocompletion** to Zsh, plus many more completion
-features.
+`zsh-autocomplete` adds **real-time type-ahead autocompletion** to Zsh. Find as you type, then
+press <kbd>Tab</kbd> to insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert the
+bottom, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to use menu selection.
 
-[![file-search](.img/file-search.gif)](https://asciinema.org/a/356653)
+[![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
 
 * [Features](#features)
 * [Key Bindings](#key-bindings)
@@ -12,49 +13,50 @@ features.
 * [Author](#author)
 * [License](#license)
 
-## Features
+## Other Features
+Besides live autocompletion, `zsh-autocomplete` comes with many more useful features, for a great
+out-of-the-box experience.
 
-* Recent dirs completion:
+### Optimized completion config
+Zsh's completion system is powerful, but correctly configuring it can be a daunting task.
+`zsh-autocomplete` does it for you, so you can effortlessly get the most out of it.
 
-  ![recent dirs](.img/recent-dirs.png)
-  * Supports `cdr`, `zsh-z`, `zoxide`, `z.lua`, `rupa/z.sh`, `autojump` and `fasd`.
+### Recent dirs completion
+Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide`, `z.lua`,
+`rupa/z.sh`, `autojump` and `fasd`.
 
-* Automatic incremental history search:
+![recent dirs](.img/recent-dirs.png)
 
-  ![history lines](.img/history-lines.png)
+### Inline incremental history search
+No need to press any shortcut; just type a word and you'll get the most recent matching history
+item.
 
-* History menu (<kbd>↑</kbd>/<kbd>PgUp</kbd>):
+![history lines](.img/history-lines.png)
 
-  | ![history menu 1](.img/history-menu-1.png) | ![history menu 2](.img/history-menu-2.png) |
-  | --- | --- |
+### History menu
+Inline history search doesn't find what you need? Press <kbd>↑</kbd> or <kbd>PgUp</kbd> to open the
+history menu. Does history search when the command line is non-empty.
 
-  * Does history search when buffer is non-empty:
+![history menu](.img/history-menu.png)
 
-    | ![history search 1](.img/history-search-1.png) | ![history search 2](.img/history-search-2.png) |
-    | --- | --- |
+### Multi-selection
+Press <kbd>Ctrl</kbd>+<kbd>Space</kbd> in the completion menu or the history menu to insert more
+than one item.
 
-* Multi-selection with <kbd>Ctrl</kbd>+<kbd>Space</kbd> in completion menu
-  (<kbd>↓</kbd>/<kbd>PgDn</kbd>) and history menu:
+![multi-select](.img/multi-select.png) |
 
-  | ![menu select 1](.img/menu-select-1.png) | ![menu select 2](.img/menu-select-2.png) |
-  | --- | --- |
+### Additional context-sensitive completions
+`zsh-autocomplete` turns <kbd>Shift</kbd>+<kbd>Tab</kbd> into a power-completion key.
 
-* Additional context-sensitive completions:
-  * Alias expansions
+![alias expansion](.img/alias-expansion.png)
 
-    ![alias expansions](.img/alias-expansions.png)
+![requoted](.img/requoted.png)
 
-  * Alternative quoting
-
-    ![requoted](.img/requoted.png)
-
-  * Common substrings
-
-    ![unambiguous](.img/unambiguous.png)
+![unambiguous](.img/unambiguous.png)
 
 
 ## Key Bindings
-| Key(s) | Action | <sub>[Widget](#advanced-choose-your-own-key-bindings)</sub> |
+| Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
 | --- | --- | --- |
 | any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
 | <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
