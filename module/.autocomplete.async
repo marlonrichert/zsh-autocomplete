@@ -54,9 +54,10 @@
     return 0
   fi
 
-  [[ -v functions[_zsh_highlight] ]] &&
+  if [[ -v functions[_zsh_highlight] ]]; then
     _zsh_highlight
-  typeset -gHa _autocomplete__highlight=( $region_highlight[@] )
+    typeset -gHa _autocomplete__highlight=( $region_highlight[@] )
+  fi
 
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
@@ -224,7 +225,8 @@
   setopt localoptions NO_banghist NO_completeinword
   if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null
   then
-    region_highlight=( "$_autocomplete__highlight[@]" )
+    [[ -v functions[_zsh_highlight] ]] &&
+      region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
 
@@ -424,7 +426,7 @@
 
   (( _autocomplete__async_avg_duration *= 1.2 ))
   if [[ -z $MENUSELECT ]]; then
-  .autocomplete.async.start
+    .autocomplete.async.start
   else
     .autocomplete.async.stop
   fi
