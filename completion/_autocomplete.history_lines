@@ -1,47 +1,63 @@
 #autoload
 
-(( $#words > 1 )) &&
-  return 1
-[[ $curcontext == *(approximate|correct|spell)* ]] &&
-  return 1
+_autocomplete.history_lines() {
+  (( $#words > 1 )) &&
+    return 1
 
-local tag=history-lines
-_tags $tag
-_tags && _requested $tag ||
-  return 1
+  local tag=history-lines
+  _tags $tag
+  _tags && _requested $tag ||
+    return 1
 
-words=( "${(0@)words[CURRENT]}" )
-local -i max_lines=1
-if [[ $curcontext == history-search:* ]]; then
-  max_lines=16
-elif [[ -z $BUFFER ]]; then
-  return 1
-fi
+  words=( "${(0@)words[CURRENT]}" )
+  local -i max_lines=1
+  if [[ $curcontext == history-search:* ]]; then
+    max_lines=16
+  elif [[ -z $BUFFER ]]; then
+    return 1
+  fi
 
-local -aU events
-local -a queries=( '*' ); [[ -z $BUFFER ]] ||
-  queries=( '*(#ia'{0..2}")${(j:*:)${(b)words[@]}}*" )
-local q numpat="[ [:digit:]](#c$#HISTNO)  "
-for q in $queries[@]; do
-  print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
-  events=( ${events[@]:#$~numpat$words} )
-  (( $#events[@] > 0 )) &&
-    break
-done
-events=( ${(Oa@)events[1,max_lines]} )
+  local -aU events
+  local -a queries=( '*' ); [[ -z $BUFFER ]] ||
+    queries=( '*(#ia'{0..2}")${(j:*:)${(b)words[@]}}*" )
+  local q numpat="[ [:digit:]](#c$#HISTNO)  "
+  for q in $queries[@]; do
+    print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
+    events=( ${events[@]:#$~numpat$words} )
+    (( $#events[@] > 0 )) &&
+      break
+  done
+  events=( ${(Oa@)events[1,max_lines]} )
 
-local MATCH; local -i MBEGIN MEND
-local -a displays=(
-  "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
-)
+  local MATCH; local -i MBEGIN MEND
+  local -a displays=(
+    "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
+  )
 
-local prefix=${LBUFFER%${(Q)PREFIX}}
-local suffix=${RBUFFER#${(Q)SUFFIX}}
+  local prefix=${LBUFFER%${(Q)PREFIX}}
+  local suffix=${RBUFFER#${(Q)SUFFIX}}
+  local delim=${${prefix%%[[:space:]]#}[-1]:-;}
 
-local -a suffix_opts=(); [[ $curcontext == history-search:* ]] &&
-  suffix_opts=( -S ';' -r '\-' )
+  local -a suffix_opts=(); [[ $curcontext == history-search:* ]] &&
+    suffix_opts=( -S "${${${delim:#;}:+ $delim}:-;}" -R _autocomplete.history_lines.suffix )
 
-local _comp_no_ignore=1 expl
-_description -2V $tag expl 'history match'
-compadd "$expl[@]" -QU $suffix_opts -ld displays - \
-  ${(@)${(@)${(@)events[@]##$~numpat}#$prefix}%suffix}
+  local _comp_no_ignore=1 expl
+  _description -2V $tag expl 'history match'
+  compadd "$expl[@]" -QU $suffix_opts -ld displays - \
+    ${(@)${(@)${(@)events[@]##$~numpat}#$prefix}%suffix}
+}
+
+_autocomplete.history_lines.suffix() {
+  case $KEYS in
+    "$key[Alt] ");
+      LBUFFER+=' '
+      ;&
+    $key[ControlSpace])
+      ;;
+    *)
+      LBUFFER=$LBUFFER[1,$(( -1 - $1 ))]
+      ;;
+  esac
+}
+
+_autocomplete.history_lines "$@"
