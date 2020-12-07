@@ -35,13 +35,13 @@ local -a displays=(
   "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
 )
 
+local prefix=${LBUFFER%${(Q)PREFIX}}
+local suffix=${RBUFFER#${(Q)SUFFIX}}
+
 local -a suffix_opts=(); [[ $curcontext == history-search:* ]] &&
   suffix_opts=( -S ';' -r '\-' )
 
-local _comp_no_ignore=1
-local prefix=${${LBUFFER%${PREFIX:-''}}%%[[:space:]]#}
-local suffix=${${RBUFFER#${SUFFIX:-''}}##[[:space:]]#}
-local expl
+local _comp_no_ignore=1 expl
 _description -2V $tag expl 'history match'
 compadd "$expl[@]" -QU $suffix_opts -ld displays - \
   ${(@)${(@)${(@)events[@]##$~numpat}#$prefix}%suffix}

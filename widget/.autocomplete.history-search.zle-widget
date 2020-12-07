@@ -2,7 +2,7 @@
 setopt localoptions extendedglob completeinword NO_listbeep
 
 local -i index
-local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+local context lbuffer="$LBUFFER" rbuffer="$RBUFFER"
 
 index=$LBUFFER[(I)$~_autocomplete__sublist_delim]
 (( index < 1 )) ||
