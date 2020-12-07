@@ -2,10 +2,9 @@
 
 zstyle -t :autocomplete:tab: insert-unambiguous &&
   return 1
-
 (( compstate[nmatches] > 1 )) ||
   return 1
-[[ $compstate[unambiguous] == ($PREFIX$SUFFIX?|?$PREFIX$SUFFIX|$PREFIX$SUFFIX) ]] &&
+[[ $compstate[unambiguous] == (?|(#a1)$PREFIX$SUFFIX) ]] &&
   return 1
 
 local tag=unambiguous
