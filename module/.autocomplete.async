@@ -230,6 +230,8 @@
 
     # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
     zle -R
+  else
+    .autocomplete.async.stop
   fi
   return 0
 }
@@ -421,7 +423,11 @@
     return
 
   (( _autocomplete__async_avg_duration *= 1.2 ))
+  if [[ -z $MENUSELECT ]]; then
   .autocomplete.async.start
+  else
+    .autocomplete.async.stop
+  fi
 }
 
 add-zsh-hook precmd .autocomplete.async.precmd
