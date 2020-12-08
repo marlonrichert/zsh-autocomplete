@@ -161,7 +161,7 @@
   .autocomplete.no-op() { : }
   local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
       history-line-set keymap-select; do
-    zle -N zle-$h .autocomplete.no-op
+    zle -N zle-$hook .autocomplete.no-op
   done
 
   typeset -gH lbuffer=$1 rbuffer=$2
