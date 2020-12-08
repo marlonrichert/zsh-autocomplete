@@ -25,12 +25,14 @@
   .autocomplete.patch add-zsh-hook
   add-zsh-hook() {
     # Prevent `_zsh_autosuggest_start` from being added.
-    [[ ${@[(ie)_zsh_autosuggest_start]} -gt $# ]] &&
-      .autocomplete.add-zsh-hook "$@"
+    local -i ret=0
+    if (( ${@[(I)_zsh_autosuggest_start]} == 0 )); then
+      .autocomplete.add-zsh-hook "$@"; ret=$?
+    fi
+    return 0
   }
 
   zmodload -F zsh/zutil b:zstyle
-
   builtin autoload -Uz .autocomplete.__init__
   .autocomplete.__init__
   local mod; for mod in compinit config widget key key-binding recent-dirs async; do
