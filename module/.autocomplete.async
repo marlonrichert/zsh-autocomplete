@@ -120,8 +120,8 @@
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      print -rNC1 - "$SECONDS" "$pid" "$line"
     } always {
+      print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
       kill -TERM $pid
     }
@@ -131,16 +131,16 @@
 
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
-      setopt extendedglob noxtrace noverbose
+    setopt extendedglob noxtrace noverbose
 
-      local complete_pid=$_autocomplete__async_complete_pid
-      local complete_fd=$_autocomplete__async_complete_fd
-      local pid=$sysparams[pid]
-      print $pid
+    local complete_pid=$_autocomplete__async_complete_pid
+    local complete_fd=$_autocomplete__async_complete_fd
+    local pid=$sysparams[pid]
+    print $pid
     {
       sleep $(( max(0, 2 * _autocomplete__async_avg_duration - SECONDS) ))
-      print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
     } always {
+      print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
       kill -TERM $pid
     }
   )
@@ -184,12 +184,12 @@
     local +h -a comppostfuncs=( message )
     {
       .autocomplete.async.list-choices.complete
-      print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     } always {
-      compstate[insert]=''
-      compstate[list]=''
-      compstate[list_max]=0
+      print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     }
+    compstate[insert]=''
+    compstate[list]=''
+    compstate[list_max]=0
   }
 
   zle -N complete-word
