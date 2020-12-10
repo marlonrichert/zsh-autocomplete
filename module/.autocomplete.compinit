@@ -9,40 +9,39 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
 
+  local dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
   local f; for f in $^fpath/_*~*.zwc(N-.); do
-    if [[ -v _comp_dumpfile &&
-        ( ! -v functions[$f] || -f $_comp_dumpfile && $f -nt $_comp_dumpfile ) ]]; then
+    if [[ -v _comp_dumpfile && ! -v functions[$f] ||
+        -f $dumpfile && $f -nt $dumpfile ]]; then
       # Decrease Oh My Zsh start-up time. See below.
       [[ -v ZSH_COMPDUMP ]] &&
         local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
       zmodload -F zsh/files b:zf_rm
-      zf_rm -f $_comp_dumpfile
-    fi
-
-    if ! [[ -v _comp_dumpfile && -f $_comp_dumpfile ]]; then
-      zmodload zsh/complist
-      unfunction compinit 2>/dev/null
-      builtin autoload -Uz compinit
-      compinit -C -d ${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
-      local -i fd
-      exec {fd}< <(
-        local bin=$_comp_dumpfile.zwc
-        if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
-          zcompile -Uz $_comp_dumpfile 2>/dev/null
-        fi
-
-        # Prevent Oh My Zsh from deleting comp dump file.
-        (( $#omzdump > 0 )) &&
-          tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
-$omzdump[-2]
-$omzdump[-1]
-EOF
-      )
-      zle -F "$fd" .autocomplete.compinit.zle-f
-
+      zf_rm -f $dumpfile
       break
     fi
   done
+  if [[ ! -v _comp_dumpfile || ! -f $dumpfile ]]; then
+    zmodload zsh/complist
+    unfunction compinit 2>/dev/null
+    builtin autoload -Uz compinit
+    compinit -C -d $dumpfile
+    local -i fd
+    exec {fd}< <(
+      local bin=$_comp_dumpfile.zwc
+      if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
+        zcompile -Uz $_comp_dumpfile 2>/dev/null
+      fi
+
+      # Prevent Oh My Zsh from deleting comp dump file.
+      (( $#omzdump > 0 )) &&
+        tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+$omzdump[-2]
+$omzdump[-1]
+EOF
+    )
+    zle -F "$fd" .autocomplete.compinit.zle-f
+  fi
 
   local cache_dir; zstyle -s ':completion:*' cache-path cache_dir && () {
     local src bin
@@ -59,7 +58,7 @@ EOF
   done
 
   _comp_options+=(
-    functionargzero globdots globstarshort numericglobsort
+    functionargzero globdots globstarshort nullglob numericglobsort
     NO_alwaystoend NO_caseglob NO_completealiases
     NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
   )
