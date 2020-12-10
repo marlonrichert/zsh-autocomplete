@@ -10,7 +10,7 @@
 
   builtin autoload -Uz .autocomplete.zle-flags
 
-  typeset -gHF _autocomplete__async_avg_duration=0.3
+  typeset -gHF _autocomplete__async_avg_duration=0.1
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -99,7 +99,7 @@
     # Zsh will make a new process group for the child process only if job control is enabled.
     local group=''; [[ -o MONITOR ]] &&
       group='-'
-    kill -TERM $group$pid 2>/dev/null
+    kill -KILL $group$pid 2>/dev/null
   fi
 }
 
@@ -138,7 +138,7 @@
     local pid=$sysparams[pid]
     print $pid
     {
-      sleep $(( max(0, 2 * _autocomplete__async_avg_duration - SECONDS) ))
+      sleep $(( max(0, 10 * _autocomplete__async_avg_duration - SECONDS) ))
     } always {
       print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
       kill -TERM $pid
@@ -267,8 +267,8 @@
 }
 
 .autocomplete.async.list-choices.complete() {
+  local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
   {
-    local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
     functions[compadd]=$functions[.autocomplete.async.compadd]
     _main_complete
   } always {
@@ -325,10 +325,14 @@
         zparseopts -D -E -A _opts_ - A: D: O: X:
         builtin compadd -O _matches_ "$@"
 
+        # minimum number of matches that will definitely not fit on screen
+        local surplus=$(( $#_matches_ - COLUMNS * (LINES - BUFFERLINES) / 3 ))
+        (( surplus > 0 )) &&
+          shift -p $surplus _matches_
+
         zparseopts -D -E -A _opts_ - a
         _autocomplete.compadd_opts_len "$@"
         .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
-
         print $compstate[list_lines]
         print -rNC1 - "$_matches_[@]"
       )
@@ -424,12 +428,8 @@
       $complete_pid == $_autocomplete__async_complete_pid )) ||
     return
 
-  (( _autocomplete__async_avg_duration *= 1.2 ))
-  if [[ -z $MENUSELECT ]]; then
-    .autocomplete.async.start
-  else
+  (( _autocomplete__async_avg_duration *= 2 ))
     .autocomplete.async.stop
-  fi
 }
 
 add-zsh-hook precmd .autocomplete.async.precmd

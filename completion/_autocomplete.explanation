@@ -1,9 +1,0 @@
-#autoload
-
-local format
-zstyle -s ":completion:${curcontext}:${1}s" format format
-_setup ${1}s
-local mesg
-zformat -f mesg "$format" d:$2 D:$2
-compadd -x $mesg
-compstate[list]='list force'
