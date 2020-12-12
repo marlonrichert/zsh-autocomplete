@@ -327,8 +327,8 @@
           zparseopts -D -E -A _opts_ - A: D: O: X:
           builtin compadd -O _matches_ "$@"
 
-        # minimum number of matches that will definitely not fit on screen
-        local surplus=$(( $#_matches_ - COLUMNS * (LINES - BUFFERLINES) / 3 ))
+          # Pre-emptively trim all matches that will definitely not fit on screen.
+          local -i surplus=$(( $#_matches_ - COLUMNS * _autocomplete__screen_space / 3 ))
           (( surplus > 0 )) &&
             shift -p $surplus _matches_
 
