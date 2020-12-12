@@ -297,7 +297,7 @@
   fi
 
   local -a _matches_=()
-  local -i extras=2 header=$+_opts_[-X] lines_of_new_matches ret
+  local -i extras=2 header=$+_opts_[-X] number_of_new_matches lines_of_new_matches ret
   local -i lines_available=$((
     max(0, _autocomplete__max_lines - header - compstate[list_lines] - extras) ))
 
@@ -314,34 +314,41 @@
 
     local -aU uniques=( ${${(P@)array_name}#*:} )
     _matches_=( ${(P@)array_name} )
+    number_of_new_matches=$#_matches_
     lines_of_new_matches=$#uniques[@]
     (( lines_available -= _autocomplete__reserved_lines ))
   else
     _autocomplete__reserved_lines=0
-    local -i fd list_lines=0
+    local -i fd list_lines=0 nmatches=0
     {
       exec {fd}< <(
-        _opts_=()
-        zparseopts -D -E -A _opts_ - A: D: O: X:
-        builtin compadd -O _matches_ "$@"
+        {
+          _opts_=()
+          zparseopts -D -E -A _opts_ - A: D: O: X:
+          builtin compadd -O _matches_ "$@"
 
         # minimum number of matches that will definitely not fit on screen
         local surplus=$(( $#_matches_ - COLUMNS * (LINES - BUFFERLINES) / 3 ))
-        (( surplus > 0 )) &&
-          shift -p $surplus _matches_
+          (( surplus > 0 )) &&
+            shift -p $surplus _matches_
 
-        zparseopts -D -E -A _opts_ - a
-        _autocomplete.compadd_opts_len "$@"
-        .autocomplete.compadd "${(@)@[1,?]}" -U -a _matches_
-        print $compstate[list_lines]
-        print -rNC1 - "$_matches_[@]"
+          zparseopts -D -E -A _opts_ - a
+          _autocomplete.compadd_opts_len "$@"
+          .autocomplete.compadd "${(@)@[1,?]}" -a - _matches_
+        } always {
+          print $compstate[list_lines]
+          print $compstate[nmatches]
+          print -rNC1 - "$_matches_[@]"
+        }
       )
       IFS=$'\0' read list_lines <&$fd
+      IFS=$'\0' read nmatches <&$fd
       IFS=$'\0' read -A _matches_ <&$fd
     } always {
       exec {fd}<&-
     }
     _matches_=( ${(@)_matches_[@]:#} )
+    number_of_new_matches=$(( nmatches - compstate[nmatches] ))
     lines_of_new_matches=$(( list_lines - compstate[list_lines] ))
   fi
 
@@ -381,8 +388,9 @@
     fi
     dopt+=( "$_opts_[-d]" )
   fi
+
   if (( lines_of_new_matches > 0 )); then
-    local -F matches_per_line=$(( 1.0 * $#_matches_ / lines_of_new_matches ))
+    local -F matches_per_line=$(( 1.0 * number_of_new_matches / lines_of_new_matches ))
     if (( matches_per_line < 1 )); then
       dopt[1]=-ld
       array_name=$_opts_[-d]
@@ -394,8 +402,9 @@
       set -A $array_name ${(r:COLUMNS-1:@)${(P@)array_name}//$'\n'/\n}
       matches_per_line=1
     fi
+    if (( $#_matches_ > 0 )); then
       local -i trim=$(( $#_matches_ - max(0, matches_per_line * lines_available) ))
-      if (( trim > 0 && $#_matches_ > 0 )); then
+      if (( trim > 0 )); then
         shift -p $trim _matches_
         (( $#_matches_ > 0 )) ||
           comptags() {
@@ -407,6 +416,7 @@
         builtin compadd -x $info
       fi
     fi
+  fi
   _autocomplete.compadd_opts_len "$@"
   .autocomplete.compadd "${(@)@[1,?]}" $dopt -U -a _matches_
 }
