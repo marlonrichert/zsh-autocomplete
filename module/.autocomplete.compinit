@@ -58,12 +58,14 @@ EOF
   done
 
   _comp_options+=(
-    functionargzero globdots globstarshort nullglob numericglobsort
+    banghist functionargzero globdots globstarshort nullglob numericglobsort
     NO_alwaystoend NO_caseglob NO_completealiases
     NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
   )
 
   .autocomplete.compadd() {
+    setopt localoptions listtypes
+
     if [[ $_completer == expand* ]]; then
       builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
     else
