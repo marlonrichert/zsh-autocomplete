@@ -123,7 +123,7 @@
     } always {
       print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
-      kill -TERM $pid
+      kill -KILL $pid
     }
   )
   read _autocomplete__async_complete_pid <&$_autocomplete__async_complete_fd
@@ -141,7 +141,7 @@
       sleep $(( max(0, 10 * _autocomplete__async_avg_duration - SECONDS) ))
     } always {
       print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
-      kill -TERM $pid
+      kill -KILL $pid
     }
   )
   read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
