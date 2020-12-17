@@ -39,10 +39,31 @@
     done
   fi
 
+  zle -N history-incremental-search-backward \
+    .autocomplete.async.history-incremental-search
+  zle -N history-incremental-search-forward \
+    .autocomplete.async.history-incremental-search
+  add-zle-hook-widget line-finish .autocomplete.async.history-incremental-search.stop
+  bindkey -s -M menuselect '^R' '^G^R'
+  bindkey -s -M menuselect '^S' '^G^S'
+
   builtin autoload -Uz add-zle-hook-widget
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
   add-zle-hook-widget line-finish .autocomplete.async.stop
   add-zsh-hook zshexit .autocomplete.async.stop
+}
+
+.autocomplete.async.history-incremental-search() {
+  if [[ $curcontext == $WIDGET* ]]; then
+    .autocomplete.async.history-incremental-search.stop
+  else
+    typeset -gH curcontext=${WIDGET}:::
+  fi
+  .autocomplete.async.start
+}
+
+.autocomplete.async.history-incremental-search.stop() {
+  unset curcontext
 }
 
 .autocomplete.async.line-pre-redraw() {
@@ -154,6 +175,11 @@
 
 .autocomplete.async.complete.inner() {
   setopt extendedglob nobanghist noxtrace noverbose
+  if [[ -n $curcontext ]]; then
+    setopt completeinword
+  else
+    setopt NO_completeinword
+  fi
 
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &>/dev/null
@@ -177,9 +203,7 @@
   }
 
   list-choices() {
-    local curcontext=$curcontext; [[ -z $curcontext ]] &&
-      curcontext=list-choices:::
-
+    local curcontext=${curcontext:-${WIDGET}:::}
     unset 'compstate[vared]'
     local +h -a comppostfuncs=( message )
     {
@@ -209,6 +233,7 @@
   } always {
     .autocomplete.async.kill $1 $pid
   }
+
   if (( $1 == $_autocomplete__async_complete_fd &&
       $pid == $_autocomplete__async_complete_pid )); then
     _autocomplete__async_complete_fd=0
@@ -220,11 +245,16 @@
   .autocomplete.zle-flags ||
     return 0
 
+  setopt localoptions NO_banghist
+  if [[ -n $curcontext ]]; then
+    setopt completeinword
+  else
+    setopt NO_completeinword
+  fi
+
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  setopt localoptions NO_banghist NO_completeinword
-  if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null
-  then
+  if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
     [[ -v functions[_zsh_highlight] ]] &&
       region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
@@ -241,9 +271,6 @@
 .autocomplete.async.list-choices.completion-widget() {
   setopt localoptions extendedglob
 
-  local curcontext=$curcontext; [[ -z $curcontext ]] &&
-    curcontext=list-choices:::
-
   local -i nmatches=$1
   local message=$2
 
@@ -256,7 +283,10 @@
     local msg
     zformat -f msg "$message"
     compadd -x "$msg"
+  elif [[ -n $curcontext ]]; then
+    _main_complete
   elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
+    local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
 
@@ -282,8 +312,8 @@
 .autocomplete.async.compadd() {
   setopt localoptions listtypes
 
-  if [[ $funcstack[2] ==
-      _autocomplete.(alias_expansions|history_lines|requoted|unambiguous) ]]; then
+  if [[ $curcontext == history-search:* ||
+      $funcstack[2] == _autocomplete.(alias_expansions|requoted|unambiguous) ]]; then
     .autocomplete.compadd "$@"
     return
   fi

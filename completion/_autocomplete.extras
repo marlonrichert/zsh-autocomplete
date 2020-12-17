@@ -1,6 +1,6 @@
 #autoload
 
-[[ $curcontext == history-search:* ]] &&
+[[ $curcontext == history-*:* ]] &&
   return 1
 [[ -z $BUFFER ]] &&
   return 1
@@ -13,7 +13,6 @@ fi
 
 _autocomplete.alias_expansions ||
   _autocomplete.requoted ||
-  _autocomplete.unambiguous ||
-  _autocomplete.history_lines
+  _autocomplete.unambiguous
 
 (( compstate[nmatches] > 0 ))

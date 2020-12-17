@@ -1,8 +1,5 @@
 #autoload
 
-(( $#words > 0 )) ||
-  return 1
-
 local tag=history-words
 _tags $tag
 _tags && _requested $tag ||

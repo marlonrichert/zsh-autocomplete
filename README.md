@@ -21,21 +21,15 @@ out-of-the-box experience.
 Zsh's completion system is powerful, but correctly configuring it can be a daunting task.
 `zsh-autocomplete` does it for you, so you can effortlessly get the most out of it.
 
-### Recent dirs completion
-Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide`, `z.lua`,
-`rupa/z.sh`, `autojump` and `fasd`.
+### Live history search
+Press <kbd>Ctrl</kbd>+<kbd>R</kbd> or <kbd>Ctrl</kbd>+<kbd>S</kbd> to do an interactive,
+multi-line, fuzzy history search.
 
-![recent dirs](.img/recent-dirs.png)
-
-### Inline incremental history search
-No need to press any shortcut; just type a word and you'll get the most recent matching history
-item.
-
-![history lines](.img/history-lines.png)
+[![history-search](.img/history-search.gif)](https://asciinema.org/a/379844)
 
 ### History menu
-Inline history search doesn't find what you need? Press <kbd>↑</kbd> or <kbd>PgUp</kbd> to open the
-history menu. Does history search when the command line is non-empty.
+Press <kbd>↑</kbd> or <kbd>PgUp</kbd> to browse the last 16 history items. If the command line is
+not empty, then it will instead list the 16 most recent fuzzy matches.
 
 ![history menu](.img/history-menu.png)
 
@@ -45,14 +39,20 @@ than one item.
 
 ![multi-select](.img/multi-select.png) |
 
-### Additional context-sensitive completions
-`zsh-autocomplete` turns <kbd>Shift</kbd>+<kbd>Tab</kbd> into a power-completion key.
+### Recent dirs completion
+Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide`, `z.lua`,
+`rupa/z.sh`, `autojump` and `fasd`.
 
-![alias expansion](.img/alias-expansion.png)
+![recent dirs](.img/recent-dirs.png)
+
+### Additional context-sensitive completions
+Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
+
+![unambiguous](.img/unambiguous.png)
 
 ![requoted](.img/requoted.png)
 
-![unambiguous](.img/unambiguous.png)
+![alias expansion](.img/alias-expansion.png)
 
 
 ## Key Bindings
@@ -66,6 +66,8 @@ than one item.
 | <kbd>PgDn</kbd> | Enter completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
 | <kbd>PgUp</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
+| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Search history from newest to oldest |
+| <kbd>Ctrl</kbd>+<kbd>S</kbd> | Search history from oldest to newest |
 
 ### Completion Menu
 | Key(s) | Action |

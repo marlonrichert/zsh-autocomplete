@@ -1,6 +1,5 @@
 #!/bin/zsh
-local curcontext=$curcontext; [[ -z $curcontext ]] &&
-  curcontext=list-expand:::
+local curcontext=${curcontext:-${WIDGET}:::}
 
 _main_complete
 

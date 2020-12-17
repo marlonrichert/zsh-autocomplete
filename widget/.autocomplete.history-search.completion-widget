@@ -1,12 +1,14 @@
 #!/bin/zsh
 
 .autocomplete.history-search.completion-widget() {
-  local curcontext=$curcontext; [[ -z $curcontext ]] &&
-    curcontext=history-search:::
+  typeset -gH curcontext=${WIDGET}:::
 
   local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.history-search.comppostfunc )
+  unset 'compstate[old_list]'
   _main_complete _autocomplete.history_lines
   (( compstate[nmatches] > 0 ))
+
+  unset curcontext
 }
 
 .autocomplete.history-search.comppostfunc() {

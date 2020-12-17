@@ -15,7 +15,6 @@ index=$RBUFFER[(i)$~_autocomplete__sublist_delim]
 RBUFFER=${RBUFFER[1,index-1]//[[:space:]]##/$'\0'}${context:+ $context}
 
 local searchbuffer="$BUFFER"
-zle -R
 
 local -A keymap_historysearch=(
   $key[Left] .backward-char
