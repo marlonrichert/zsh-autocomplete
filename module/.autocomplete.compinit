@@ -75,7 +75,7 @@ EOF
 
   .autocomplete.patch _main_complete
   _main_complete() {
-    local -i _autocomplete__reserved_lines=0
+    local -i ret=1 _autocomplete__reserved_lines=0
 
     local +h -a comppostfuncs=(
       _autocomplete.extras
@@ -84,21 +84,21 @@ EOF
     compstate[insert]=''
     compstate[list]='list force'
     {
-      # Don't break `_complete_help` widget.
+      # Don't break `_complete_help`, async completion, etc.
       [[ -v functions[compadd] ]] ||
         functions[compadd]=$functions[.autocomplete.compadd]
 
-      .autocomplete._main_complete "$@"
+      .autocomplete._main_complete "$@"; ret=$?
 
     } always {
-      # Don't break `_complete_help` widget.
-      [[ $functions[compadd] == $functions[.autocomplete.compadd] ]] &&
+      # Stop `_complete_help` from complaining.
+      [[ $funcstack[2] == _complete_help ]] ||
         unfunction compadd
     }
     typeset -gHi _autocomplete__current=$CURRENT
     typeset -gH _autocomplete__words="$words"
     compstate[list_max]=0
-    (( compstate[nmatches] > 0 ))
+    return ret
   }
 
   .autocomplete.patch _description

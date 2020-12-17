@@ -62,7 +62,7 @@
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
-  if [[ $LASTWIDGET == list-expand ||
+  if [[ $LASTWIDGET == (list-expand|_complete_help) ||
       -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
     .autocomplete.async.stop
     return 0
