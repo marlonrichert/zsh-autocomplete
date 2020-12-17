@@ -1,5 +1,6 @@
 #autoload
-local -a len_to_val=( "${(Oa@)${(z@)${(MN)${(qqqq)@}[@]:#*}}}" )
+local -a items=( "$@" ) len=( "${(N@)@:#*}" )
 reply=()
-print -v reply -f "%s %s" "$len_to_val[@]"
-reply=( "${~${(nQ@)reply}[@]#<-> }" )
+local null=$'\0'
+print -v reply -f "%s$null%s" "${(@)len[@]:^items}"
+reply=( "${${(n@)reply}[@]#<->$null}" )
