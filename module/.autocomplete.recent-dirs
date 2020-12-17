@@ -56,7 +56,7 @@
 
     .autocomplete.recent_dirs.chpwd() {
       cdr -r
-      _autocomplete.sort-by-length "${(D)reply[@]}"
+      _autocomplete.sort_by_length "${(D)reply[@]}"
       typeset -gHa _autocomplete__recent_dirs=( $~reply[@] )
     }
     add-zsh-hook chpwd .autocomplete.recent_dirs.chpwd
