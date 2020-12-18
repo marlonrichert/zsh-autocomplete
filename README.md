@@ -5,7 +5,7 @@ bottom, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to use menu selection.
 
 [![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
 
-* [Features](#features)
+* [Other Features](#other-features)
 * [Key Bindings](#key-bindings)
 * [Requirements](#requirements)
 * [Installation](#installation)
