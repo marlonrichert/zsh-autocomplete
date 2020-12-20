@@ -37,7 +37,7 @@ not empty, then it will instead list the 16 most recent fuzzy matches.
 Press <kbd>Ctrl</kbd>+<kbd>Space</kbd> in the completion menu or the history menu to insert more
 than one item.
 
-![multi-select](.img/multi-select.png) |
+![multi-select](.img/multi-select.png)
 
 ### Recent dirs completion
 Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide`, `z.lua`,
@@ -45,7 +45,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 
 ![recent dirs](.img/recent-dirs.png)
 
-### Additional context-sensitive completions
+### Additional, context-sensitive completions
 Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
 
 ![unambiguous](.img/unambiguous.png)
@@ -66,8 +66,8 @@ Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
 | <kbd>PgDn</kbd> | Enter completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
 | <kbd>PgUp</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
-| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Search history from newest to oldest |
-| <kbd>Ctrl</kbd>+<kbd>S</kbd> | Search history from oldest to newest |
+| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Search history from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
+| <kbd>Ctrl</kbd>+<kbd>S</kbd> | Search history from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
@@ -76,14 +76,14 @@ Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
 | <kbd>Enter</kbd> | Exit menu & execute command line |
 | <kbd>Alt</kbd>+<kbd>Enter</kbd> | Exit menu |
 | <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Multi-select |
-| <kbd>PgUp</kbd> | Page up |
-| <kbd>PgDn</kbd> | Page Down |
-| <kbd>Alt</kbd>+<kbd>B</kbd> | Backward one group ([if groups are shown](#show-completions-in-named-groups)) |
-| <kbd>Alt</kbd>+<kbd>F</kbd> | Forward one group (if groups are shown) |
-| <kbd>Home</kbd> | Beginning of line |
-| <kbd>End</kbd> | End of line |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
 | <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
+| <kbd>PgUp</kbd> | Page up |
+| <kbd>PgDn</kbd> | Page down |
+| <kbd>Alt</kbd>+<kbd>B</kbd> | Backward one group |
+| <kbd>Alt</kbd>+<kbd>F</kbd> | Forward one group |
+| <kbd>Home</kbd> | Beginning of line |
+| <kbd>End</kbd> | End of line |
 
 ### History Menu
 | Key(s) | Action |
@@ -107,11 +107,11 @@ Minimum:
 
 ## Installation
 1. `git clone` this repo.
-1. Add near the top of your `~/.zshrc` file:
+1. Add to your `~/.zshrc` file, before any calls to `compdef`:
    ```zsh
    source path/to/zsh-autocomplete.plugin.zsh
    ```
-1. If you have any calls to `compinit` in your `~/.zshrc` file, you can now remove those.
+1. Remove any calls to `compinit` from your `~/.zshrc` file.
 
 ### Updating
 1. `cd` into `zsh-autocomplete`'s directory.
