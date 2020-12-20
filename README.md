@@ -131,6 +131,7 @@ former are unique to `zsh-autocomplete`.
 
 * [Show more/less help text](#show-moreless-help-text)
 * [Disable particular completions](#disable-particular-completions)
+* [Wait for a minimum amount of time](#wait-for-a-minimum-amount-of-time)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
 * [Ignore certain inputs](#ignore-certain-inputs)
 * [Change the "No matching completions" message](#change-the-no-matching-completions-message)
@@ -160,6 +161,12 @@ system's `tag-order` setting. For example, to disable history words, recent dire
 files:
 ```zsh
 zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
+```
+
+### Wait for a minimum amount of time
+To suppress autocompletion until you have stopped typing for a certain number of seconds:
+```zsh
+zstyle ':autocomplete:*' min-delay .4
 ```
 
 ### Wait for a minimum amount of input

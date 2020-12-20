@@ -10,7 +10,9 @@
 
   builtin autoload -Uz .autocomplete.zle-flags
 
-  typeset -gHF _autocomplete__async_avg_duration=0.1
+  typeset -gHF _autocomplete__async_avg_duration
+  zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
+  (( _autocomplete__async_avg_duration += 0.1 ))
 
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
@@ -125,7 +127,9 @@
 }
 
 .autocomplete.async.start() {
-  typeset -F SECONDS=0
+  local +h -F SECONDS=0
+  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
+    min_delay=0.0
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
@@ -141,6 +145,7 @@
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+      sleep $(( min_delay - SECONDS ))
     } always {
       print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
@@ -159,7 +164,7 @@
     local pid=$sysparams[pid]
     print $pid
     {
-      sleep $(( max(0, 10 * _autocomplete__async_avg_duration - SECONDS) ))
+      sleep $(( max(min_delay + .01 - SECONDS, 10 * _autocomplete__async_avg_duration - SECONDS) ))
     } always {
       print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
       kill -KILL $pid
