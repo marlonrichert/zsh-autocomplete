@@ -145,7 +145,7 @@
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      sleep $(( min_delay - SECONDS ))
+      sleep $(( max(0, min_delay - SECONDS) ))
     } always {
       print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
