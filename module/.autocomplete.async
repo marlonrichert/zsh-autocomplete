@@ -4,9 +4,11 @@
   emulate -L zsh -o extendedglob
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
-  zmodload -Fa zsh/zpty b:zpty
-  zmodload -Fa zsh/system p:sysparams
-  zmodload -Fa zsh/zutil b:zparseopts
+  # Pre-load these, so they don't get loaded over & over in the async code.
+  zmodload -F zsh/zpty b:zpty
+  zmodload -F zsh/system p:sysparams
+  zmodload -F zsh/zselect b:zselect
+  zmodload -F zsh/zutil b:zparseopts
 
   builtin autoload -Uz .autocomplete.zle-flags
 
@@ -129,7 +131,7 @@
 .autocomplete.async.start() {
   local +h -F SECONDS=0
   local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
-    min_delay=0.0
+    (( min_delay = 0.0 ))
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
@@ -145,7 +147,12 @@
       local line
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
       zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      sleep $(( min_delay - SECONDS ))
+
+      # `zselect -t` w/out other args wants an int > 0
+      local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
+      (( timeout > 0 )) &&
+        zselect -t $timeout
+
     } always {
       print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
@@ -164,7 +171,10 @@
     local pid=$sysparams[pid]
     print $pid
     {
-      sleep $(( max(min_delay + .01 - SECONDS, 10 * _autocomplete__async_avg_duration - SECONDS) ))
+      local -i timeout=$((
+        100.0 * ( max(min_delay + .01, 10.0 * _autocomplete__async_avg_duration) - SECONDS ) ))
+      (( timeout > 0 )) &&
+        zselect -t $timeout
     } always {
       print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
       kill -KILL $pid
