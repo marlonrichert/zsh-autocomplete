@@ -46,11 +46,10 @@ _autocomplete.history_lines() {
       [[ $matches == [[:space:]]# ]] &&
         continue
       [[ $curcontext == *-incremental-*-forward:* ]] &&
-          matches=( "${(Oa@)matches}" )
-      (( $#events[@] + $#matches[@] > max_lines ))
+        matches=( "${(Oa@)matches}" )
+      (( $#events[@] + $#matches[@] > max_lines )) &&
         matches=( "${(@)matches[1,max_lines - $#events[@]]}" )
-      _autocomplete.sort_by_length "$matches[@]"
-      events+=( "$reply[@]" )
+      events+=( "$matches[@]" )
       (( $#events[@] < max_lines )) ||
         break
     done
@@ -71,7 +70,7 @@ _autocomplete.history_lines() {
   _description -2V $tag expl 'history line'
   compadd "$expl[@]" -QU -ld displays \
     -S "${${${delim:#;}:+ $delim}:-;}" -R _autocomplete.history_lines.suffix \
-    - ${(@)${(@)${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }#$lbuffer}%rbuffer}
+    - "${(@)${(@)${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }#$lbuffer}%rbuffer}"
 }
 
 _autocomplete.history_lines.suffix() {
