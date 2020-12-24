@@ -16,10 +16,7 @@
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
   (( _autocomplete__async_avg_duration += 0.1 ))
 
-  typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -N .autocomplete.async.complete.fd-widget
-
-  typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   zle -N .autocomplete.async.timeout.fd-widget
 
   zle -C .autocomplete.list-choices list-choices .autocomplete.async.list-choices.completion-widget
@@ -42,7 +39,9 @@
       }"
     done
     functions[.autocomplete._zsh_autosuggest_fetch]=$functions[_zsh_autosuggest_fetch]
-    _zsh_autosuggest_fetch() { : }
+    _zsh_autosuggest_fetch() {
+
+    }
   fi
 
   zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
@@ -99,6 +98,7 @@
 .autocomplete.async.stop() {
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+  .autocomplete.async.kill $_ZSH_AUTOSUGGEST_ASYNC_FD $_ZSH_AUTOSUGGEST_CHILD_PID
 }
 
 .autocomplete.async.kill() {
@@ -121,10 +121,15 @@
 }
 
 .autocomplete.async.start() {
+  setopt localoptions noclobber
+
+  .autocomplete.async.stop
+
   local +h -F SECONDS=0
   local -F min_delay; zstyle -s :autocomplete: min-delay min_delay
 
-  .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
+  unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
     setopt extendedglob noxtrace noverbose
 
@@ -152,7 +157,8 @@
   read _autocomplete__async_complete_pid <&$_autocomplete__async_complete_fd
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
-  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+  unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
     setopt extendedglob noxtrace noverbose
 
@@ -173,12 +179,14 @@
   read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
   zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
 
-  [[ -v functions[.autocomplete._zsh_autosuggest_fetch] ]] &&
+  if [[ -z $MENUSELECT && -v functions[.autocomplete._zsh_autosuggest_fetch] ]]; then
+    unset _ZSH_AUTOSUGGEST_ASYNC_FD
     .autocomplete._zsh_autosuggest_fetch
-
-  # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
-  # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
-  command true
+  else
+    # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
+    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
+    command true
+  fi
 }
 
 .autocomplete.async.complete.inner() {
