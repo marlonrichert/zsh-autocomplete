@@ -13,6 +13,12 @@
   compdef() {
     _autocomplete__compdef+=( "${(q)*}" )
   }
+  _bash_complete compgen complete () {
+    unfunction _bash_complete compgen complete
+    autoload -Uz bashcompinit
+    bashcompinit
+    $funcstack[1] "$@"
+  }
 
   typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
 
