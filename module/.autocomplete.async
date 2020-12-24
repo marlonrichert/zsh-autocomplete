@@ -31,8 +31,8 @@
     }
   fi
 
-  typeset -gHi ZSH_AUTOSUGGEST_USE_ASYNC=1
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
+    typeset -gH ZSH_AUTOSUGGEST_USE_ASYNC=yes
     local action
     for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
     do
@@ -41,12 +41,12 @@
         _zsh_autosuggest_$action \$@
       }"
     done
+    functions[.autocomplete._zsh_autosuggest_fetch]=$functions[_zsh_autosuggest_fetch]
+    _zsh_autosuggest_fetch() { : }
   fi
 
-  zle -N history-incremental-search-backward \
-    .autocomplete.async.history-incremental-search
-  zle -N history-incremental-search-forward \
-    .autocomplete.async.history-incremental-search
+  zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
+  zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
   add-zle-hook-widget line-finish .autocomplete.async.history-incremental-search.stop
   bindkey -s -M menuselect '^R' '^G^R'
   bindkey -s -M menuselect '^S' '^G^S'
@@ -75,7 +75,6 @@
 
   if (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
     .autocomplete.async.stop
-    unset _autocomplete__words _autocomplete__current
     return 0
   fi
 
@@ -98,15 +97,8 @@
 }
 
 .autocomplete.async.stop() {
-  emulate -L zsh
-
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
-  _autocomplete__async_complete_fd=0
-  _autocomplete__async_complete_pid=0
-
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
-  _autocomplete__async_timeout_fd=0
-  _autocomplete__async_timeout_pid=0
 }
 
 .autocomplete.async.kill() {
@@ -130,8 +122,7 @@
 
 .autocomplete.async.start() {
   local +h -F SECONDS=0
-  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
-    (( min_delay = 0.0 ))
+  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay
 
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
@@ -152,9 +143,8 @@
       local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
       (( timeout > 0 )) &&
         zselect -t $timeout
-
-    } always {
       print -rNC1 - "$SECONDS" "$pid" "$line"
+    } always {
       zpty -d _autocomplete__zpty
       kill -KILL $pid
     }
@@ -171,8 +161,8 @@
     local pid=$sysparams[pid]
     print $pid
     {
-      local -i timeout=$((
-        100.0 * ( max(min_delay + .01, 10.0 * _autocomplete__async_avg_duration) - SECONDS ) ))
+      local -i timeout=$(( 100.0 * (min_delay - SECONDS +
+        10.0 * _autocomplete__async_avg_duration) ))
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
@@ -182,6 +172,9 @@
   )
   read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
   zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
+
+  [[ -v functions[.autocomplete._zsh_autosuggest_fetch] ]] &&
+    .autocomplete._zsh_autosuggest_fetch
 
   # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
   # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
@@ -239,6 +232,8 @@
 }
 
 .autocomplete.async.complete.fd-widget() {
+  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+
   local -F seconds
   local -i pid nmatches current
   local message eof
@@ -248,12 +243,6 @@
   } always {
     .autocomplete.async.kill $1 $pid
   }
-
-  if (( $1 == $_autocomplete__async_complete_fd &&
-      $pid == $_autocomplete__async_complete_pid )); then
-    _autocomplete__async_complete_fd=0
-    _autocomplete__async_complete_pid=0
-  fi
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
 
@@ -474,16 +463,9 @@
   } always {
     .autocomplete.async.kill $1 $pid
   }
-
-  .autocomplete.zle-flags ||
-    return 0
-
-  (( $complete_fd == $_autocomplete__async_complete_fd &&
-      $complete_pid == $_autocomplete__async_complete_pid )) ||
-    return
-
+  .autocomplete.async.kill $complete_fd $complete_pid
+  .autocomplete.zle-flags
   (( _autocomplete__async_avg_duration *= 2 ))
-    .autocomplete.async.stop
 }
 
 add-zsh-hook precmd .autocomplete.async.precmd
