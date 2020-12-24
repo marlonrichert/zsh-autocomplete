@@ -1,0 +1,16 @@
+#autoload
+
+local -aU reply=() display=()
+_tags parent-directories
+_tags && _requested parent-directories ||
+  return
+
+local dir="${PWD:h}" expl prefix
+_description -V ancestor-directories expl "ancestor directory"
+while (( ${#dir} > 1 )); do
+  display=( ${(D)dir} )
+  prefix=$dir:h
+  prefix+=${${prefix:#/}:+/}
+  compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)dir:t}
+  dir="${dir:h}"
+done

@@ -1,10 +1,6 @@
 #autoload
 
 _autocomplete.recent_paths() {
-  local -i nmatches=$compstate[nmatches]
-  (( nmatches > 0 )) &&
-    return 1
-
   local -aU reply=()
   _tags recent-directories recent-files
   while _tags; do
@@ -28,25 +24,25 @@ _autocomplete.recent_paths() {
 
   local -a display=()
   local -i max_matches=$(( compstate[nmatches] + 10 ))
-  local disp path prefix word=$~words[CURRENT]:a
-  for path in ${@:a}; do
+  local disp path_ prefix word=$~words[CURRENT]:a
+  for path_ in ${@:a}; do
     (( compstate[nmatches] < max_matches )) ||
       break
 
-    [[ -e $path ]] ||
+    [[ -e $path_ ]] ||
       continue
 
-    disp=${(D)path}
+    disp=${(D)path_}
     (( $#disp > 1 )) ||
       continue
 
-    prefix=$path:h
-    [[ $word == ($path|$prefix) || $prefix == ($word:h|$PWD) ]] &&
+    prefix=$path_:h
+    [[ $word == ($path_|$prefix) || $prefix == ($word:h|$PWD) || $PWD == $path_/** ]] &&
       continue
 
     prefix+=${${prefix:#/}:+/}
     display=( "$disp" )
-    compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)path:t}
+    compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)path_:t}
   done
 }
 
