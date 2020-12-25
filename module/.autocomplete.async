@@ -324,8 +324,7 @@
 .autocomplete.async.compadd() {
   setopt localoptions listtypes
 
-  if [[ $curcontext == history-search:* ||
-      $funcstack[2] == _autocomplete.(alias_expansions|requoted|unambiguous) ]]; then
+  if [[ $funcstack[2] == _autocomplete.history_lines ]]; then
     .autocomplete.compadd "$@"
     return
   fi
@@ -339,9 +338,9 @@
   fi
 
   local -a _matches_=()
-  local -i extras=2 header=$+_opts_[-X] number_of_new_matches lines_of_new_matches ret
+  local -i header=$+_opts_[-X] number_of_new_matches lines_of_new_matches ret
   local -i lines_available=$((
-    max(0, _autocomplete__max_lines - header - extras - compstate[list_lines]) ))
+    max(0, _autocomplete__max_lines - header - compstate[list_lines]) ))
 
   if [[ -v _opts_[-D] ]]; then
     .autocomplete.compadd "$@"; ret=$?
@@ -451,8 +450,7 @@
       shift -p $(( $#_matches_ - fit )) _matches_
       (( $#_matches_ > 0 )) ||
         comptags() {
-          [[ $funcstack[3] ==
-              _autocomplete.(alias_expansions|history_lines|requoted|unambiguous) ]] ||
+          [[ $funcstack[3] == _autocomplete.history_lines ]] ||
             return 1
           builtin comptags "$@"
         }
