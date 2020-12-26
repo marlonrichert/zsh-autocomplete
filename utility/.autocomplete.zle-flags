@@ -1,31 +1,25 @@
 #!/bin/zsh
+emulate -L zsh -o noshortloops -o extendedglob
 
-.autocomplete.zle-flags() {
-  emulate -L zsh -o noshortloops -o extendedglob
+# If no arg, assume same widget as last time.
+[[ -n $1 ]] &&
+  typeset -gH _autocomplete__last_widget=$1
 
-  # If no arg, assume same widget as last time.
-  [[ -n $1 ]] &&
-    _autocomplete__last_widget=$1
-
-  # Return 0 to continue, 1 to abort.
-  case $_autocomplete__last_widget in
-    *kill*)
-      zle -f kill
-      return 0
-      ;;
-    (*yank*|bracketed-paste|put-after))
-      zle -f yank
-      return 1
-      ;;
-    put-before)
-      zle -f yankbefore
-      return 1
-      ;;
-    *)
-      return 0
-      ;;
-  esac
-}
-
-typeset -gH _autocomplete__last_widget
-.autocomplete.zle-flags "$@"
+# Return 0 to continue, 1 to abort.
+case $_autocomplete__last_widget in
+  *kill*)
+    zle -f kill
+    return 0
+    ;;
+  (*yank*|bracketed-paste|put-after))
+    zle -f yank
+    return 1
+    ;;
+  put-before)
+    zle -f yankbefore
+    return 1
+    ;;
+  *)
+    return 0
+    ;;
+esac

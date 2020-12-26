@@ -10,7 +10,7 @@
   zmodload -F zsh/zselect b:zselect
   zmodload -F zsh/zutil b:zparseopts
 
-  builtin autoload -Uz .autocomplete.zle-flags
+  builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 
   typeset -gHF _autocomplete__async_avg_duration
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
@@ -50,7 +50,6 @@
   bindkey -s -M menuselect '^R' '^G^R'
   bindkey -s -M menuselect '^S' '^G^S'
 
-  builtin autoload -Uz add-zle-hook-widget
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
   add-zle-hook-widget line-finish .autocomplete.async.stop
   add-zsh-hook zshexit .autocomplete.async.stop

@@ -37,9 +37,7 @@
 
   if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
     [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
-      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
-        prompt_\*
-      )
+      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=( prompt_\* azhw:\* user:\* )
     _zsh_autosuggest_bind_widgets
   fi
 }
