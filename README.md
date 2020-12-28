@@ -106,16 +106,16 @@ Minimum:
 
 
 ## Installation
-1. `git clone` this repo.
-1. Add to your `~/.zshrc` file, before any calls to `compdef`:
-   ```zsh
-   source path/to/zsh-autocomplete.plugin.zsh
-   ```
-1. Remove any calls to `compinit` from your `~/.zshrc` file.
+1.  `git clone` this repo.
+1.  Add to your `~/.zshrc` file, before any calls to `compdef`:
+    ```zsh
+    source path/to/zsh-autocomplete.plugin.zsh
+    ```
+1.  Remove any calls to `compinit` from your `~/.zshrc` file.
 
 ### Updating
-1. `cd` into `zsh-autocomplete`'s directory.
-1. Do `git pull`.
+1.  `cd` into `zsh-autocomplete`'s directory.
+1.  Do `git pull`.
 
 ### As a Plugin
 `zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
@@ -130,7 +130,8 @@ To change your settings, just copy-paste any of the code below to your `~/.zshrc
 former are unique to `zsh-autocomplete`.
 
 * [Show more/less help text](#show-moreless-help-text)
-* [Disable particular completions](#disable-particular-completions)
+* [Change the order of completions](#change-the-order-of-completions)
+* [Disable certain completions](#disable-certain-completions)
 * [Wait for a minimum amount of time](#wait-for-a-minimum-amount-of-time)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
 * [Ignore certain inputs](#ignore-certain-inputs)
@@ -155,18 +156,26 @@ To hide all descriptions:
 zstyle ':completion:*' verbose no
 ```
 
-### Disable particular completions
-Any of the extra completions added by `zsh-autocomplete` can be disabled through the completion
-system's `tag-order` setting. For example, to disable history words, recent directories and recent
-files:
+### Disable certain completions
+To disable, for example, ancestor directories, recent directories and recent files:
 ```zsh
-zstyle ':completion:*' tag-order '! history-words recent-directories recent-files' '-'
+zstyle ':completion:*:complete:*:' tag-order \
+  '! ancestor-directories recent-directories recent-files' -
 ```
+⚠️ **Note** the additional `:` at the end of the namespace selector and the `-` as the last value.
+
+### Change the order of completions
+To list certain completions in a particular order _before_ all other completions:
+```zsh
+zstyle ':completion:*:complete:*:' group-order \
+  options arguments values local-directories files builtins history-words
+```
+⚠️ **Note** the additional `:` at the end of the namespace selector.
 
 ### Wait for a minimum amount of time
 To suppress autocompletion until you have stopped typing for a certain number of seconds:
 ```zsh
-zstyle ':autocomplete:*' min-delay .4
+zstyle ':autocomplete:*' min-delay .3  # 300 milliseconds
 ```
 
 ### Wait for a minimum amount of input
@@ -176,22 +185,24 @@ zstyle ':autocomplete:*' min-input 3
 ```
 
 ### Ignore certain inputs
-To not trigger autocompletion when the current word consists solely of two or more dots:
+To not trigger autocompletion when the input matches a pattern:
 ```zsh
+# This example matches any input word consisting of two or more dots (and no other chars).
 zstyle ':autocomplete:*' ignored-input '..##'
 ```
-
 The pattern syntax supported here is that of [Zsh's extended glob
 operators](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators).
 
-### Change the "No matching completions" message
-To alter the message shown when no matching completions can be found:
+### Change the "Partial list" message
+To alter the message shown when the list of completions does not fit on screen:
 ```zsh
-zstyle ':autocomplete:*:no-matches-at-all' message 'No matching completions found.'
+  local hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
+  zstyle ':autocomplete:*:too-many-matches' message \
+    "${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
 ```
 
 ### Use your own completion config
-To disable `zsh-autocomplete`'s pre-packaged completion config:
+To disable `zsh-autocomplete`'s pre-packaged completion config completely:
 ```zsh
 zstyle ':autocomplete:*' config off
 ```
@@ -205,7 +216,7 @@ To make <kbd>Tab</kbd> first insert any common substring, before inserting full 
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> do menu selection:
+To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> activate menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
