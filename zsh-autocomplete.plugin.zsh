@@ -17,6 +17,7 @@
     unfunction _bash_complete compgen complete
     autoload -Uz bashcompinit
     bashcompinit
+    bashcompinit() { : }
     $funcstack[1] "$@"
   }
 

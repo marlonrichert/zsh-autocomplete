@@ -26,6 +26,7 @@
     unfunction compinit 2>/dev/null
     builtin autoload -Uz compinit
     compinit -C -d $dumpfile
+    compinit() { : }
     local -i fd
     exec {fd}< <(
       local bin=$_comp_dumpfile.zwc
