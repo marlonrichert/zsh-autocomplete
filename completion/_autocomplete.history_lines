@@ -19,11 +19,11 @@ _autocomplete.history_lines() {
   fi
 
   local -aU events=()
-  local -i max_lines=$(( min( 16, LINES - BUFFERLINES ) ))
+  local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
   local q
   if [[ -z "$lbuffer$word$rbuffer" || -z $words ]]; then
     q='<-16>'; [[ $curcontext == *-forward:* ]] ||
-      q="<$((HISTNO - max_lines))->"
+      q="<$(( HISTNO - max_lines ))->"
     print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(I)$~q]}"
     [[ $curcontext == *-incremental-*-forward:* ]] &&
       events=( "${(Oa@)events}" )
