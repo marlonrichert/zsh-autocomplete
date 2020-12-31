@@ -65,11 +65,10 @@ _autocomplete.history_lines() {
     "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
   )
 
-  local delim=${${prefix%%[[:space:]]#}[-1]:-;}
   local _comp_no_ignore=1 expl
   _description -2V $tag expl 'history line'
   compadd "$expl[@]" -QU -ld displays \
-    -S "${${${delim:#;}:+ $delim}:-;}" -R _autocomplete.history_lines.suffix \
+    -S ';' -R _autocomplete.history_lines.suffix \
     - "${(@)${(@)${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }#$lbuffer}%rbuffer}"
 }
 
