@@ -147,8 +147,9 @@
       local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
       (( timeout > 0 )) &&
         zselect -t $timeout
-      print -rNC1 - "$SECONDS" "$pid" "$line"
     } always {
+      (( TRY_BLOCK_INTERRUPT > 0 )) ||
+        print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
       kill -KILL $pid
     }
@@ -171,7 +172,8 @@
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
-      print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
+      (( TRY_BLOCK_INTERRUPT > 0 )) ||
+        print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
       kill -KILL $pid
     }
   )
