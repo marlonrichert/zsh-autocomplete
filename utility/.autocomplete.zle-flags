@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -L zsh -o noshortloops -o extendedglob
+emulate -L zsh -o extendedglob
 
 # If no arg, assume same widget as last time.
 [[ -n $1 ]] &&

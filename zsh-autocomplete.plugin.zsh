@@ -1,6 +1,6 @@
 #!/bin/zsh
 () {
-  emulate -L zsh -o extendedglob
+  emulate -L zsh -o extendedglob -o NO_aliases
 
   zmodload -Fa zsh/parameter p:history p:funcstack p:functions
 
