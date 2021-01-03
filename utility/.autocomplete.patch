@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -L zsh -o extendedglob -o NO_aliases
+emulate zsh; setopt $_autocomplete__options
 
 builtin autoload +X -Uz $1
 functions[.autocomplete.$1]=$functions[$1]

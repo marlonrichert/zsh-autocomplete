@@ -13,7 +13,7 @@
 }
 
 .autocomplete.widget.precmd() {
-  emulate -L zsh -o extendedglob -o rcquotes
+  emulate zsh; setopt $_autocomplete__options
 
   add-zsh-hook -d precmd .autocomplete.widget.precmd
 

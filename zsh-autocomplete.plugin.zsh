@@ -1,12 +1,17 @@
 #!/bin/zsh
 () {
-  emulate -L zsh -o extendedglob -o NO_aliases
-
+  emulate zsh
   zmodload -Fa zsh/parameter p:history p:funcstack p:functions
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] &&
     .zinit-shade-off "${___mode:-load}"
+
+  typeset -gHa _autocomplete__options=(
+    localoptions extendedglob rcquotes
+    NO_aliases NO_banghist NO_clobber NO_listbeep
+  )
+  setopt $_autocomplete__options
 
   compinit() { : }
   typeset -gHa _autocomplete__compdef=()

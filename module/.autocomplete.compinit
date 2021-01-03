@@ -6,7 +6,7 @@
 }
 
 .autocomplete.compinit.precmd() {
-  emulate -L zsh -o extendedglob -o NO_aliases
+  emulate zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
 
   local dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}

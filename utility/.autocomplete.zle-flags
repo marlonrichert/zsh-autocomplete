@@ -1,5 +1,5 @@
 #!/bin/zsh
-emulate -L zsh -o extendedglob
+emulate zsh; setopt $_autocomplete__options
 
 # If no arg, assume same widget as last time.
 [[ -n $1 ]] &&

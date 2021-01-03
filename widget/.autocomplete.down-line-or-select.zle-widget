@@ -3,6 +3,5 @@
 if [[ $RBUFFER == *$'\n'* ]]; then
   zle .down-line
 else
-  setopt localoptions nolistbeep
   zle menu-select -w
 fi

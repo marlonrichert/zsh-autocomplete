@@ -1,5 +1,5 @@
 #!/bin/zsh
-setopt localoptions extendedglob completeinword NO_listbeep
+setopt $_autocomplete__options completeinword
 
 local -i index
 local context lbuffer="$LBUFFER" rbuffer="$RBUFFER"

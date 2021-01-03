@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 .autocomplete.async.precmd() {
-  emulate -L zsh -o extendedglob -o NO_aliases
+  emulate zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd .autocomplete.async.precmd
 
   # Pre-load these, so they don't get loaded over & over in the async code.
@@ -99,7 +99,7 @@
 }
 
 .autocomplete.async.kill() {
-  emulate -L zsh
+  emulate zsh; setopt $_autocomplete__options
 
   local -i fd=$1 pid=$2
 
@@ -118,7 +118,7 @@
 }
 
 .autocomplete.async.start() {
-  setopt localoptions NO_aliases NO_clobber
+  setopt $_autocomplete__options
 
   .autocomplete.async.stop
 
@@ -128,7 +128,7 @@
   unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
-    setopt extendedglob NO_aliases NO_xtrace NO_verbose
+    setopt $_autocomplete__options NO_xtrace NO_verbose
 
     local pid=$sysparams[pid]
     print $pid
@@ -158,7 +158,7 @@
   unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
-    setopt extendedglob NO_aliases NO_xtrace NO_verbose
+    setopt $_autocomplete__options NO_xtrace NO_verbose
 
     local complete_pid=$_autocomplete__async_complete_pid
     local complete_fd=$_autocomplete__async_complete_fd
@@ -189,7 +189,7 @@
 }
 
 .autocomplete.async.complete.inner() {
-  setopt extendedglob NO_aliases NO_banghist NO_xtrace NO_verbose
+  setopt $_autocomplete__options NO_xtrace NO_verbose
   if [[ -n $curcontext ]]; then
     setopt completeinword
   else
@@ -239,7 +239,7 @@
 }
 
 .autocomplete.async.complete.fd-widget() {
-  setopt localoptions NO_aliases NO_banghist
+  setopt $_autocomplete__options
   if [[ -n $curcontext ]]; then
     setopt completeinword
   else
@@ -280,7 +280,7 @@
 }
 
 .autocomplete.async.list-choices.completion-widget() {
-  setopt localoptions extendedglob
+  setopt $_autocomplete__options
 
   local -i nmatches=$1
   local message=$2
