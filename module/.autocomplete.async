@@ -64,6 +64,7 @@
 
 .autocomplete.async.history-incremental-search.stop() {
   unset curcontext
+  return 0
 }
 
 .autocomplete.async.line-pre-redraw() {
@@ -96,6 +97,7 @@
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   .autocomplete.async.kill $_ZSH_AUTOSUGGEST_ASYNC_FD $_ZSH_AUTOSUGGEST_CHILD_PID
+  return 0
 }
 
 .autocomplete.async.kill() {
@@ -250,10 +252,10 @@
 
   local -F seconds
   local -i pid nmatches current
-  local message eof
+  local message
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r seconds pid nmatches message eof <&$1
+      IFS=$'\0' read -r seconds pid nmatches message _ <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
@@ -461,10 +463,9 @@
 
 .autocomplete.async.timeout.fd-widget() {
   local -i pid complete_fd complete_pid
-  local eof
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r pid complete_fd complete_pid eof <&$1
+      IFS=$'\0' read -r pid complete_fd complete_pid _ <&$1
   } always {
     .autocomplete.async.kill $1 $pid
   }
