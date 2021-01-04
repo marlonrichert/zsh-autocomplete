@@ -1,5 +1,3 @@
 #!/bin/zsh
-emulate zsh; setopt $_autocomplete__options
-
 builtin autoload +X -Uz $1
 functions[.autocomplete.$1]=$functions[$1]

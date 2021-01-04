@@ -1,58 +1,54 @@
 #!/bin/zsh
-
-.autocomplete.compinit.zle-f() {
-  exec {1}<&-
-  zle -F $1 2>/dev/null
-}
+zmodload -Fa zsh/files b:zf_rm
 
 .autocomplete.compinit.precmd() {
   emulate zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd .autocomplete.compinit.precmd
 
-  local dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
-  local f; for f in $^fpath/_*~*.zwc(N-.); do
-    if [[ -v _comp_dumpfile && ! -v functions[$f] ||
-        -f $dumpfile && $f -nt $dumpfile ]]; then
       # Decrease Oh My Zsh start-up time. See below.
       [[ -v ZSH_COMPDUMP ]] &&
         local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
-      zmodload -F zsh/files b:zf_rm
-      zf_rm -f $dumpfile
-      break
-    fi
-  done
-  if [[ ! -v _comp_dumpfile || ! -f $dumpfile ]]; then
+
+  typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
+
+  local -aU in_fpath=( $^fpath/_*~*.zwc(N-.:t) )
+  local -a autoloading=( ${(k@)functions[@]} )
+  [[ -v _comp_setup && ${#in_fpath:|autoloading} -gt 0 ]] &&
+    zf_rm -f $_comp_dumpfile
+
+  if [[ ! -v _comp_setup || ! -f $_comp_dumpfile ]]; then
     zmodload zsh/complist
     unfunction compinit 2>/dev/null
     builtin autoload -Uz compinit
-    compinit -C -d $dumpfile
+    compinit -C -d $_comp_dumpfile
     compinit() { : }
+
     local -i fd
     exec {fd}< <(
-      local bin=$_comp_dumpfile.zwc
-      if [[ ! -e $bin || $bin -ot $_comp_dumpfile ]]; then
-        zcompile -Uz $_comp_dumpfile 2>/dev/null
-      fi
-
       # Prevent Oh My Zsh from deleting comp dump file.
       (( $#omzdump > 0 )) &&
         tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
+
+      local cache_dir
+      zstyle -s ':completion:*' cache-path cache_dir && () {
+        local src bin
+        for src in $cache_dir/*~*.zwc(N-.); do
+          bin=$src.zwc
+          if [[ ! -e $bin || $bin -ot $src ]]; then
+            zcompile -Uz $src
+          fi
+        done
+      }
     )
+    .autocomplete.compinit.zle-f() {
+      exec {1}<&-
+      zle -F $1 2>/dev/null
+    }
     zle -F "$fd" .autocomplete.compinit.zle-f
   fi
-
-  local cache_dir; zstyle -s ':completion:*' cache-path cache_dir && () {
-    local src bin
-    for src in $cache_dir/*~*.zwc(N-.); do
-      bin=$src.zwc
-      if [[ ! -e $bin || $bin -ot $src ]]; then
-        zcompile -Uz $src
-      fi
-    done
-  }
 
   local args; for args in $_autocomplete__compdef[@]; do
     compdef "${(z@)${(Q)args}}"
