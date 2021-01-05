@@ -1,7 +1,7 @@
 # `zsh-autocomplete`
 `zsh-autocomplete` adds **real-time type-ahead autocompletion** to Zsh. Find as you type, then
 press <kbd>Tab</kbd> to insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert the
-bottom, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to use menu selection.
+bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 
 [![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
 
@@ -14,12 +14,11 @@ bottom, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to use menu selection.
 * [License](#license)
 
 ## Other Features
-Besides live autocompletion, `zsh-autocomplete` comes with many more useful features, for a great
-out-of-the-box experience.
+Besides live autocompletion, `zsh-autocomplete` comes with many more useful completion features.
 
 ### Optimized completion config
-Zsh's completion system is powerful, but correctly configuring it can be a daunting task.
-`zsh-autocomplete` does it for you, so you can effortlessly get the most out of it.
+Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplete` does it for you,
+while providing a manageable list of [settings](#settings) for changing the defaults.
 
 ### Live history search
 Press <kbd>Ctrl</kbd>+<kbd>R</kbd> or <kbd>Ctrl</kbd>+<kbd>S</kbd> to do an interactive,
@@ -107,7 +106,7 @@ Minimum:
 
 ## Installation
 1.  `git clone` this repo.
-1.  Add to your `~/.zshrc` file, before any calls to `compdef`:
+1.  Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
     ```zsh
     source path/to/zsh-autocomplete.plugin.zsh
     ```
@@ -129,83 +128,16 @@ To change your settings, just copy-paste any of the code below to your `~/.zshrc
 `:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
 former are unique to `zsh-autocomplete`.
 
-* [Show more/less help text](#show-moreless-help-text)
-* [Change the order of completions](#change-the-order-of-completions)
-* [Disable certain completions](#disable-certain-completions)
+* [Change <kbd>Tab</kbd> behavior](#change-tab-behavior)
+* [Change other key bindings](#change-other-key-bindings)
 * [Wait for a minimum amount of time](#wait-for-a-minimum-amount-of-time)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
 * [Ignore certain inputs](#ignore-certain-inputs)
-* [Change the "No matching completions" message](#change-the-no-matching-completions-message)
+* [Change the order of completions](#change-the-order-of-completions)
+* [Disable certain completions](#disable-certain-completions)
+* [Show more/less help text](#show-moreless-help-text)
+* [Change the "Partial list" message](#change-the-partial-list-message)
 * [Use your own completion config](#use-your-own-completion-config)
-* [Change <kbd>Tab</kbd> behavior](#change-tab-behavior)
-* [Change other key bindings](#change-other-key-bindings)
-
-### Show more/less help text
-To show more descriptions:
-```zsh
-zstyle ':completion:*' extra-verbose yes
-```
-
-To show more descriptions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
-```zsh
-zstyle ':completion:list-expand:*' extra-verbose yes
-```
-
-To hide all descriptions:
-```zsh
-zstyle ':completion:*' verbose no
-```
-
-### Disable certain completions
-To disable, for example, ancestor directories, recent directories and recent files:
-```zsh
-zstyle ':completion:*:complete:*:' tag-order \
-  '! ancestor-directories recent-directories recent-files' -
-```
-⚠️ **Note** the additional `:` at the end of the namespace selector and the `-` as the last value.
-
-### Change the order of completions
-To list certain completions in a particular order _before_ all other completions:
-```zsh
-zstyle ':completion:*:complete:*:' group-order \
-  options arguments values local-directories files builtins history-words
-```
-⚠️ **Note** the additional `:` at the end of the namespace selector.
-
-### Wait for a minimum amount of time
-To suppress autocompletion until you have stopped typing for a certain number of seconds:
-```zsh
-zstyle ':autocomplete:*' min-delay .3  # 300 milliseconds
-```
-
-### Wait for a minimum amount of input
-To suppress autocompletion until a minimum number of characters have been typed:
-```zsh
-zstyle ':autocomplete:*' min-input 3
-```
-
-### Ignore certain inputs
-To not trigger autocompletion when the input matches a pattern:
-```zsh
-# This example matches any input word consisting of two or more dots (and no other chars).
-zstyle ':autocomplete:*' ignored-input '..##'
-```
-The pattern syntax supported here is that of [Zsh's extended glob
-operators](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators).
-
-### Change the "Partial list" message
-To alter the message shown when the list of completions does not fit on screen:
-```zsh
-  local hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
-  zstyle ':autocomplete:*:too-many-matches' message \
-    "${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
-```
-
-### Use your own completion config
-To disable `zsh-autocomplete`'s pre-packaged completion config completely:
-```zsh
-zstyle ':autocomplete:*' config off
-```
 
 ### Change `Tab` behavior
 By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> inserts the
@@ -250,6 +182,73 @@ bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
 bindkey -M menuselect $key[Return] accept-line
+```
+
+### Wait for a minimum amount of time
+To suppress autocompletion until you have stopped typing for a certain number of seconds:
+```zsh
+zstyle ':autocomplete:*' min-delay .3  # 300 milliseconds
+```
+
+### Wait for a minimum amount of input
+To suppress autocompletion until a minimum number of characters have been typed:
+```zsh
+zstyle ':autocomplete:*' min-input 3
+```
+
+### Ignore certain inputs
+To not trigger autocompletion for input that matches a pattern:
+```zsh
+# This example matches any input word consisting of two or more dots (and no other chars).
+zstyle ':autocomplete:*' ignored-input '..##'
+```
+The pattern syntax supported here is that of [Zsh's extended glob
+operators](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators).
+
+### Disable certain completions
+To disable, for example, ancestor directories, recent directories and recent files:
+```zsh
+zstyle ':completion:*:complete:*:' tag-order \
+  '! ancestor-directories recent-directories recent-files' -
+```
+⚠️ **Note** the additional `:` at the end of the namespace selector and the `-` as the last value.
+
+### Change the order of completions
+To list certain completions in a particular order _before_ all other completions:
+```zsh
+zstyle ':completion:*:complete:*:' group-order \
+  options arguments values local-directories files builtins history-words
+```
+⚠️ **Note** the additional `:` at the end of the namespace selector.
+
+### Show more/less help text
+To show auto-generated command descriptions:
+```zsh
+zstyle ':completion:*' extra-verbose yes
+```
+
+To show command descriptions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
+```zsh
+zstyle ':completion:list-expand:*' extra-verbose yes
+```
+
+To hide all descriptions:
+```zsh
+zstyle ':completion:*' verbose no
+```
+
+### Change the "Partial list" message
+To alter the message shown when the list of completions does not fit on screen:
+```zsh
+  local hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
+  zstyle ':autocomplete:*:too-many-matches' message \
+    "${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
+```
+
+### Use your own completion config
+To disable `zsh-autocomplete`'s pre-packaged completion config completely:
+```zsh
+zstyle ':autocomplete:*' config off
 ```
 
 ## Author
