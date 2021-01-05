@@ -51,21 +51,23 @@
   else
     builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
     add-zsh-hook chpwd chpwd_recent_dirs
-    zstyle :chpwd: recent-dirs-max _ ||
+    zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
-    zstyle :chpwd: recent-dirs-prune _ ||
-      zstyle ':chpwd:*' recent-dirs-prune "pattern:$TMPDIR:A/*"
+    zstyle -s :chpwd: recent-dirs-prune _ ||
+      zstyle ':chpwd:*' recent-dirs-prune \
+        'pattern:~' 'pattern:~/[^/]#' 'pattern:/[^/]#' "pattern:$TMPDIR:A/*"
 
     .autocomplete.recent_dirs.chpwd() {
       chpwd_recent_filehandler
-      _autocomplete.sort_by_length "${(D)reply[@]}"
       typeset -gHa _autocomplete__recent_dirs=( $~reply[@] )
     }
     add-zsh-hook chpwd .autocomplete.recent_dirs.chpwd
     .autocomplete.recent_dirs.chpwd
 
     _autocomplete.recent_dirs() {
-      reply=( ${(M@)_autocomplete__recent_dirs[@]:#**/(#i)${~${:-$PREFIX$SUFFIX}///*}*} )
+      reply=( ${(@)_autocomplete__recent_dirs[@]:#$PWD(|/[^/]#)} )
+      reply=( ${(M@)reply[@]:#**/(#i)${~${:-$PREFIX$SUFFIX}///[^/]#}[^/]#} )
+      reply=( ${(@)reply[1,10]} )
       (( $#reply > 0 ))
     }
   fi

@@ -7,11 +7,11 @@ _autocomplete.recent_paths() {
 
     _requested recent-directories && [[ -v functions[_autocomplete.recent_dirs] ]] &&
         _autocomplete.recent_dirs $words[CURRENT] &&
-      .autocomplete.recent_paths.add recent-directories 'recent directory' $reply
+      .autocomplete.recent_paths.add recent-directories 'recent directory' $reply[@]
 
     _requested recent-files && [[ -v functions[_autocomplete.recent_files] ]] &&
         _autocomplete.recent_files $words[CURRENT] &&
-      .autocomplete.recent_paths.add recent-files 'recent file' $reply
+      .autocomplete.recent_paths.add recent-files 'recent file' $reply[@]
   done
 
   (( compstate[nmatches] > nmatches ))
@@ -23,25 +23,14 @@ _autocomplete.recent_paths() {
   shift 2
 
   local -a display=()
-  local -i max_matches=$(( compstate[nmatches] + 10 ))
-  local disp path_ prefix word=$~words[CURRENT]:a
+  local path_ prefix
   for path_ in ${@:a}; do
-    (( compstate[nmatches] < max_matches )) ||
-      break
 
     [[ -e $path_ ]] ||
       continue
 
-    disp=${(D)path_}
-    (( $#disp > 1 )) ||
-      continue
-
-    prefix=$path_:h
-    [[ $word == ($path_|$prefix) || $prefix == ($word:h|$PWD) || $PWD == $path_/** ]] &&
-      continue
-
-    prefix+=${${prefix:#/}:+/}
-    display=( "$disp" )
+    prefix=$path_:h; prefix+=${${prefix:#/}:+/}
+    display=( "${(D)path_}" )
     compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)path_:t}
   done
 }
