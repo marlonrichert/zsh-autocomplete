@@ -54,8 +54,8 @@
     zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
     zstyle -s :chpwd: recent-dirs-prune _ ||
-      zstyle ':chpwd:*' recent-dirs-prune \
-        'pattern:~' 'pattern:~/[^/]#' 'pattern:/[^/]#' "pattern:$TMPDIR:A/*"
+      zstyle ':chpwd:*' recent-dirs-prune "pattern:^${HOME//[\/]/\\/}$" \
+        "pattern:^${HOME//[\/]/\\/}\/[^\/]+$" 'pattern:^\/[^\/]+$' "pattern:^${TMPDIR:A}/.*$"
 
     .autocomplete.recent_dirs.chpwd() {
       chpwd_recent_filehandler
