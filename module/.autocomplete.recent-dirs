@@ -65,7 +65,13 @@
     .autocomplete.recent_dirs.chpwd
 
     _autocomplete.recent_dirs() {
-      reply=( ${(@)_autocomplete__recent_dirs[@]:#$PWD(|/[^/]#)} )
+      reply=( $_autocomplete__recent_dirs[@] )
+      local ancestor=$PWD:h
+      while [[ $ancestor != '/' ]]; do
+        reply=( ${(@)reply[@]:#$ancestor} )
+        ancestor=$ancestor:h
+      done
+      reply=( ${(@)reply[@]:#$PWD(|/[^/]#)} )
       reply=( ${(M@)reply[@]:#**/(#i)${~${:-$PREFIX$SUFFIX}///[^/]#}[^/]#} )
       reply=( ${(@)reply[1,10]} )
       (( $#reply > 0 ))
