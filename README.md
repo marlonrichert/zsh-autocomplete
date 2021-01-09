@@ -130,11 +130,12 @@ former are unique to `zsh-autocomplete`.
 
 * [Change <kbd>Tab</kbd> behavior](#change-tab-behavior)
 * [Change other key bindings](#change-other-key-bindings)
+* [Start autocompletion in history search mode](#start-autocompletion-in-history-search-mode)
 * [Wait for a minimum amount of time](#wait-for-a-minimum-amount-of-time)
 * [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
 * [Ignore certain inputs](#ignore-certain-inputs)
-* [Change the order of completions](#change-the-order-of-completions)
 * [Disable certain completions](#disable-certain-completions)
+* [Change the order of completions](#change-the-order-of-completions)
 * [Show more/less help text](#show-moreless-help-text)
 * [Change the "Partial list" message](#change-the-partial-list-message)
 * [Use your own completion config](#use-your-own-completion-config)
@@ -182,6 +183,12 @@ bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
 bindkey $key[ControlSpace] set-mark-command
 bindkey -M menuselect $key[Return] accept-line
+```
+
+### Start autocompletion in history search mode
+To start each new command line as if <kbd>Ctrl</kbd>+<kbd>R</kbd> has been pressed:
+```zsh
+zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
 
 ### Wait for a minimum amount of time

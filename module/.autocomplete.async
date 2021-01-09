@@ -44,36 +44,35 @@
 
   zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
   zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
-  add-zle-hook-widget line-finish .autocomplete.async.history-incremental-search.stop
   bindkey -s -M menuselect '^R' '^G^R'
   bindkey -s -M menuselect '^S' '^G^S'
 
+  add-zle-hook-widget line-init .autocomplete.async.reset-context
   add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
-  add-zle-hook-widget line-finish .autocomplete.async.stop
+  add-zle-hook-widget line-finish .autocomplete.async.clear
   add-zsh-hook zshexit .autocomplete.async.stop
 }
 
 .autocomplete.async.history-incremental-search() {
   if [[ $curcontext == $WIDGET* ]]; then
-    .autocomplete.async.history-incremental-search.stop
+    unset curcontext
   else
     typeset -gH curcontext=${WIDGET}:::
   fi
   .autocomplete.async.start
 }
 
-.autocomplete.async.history-incremental-search.stop() {
-  unset curcontext
+.autocomplete.async.reset-context() {
+  typeset -gH curcontext=''
+  zstyle -s :autocomplete: default-context curcontext
   return 0
 }
 
 .autocomplete.async.line-pre-redraw() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  if (( KEYS_QUEUED_COUNT + PENDING > 0 )); then
-    .autocomplete.async.stop
+  (( KEYS_QUEUED_COUNT + PENDING > 0 )) &&
     return 0
-  fi
 
   if [[ -z $curcontext && $BUFFER == [[:space:]]# ]]; then
     zle -Rc
@@ -102,6 +101,13 @@
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
   .autocomplete.async.kill $_ZSH_AUTOSUGGEST_ASYNC_FD $_ZSH_AUTOSUGGEST_CHILD_PID
+  return 0
+}
+
+.autocomplete.async.clear() {
+  zle -Rc
+  .autocomplete.async.stop
+  .autocomplete.async.reset-context
   return 0
 }
 
@@ -293,16 +299,16 @@
   local message=$2
 
   local min_input; zstyle -s :autocomplete: min-input min_input ||
-    min_input=1
+    min_input=0
   local ignored; zstyle -s :autocomplete: ignored-input ignored ||
     ignored=' '
 
-  if (( nmatches == 0 )) && [[ -n $message ]]; then
+  if [[ -n $curcontext ]]; then
+    _main_complete
+  elif (( nmatches == 0 )) && [[ -n $message ]]; then
     local msg
     zformat -f msg "$message"
     compadd -x "$msg"
-  elif [[ -n $curcontext ]]; then
-    _main_complete
   elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
