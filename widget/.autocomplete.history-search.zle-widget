@@ -1,21 +1,6 @@
 #!/bin/zsh
 setopt $_autocomplete__options completeinword
 
-local -i index
-local context lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-
-index=$LBUFFER[(I)$~_autocomplete__sublist_delim]
-(( index < 1 )) ||
-  context=$LBUFFER[1,index]
-LBUFFER=${context:+$context }${LBUFFER[index+1,-1]//[[:space:]]##/$'\0'}
-
-index=$RBUFFER[(i)$~_autocomplete__sublist_delim]
-(( index > $#RBUFFER )) ||
-  context=$RBUFFER[index,-1]
-RBUFFER=${RBUFFER[1,index-1]//[[:space:]]##/$'\0'}${context:+ $context}
-
-local searchbuffer="$BUFFER"
-
 local -A keymap_historysearch=(
   $key[Left] .backward-char
   $key[Right] .forward-char
@@ -31,13 +16,18 @@ local -i ret=1
     bindkey -M menuselect $k $v
   done
 
+  local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+  LBUFFER=${${(b)LBUFFER}//[[:space:]]##/$'\0'}
+  RBUFFER=${${(b)RBUFFER}//[[:space:]]##/$'\0'}
+  local buffer="$BUFFER"
+
   zle _history_search; ret=$?
 
 } always {
-  eval "$keymap_menuselect"
-  if [[ $BUFFER == $searchbuffer ]]; then
+  if [[ $buffer == $BUFFER ]] then
     LBUFFER="$lbuffer"
     RBUFFER="$rbuffer"
   fi
+  eval "$keymap_menuselect"
 }
 return ret

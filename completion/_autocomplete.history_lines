@@ -6,36 +6,26 @@ _autocomplete.history_lines() {
   _tags && _requested $tag ||
     return 1
 
-  local word="${(Q):-$PREFIX$SUFFIX}"
-  local lbuffer="${LBUFFER%${(Q)PREFIX}}"
-  local rbuffer="${RBUFFER#${(Q)SUFFIX}}"
-  if [[ $curcontext == *-incremental-*:* ]]; then
-    lbuffer="${lbuffer##*${~_autocomplete__sublist_delim}[[:space:]]#}"
-    rbuffer="${rbuffer%%[[:space:]]#${~_autocomplete__sublist_delim}*}"
-  else
-    words=( "${${(0)word}[@]:#}" )
-    lbuffer="${(M)lbuffer##*${~_autocomplete__sublist_delim}[[:space:]]#}"
-    rbuffer="${(M)rbuffer%%[[:space:]]#${~_autocomplete__sublist_delim}*}"
-  fi
-
   local -aU events=()
   local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
-  local q
-  if [[ -z "$lbuffer$word$rbuffer" || -z $words ]]; then
-    q='<-16>'; [[ $curcontext == *-forward:* ]] ||
-      q="<$(( HISTNO - max_lines ))->"
-    print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(I)$~q]}"
+  if [[ -z $BUFFER ]]; then
+    local query='<-16>'; [[ $curcontext == *-forward:* ]] ||
+      query="<$(( HISTNO - max_lines ))->"
+    print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(I)$~query]}"
     [[ $curcontext == *-incremental-*-forward:* ]] &&
       events=( "${(Oa@)events}" )
   else
-    local -i max_err=$(( min(7, $#word / 3) ))
     local -aU matches=() queries reply
     if [[ $curcontext == *-incremental-*:* ]]; then
-      queries=( "$lbuffer*((#ia"{0..$max_err}")$word)*$rbuffer" )
+      local prefix="$IPREFIX$PREFIX" suffix="$SUFFIX$ISUFFIX"
+      local word="$prefix$suffix"
+      local lbuffer="${LBUFFER%%$prefix}$QIPREFIX"
+      local rbuffer="$QISUFFIX${RBUFFER##$suffix}"
+      queries=( "${(b)lbuffer}*((#ia"{0..$(( min(7, $#word / 3) ))}")${(b)word})*${(b)rbuffer}" )
     else
-      queries=( '*(#ia'{0..$max_err}")${(j:*:)${(b)words[@]}}*" )
+      queries=( '(#ia'{0..$(( min(7, $#words / 3) ))}')*'${words[CURRENT]//$'\0'/*}'*' )
     fi
-    for q in $queries[@]; do
+    local q; for q in $queries[@]; do
       matches=()
       print -v matches -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
 
@@ -57,19 +47,24 @@ _autocomplete.history_lines() {
       events=( ${(@)events[1,max_lines]} )
   fi
 
-  [[ $curcontext = history-search:* ]] &&
+  local -a sopt=( -S '' )
+  if [[ $curcontext = history-search:* ]]; then
     events=( ${(Oa@)events} )
+    sopt=( -S ';' -R _autocomplete.history_lines.suffix )
+  fi
 
   local MATCH; local -i MBEGIN MEND
   local -a displays=(
     "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
   )
 
+  events=( "${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }" )
+  [[ $curcontext == *-incremental-* ]] &&
+    events=( "${(@)${(@)events[@]##$lbuffer}[@]%%$rbuffer}" )
+
   local _comp_no_ignore=1 expl
   _description -2V $tag expl 'history line'
-  compadd "$expl[@]" -QU -ld displays \
-    -S ';' -R _autocomplete.history_lines.suffix \
-    - "${(@)${(@)${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }#$lbuffer}%rbuffer}"
+  compadd "$expl[@]" -QU "$sopt[@]" -ld displays -a events
 }
 
 _autocomplete.history_lines.suffix() {
