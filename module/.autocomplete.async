@@ -75,6 +75,11 @@
     return 0
   fi
 
+  if [[ -z $curcontext && $BUFFER == [[:space:]]# ]]; then
+    zle -Rc
+    return 0
+  fi
+
   if [[ -v functions[_zsh_highlight] ]]; then
     _zsh_highlight
     typeset -gHa _autocomplete__highlight=( $region_highlight[@] )
