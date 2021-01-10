@@ -76,12 +76,14 @@ EOF
   _main_complete() {
     local -i ret=1 _autocomplete__reserved_lines=0
 
+    compstate[exact]=''
+    compstate[insert]=''
+    compstate[list]=''
+
     local +h -a comppostfuncs=(
       _autocomplete.extras
       "$comppostfuncs[@]"
     )
-    compstate[insert]=''
-    compstate[list]='list force'
     {
       # Don't break `_complete_help`, async completion, etc.
       [[ -v functions[compadd] ]] ||
@@ -96,7 +98,11 @@ EOF
     }
     typeset -gHi _autocomplete__current=$CURRENT
     typeset -gH _autocomplete__words="$words"
+
+    # Don't use `zstyle` for this, because it breaks horribly in `_setup`.
+    compstate[list]='list packed rows'
     compstate[list_max]=0
+
     return ret
   }
 

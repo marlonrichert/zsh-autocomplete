@@ -334,8 +334,6 @@
 }
 
 .autocomplete.async.compadd() {
-  setopt localoptions listtypes
-
   if [[ $funcstack[2] == _autocomplete.history_lines ]]; then
     .autocomplete.compadd "$@"
     return
@@ -385,6 +383,7 @@
           (( surplus > 0 )) &&
             shift -p $surplus _matches_
 
+          setopt localoptions listtypes
           zparseopts -D -E -A _opts_ - a
           _autocomplete.compadd_opts_len "$@"
           .autocomplete.compadd "${(@)@[1,?]}" -a - _matches_
