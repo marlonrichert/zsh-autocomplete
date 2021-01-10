@@ -7,7 +7,8 @@
   [[ -v functions[.zinit-shade-off] ]] &&
     .zinit-shade-off "${___mode:-load}"
 
-  add-zsh-hook -d precmd .autocomplete.__init__.precmd
+  add-zsh-hook -d precmd ${(%):-%N}
+  unfunction ${(%):-%N}
 
   # Don't let `|` remove suffixes.
   [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||

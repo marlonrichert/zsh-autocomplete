@@ -2,7 +2,8 @@
 
 .autocomplete.key-binding.precmd() {
   emulate zsh; setopt $_autocomplete__options
-  add-zsh-hook -d precmd .autocomplete.key-binding.precmd
+  add-zsh-hook -d precmd ${(%):-%N}
+  unfunction ${(%):-%N}
 
   [[ -z $key[Tab] || -z $key[BackTab] ]] &&
     .autocomplete.key

@@ -2,7 +2,8 @@
 
 .autocomplete.recent-dirs.precmd() {
   emulate zsh; setopt $_autocomplete__options
-  add-zsh-hook -d precmd .autocomplete.recent-dirs.precmd
+  add-zsh-hook -d precmd ${(%):-%N}
+  unfunction ${(%):-%N}
 
   zmodload -F zsh/parameter p:commands
 

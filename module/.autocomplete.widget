@@ -14,8 +14,8 @@
 
 .autocomplete.widget.precmd() {
   emulate zsh; setopt $_autocomplete__options
-
-  add-zsh-hook -d precmd .autocomplete.widget.precmd
+  add-zsh-hook -d precmd ${(%):-%N}
+  unfunction ${(%):-%N}
 
   local null
   if zstyle -s :autocomplete:tab: completion null; then
@@ -34,6 +34,8 @@
   .autocomplete.widget.z history-search history-search
   .autocomplete.widget.z up-line-or-search up-line-or-search
   .autocomplete.widget.z down-line-or-select down-line-or-select
+
+  unfunction .autocomplete.widget.c .autocomplete.widget.z
 
   if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
     [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&

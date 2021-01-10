@@ -23,7 +23,7 @@
     autoload -Uz bashcompinit
     bashcompinit
     bashcompinit() { : }
-    $funcstack[1] "$@"
+    ${(%):-%N} "$@"
   }
 
   typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
