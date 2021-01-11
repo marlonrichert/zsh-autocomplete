@@ -1,9 +1,9 @@
 #!/bin/zsh
 
 .autocomplete.complete-word.completion-widget() {
-  unset curcontext
   local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.complete-word.comppostfunc )
   _main_complete
+  unset curcontext
 }
 
 .autocomplete.complete-word.comppostfunc() {
