@@ -99,9 +99,9 @@
 }
 
 .autocomplete.async.stop() {
-  .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
-  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
-  .autocomplete.async.kill $_ZSH_AUTOSUGGEST_ASYNC_FD $_ZSH_AUTOSUGGEST_CHILD_PID
+  .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  .autocomplete.async.kill _ZSH_AUTOSUGGEST_ASYNC_FD _ZSH_AUTOSUGGEST_CHILD_PID
   return 0
 }
 
@@ -115,19 +115,24 @@
 .autocomplete.async.kill() {
   emulate zsh; setopt $_autocomplete__options
 
-  local -i fd=$1 pid=$2
-
-  if (( fd > 9 )) && { : <&$fd } 2>/dev/null; then
-    # Close the file descriptor and remove the handler widget.
-    exec {fd}<&-
-    zle -F $fd 2>/dev/null
+  if (( ${1-0} )); then
+    () {
+      # Close the file descriptor and remove the handler widget.
+      local -i fd=$1
+      zle -F $fd
+      exec {fd}<&-
+    } ${(P)1}
+    typeset -g $1=
   fi
 
-  if (( pid != 0 )); then
-    # Zsh will make a new process group for the child process only if job control is enabled.
-    local group=''; [[ -o MONITOR ]] &&
-      group='-'
-    kill -KILL $group$pid 2>/dev/null
+  if (( ${2-0} )); then
+    () {
+      local -i pid=$1
+      # Zsh will make a new process group for the child process only if job control is enabled.
+      [[ -o MONITOR ]] && (( pid *= -1 ))
+      kill -KILL $pid 2>/dev/null
+    } ${(P)2}
+    typeset -g $2=
   fi
 }
 
@@ -144,8 +149,7 @@
   exec {_autocomplete__async_complete_fd}< <(
     setopt $_autocomplete__options NO_xtrace NO_verbose
 
-    local pid=$sysparams[pid]
-    print $pid
+    print $sysparams[pid]
     {
       local REPLY
       zpty _autocomplete__zpty .autocomplete.async.complete.inner '$LBUFFER' '$RBUFFER'
@@ -160,10 +164,9 @@
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
-      (( TRY_BLOCK_INTERRUPT > 0 )) ||
-        print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
-      kill -KILL $pid
+      (( TRY_BLOCK_INTERRUPT > 0 )) ||
+        print -rNC1 - "$SECONDS" "$line"
     }
   )
   read _autocomplete__async_complete_pid <&$_autocomplete__async_complete_fd
@@ -174,19 +177,14 @@
   exec {_autocomplete__async_timeout_fd}< <(
     setopt $_autocomplete__options NO_xtrace NO_verbose
 
-    local complete_pid=$_autocomplete__async_complete_pid
-    local complete_fd=$_autocomplete__async_complete_fd
-    local pid=$sysparams[pid]
-    print $pid
+    print $sysparams[pid]
     {
       local -i timeout=$(( 100.0 * (min_delay - SECONDS +
         10.0 * _autocomplete__async_avg_duration) ))
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
-      (( TRY_BLOCK_INTERRUPT > 0 )) ||
-        print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
-      kill -KILL $pid
+      (( TRY_BLOCK_INTERRUPT > 0 )) || print 1
     }
   )
   read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
@@ -260,16 +258,16 @@
     setopt NO_completeinword
   fi
 
-  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
 
   local -F seconds
-  local -i pid nmatches current
-  local message
+  local -i nmatches
+  local message rest
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r seconds pid nmatches message _ <&$1
+      IFS=$'\0' read -ru $1 seconds nmatches message rest
   } always {
-    .autocomplete.async.kill $1 $pid
+    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   }
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
@@ -473,14 +471,14 @@
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  local -i pid complete_fd complete_pid
+  local -i timedout
   {
-    [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r pid complete_fd complete_pid _ <&$1
+    [[ -z $2 || $2 == hup ]] && read -ru $1 timedout
   } always {
-    .autocomplete.async.kill $1 $pid
+    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   }
-  .autocomplete.async.kill $complete_fd $complete_pid
+  (( timedout )) &&
+    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   .autocomplete.zle-flags
   (( _autocomplete__async_avg_duration *= 2 ))
 }
