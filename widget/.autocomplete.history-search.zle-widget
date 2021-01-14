@@ -1,24 +1,25 @@
 #!/bin/zsh
-setopt $_autocomplete__options completeinword
-
-local -A keymap_historysearch=(
-  $key[Left] .backward-char
-  $key[Right] .forward-char
-  $key[ForwardWord] .backward-word
-  $key[BackwardWord] .forward-word
-  $key[Home] .beginning-of-line
-  $key[End] .end-of-line
-)
-local -i ret=1
 {
-  local keymap_menuselect="$(bindkey -M menuselect -L)"
-  local k v; for k v in ${(kv@)keymap_historysearch}; do
-    bindkey -M menuselect $k $v
-  done
-
   local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-  LBUFFER=${${(b)LBUFFER}//[[:space:]]##/$'\0'}
-  RBUFFER=${${(b)RBUFFER}//[[:space:]]##/$'\0'}
+  local keymap_menuselect="$(bindkey -M menuselect -L)"
+  local -i ret=1
+  () {
+    emulate -L zsh; setopt $_autocomplete__options
+
+    local -A keymap_historysearch=(
+      $key[Left] .backward-char
+      $key[Right] .forward-char
+      $key[ForwardWord] .backward-word
+      $key[BackwardWord] .forward-word
+      $key[Home] .beginning-of-line
+      $key[End] .end-of-line
+    )
+    local k v; for k v in ${(kv@)keymap_historysearch}; do
+      bindkey -M menuselect $k $v
+    done
+    LBUFFER=${${(b)LBUFFER}//[[:space:]]##/$'\0'}
+    RBUFFER=${${(b)RBUFFER}//[[:space:]]##/$'\0'}
+  }
   local buffer="$BUFFER"
 
   zle _history_search; ret=$?

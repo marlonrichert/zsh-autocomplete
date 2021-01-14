@@ -13,7 +13,7 @@
 }
 
 .autocomplete.widget.precmd() {
-  emulate zsh; setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
 

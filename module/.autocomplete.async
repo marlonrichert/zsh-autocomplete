@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 .autocomplete.async.precmd() {
-  emulate zsh; setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
 
@@ -113,7 +113,7 @@
 }
 
 .autocomplete.async.kill() {
-  emulate zsh; setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
 
   local -i fd=$1 pid=$2
 
@@ -132,7 +132,7 @@
 }
 
 .autocomplete.async.start() {
-  setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
 
   .autocomplete.async.stop
 
@@ -142,7 +142,7 @@
   unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
-    setopt $_autocomplete__options NO_xtrace NO_verbose
+    emulate -L zsh; setopt $_autocomplete__options NO_verbose NO_xtrace
 
     local pid=$sysparams[pid]
     print $pid
@@ -172,7 +172,7 @@
   unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
-    setopt $_autocomplete__options NO_xtrace NO_verbose
+    emulate -L zsh; setopt $_autocomplete__options NO_verbose NO_xtrace
 
     local complete_pid=$_autocomplete__async_complete_pid
     local complete_fd=$_autocomplete__async_complete_fd
@@ -210,6 +210,9 @@
     setopt NO_completeinword
   fi
 
+  () {
+    emulate -L zsh; setopt $_autocomplete__options NO_xtrace NO_verbose
+
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
   unset ${^hooks}_functions &>/dev/null
   $hooks[@] () { : }
@@ -218,6 +221,7 @@
       history-line-set keymap-select; do
     zle -N zle-$hook .autocomplete.no-op
   done
+  }
 
   typeset -gH lbuffer=$1 rbuffer=$2
 
@@ -238,7 +242,10 @@
     {
       .autocomplete.async.list-choices.complete
     } always {
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
       print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
+    }
     }
     compstate[insert]=''
     compstate[list]=''
@@ -265,6 +272,9 @@
   local -F seconds
   local -i pid nmatches current
   local message
+  () {
+    emulate -L zsh; setopt $_autocomplete__options
+
   {
     [[ -z $2 || $2 == hup ]] &&
       IFS=$'\0' read -r seconds pid nmatches message _ <&$1
@@ -273,6 +283,7 @@
   }
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
+  } "$@"
 
   .autocomplete.zle-flags ||
     return 0
@@ -280,6 +291,9 @@
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
+    () {
+      emulate -L zsh; setopt $_autocomplete__options
+
     [[ -v functions[_zsh_highlight] ]] &&
       region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
@@ -287,6 +301,7 @@
 
     # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
     zle -R
+    }
   else
     .autocomplete.async.stop
   fi
@@ -294,8 +309,6 @@
 }
 
 .autocomplete.async.list-choices.completion-widget() {
-  setopt $_autocomplete__options
-
   local -i nmatches=$1
   local message=$2
 
@@ -310,7 +323,10 @@
     local msg
     zformat -f msg "$message"
     compadd -x "$msg"
-  elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
+  elif () {
+    emulate -L zsh; setopt $_autocomplete__options
+    [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input ))
+  }; then
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
@@ -324,14 +340,20 @@
 .autocomplete.async.list-choices.complete() {
   local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
   {
+    () {
+      emulate -L zsh; setopt $_autocomplete__options
     functions[compadd]=$functions[.autocomplete.async.compadd]
+    } "$@"
     _main_complete
   } always {
+    () {
+      emulate -L zsh; setopt $_autocomplete__options
     [[ -v functions[compadd] ]] &&
       unfunction compadd
     [[ -v functions[comptags] ]] &&
       unfunction comptags
   }
+}
 }
 
 .autocomplete.async.compadd() {

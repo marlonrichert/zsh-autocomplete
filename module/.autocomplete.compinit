@@ -2,7 +2,7 @@
 zmodload -Fa zsh/files b:zf_rm
 
 .autocomplete.compinit.precmd() {
-  emulate zsh; setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
 
@@ -87,16 +87,20 @@ EOF
       "$comppostfuncs[@]"
     )
     {
-      # Don't break `_complete_help`, async completion, etc.
-      [[ -v functions[compadd] ]] ||
-        functions[compadd]=$functions[.autocomplete.compadd]
-
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
+        # Don't break `_complete_help`, async completion, etc.
+        [[ -v functions[compadd] ]] ||
+          functions[compadd]=$functions[.autocomplete.compadd]
+      }
       .autocomplete._main_complete "$@"; ret=$?
-
     } always {
-      # Stop `_complete_help` from complaining.
-      [[ $funcstack[2] == _complete_help ]] ||
-        unfunction compadd
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
+        # Stop `_complete_help` from complaining.
+        [[ $funcstack[2] == _complete_help ]] ||
+          unfunction compadd
+      }
     }
     typeset -gHi _autocomplete__current=$CURRENT
     typeset -gH _autocomplete__words="$words"
@@ -138,8 +142,11 @@ EOF
   }
 
   .autocomplete.builtin() {
-    [[ -v functions[builtin] ]] &&
-      unfunction builtin
+    () {
+      emulate -L zsh; setopt $_autocomplete__options
+      [[ -v functions[builtin] ]] &&
+        unfunction builtin
+    }
     {
       if [[ $1 == compadd && $funcstack[2] == compadd ]]; then
         shift $(( $#_correct_expl[@] + 1 ))
@@ -148,7 +155,10 @@ EOF
         builtin "$@"
       fi
     } always {
-      functions[builtin]=$functions[.autocomplete.builtin]
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
+        functions[builtin]=$functions[.autocomplete.builtin]
+      }
     }
   }
 
@@ -166,23 +176,26 @@ EOF
 
     local -i ret=1
     {
-      if [[ -v functions[compadd] ]]; then
-        functions[.autocomplete.__tmp__]=$functions[compadd]
-        unfunction compadd
-      fi
-      functions[builtin]=$functions[.autocomplete.builtin]
-
-      .autocomplete.$0 "$@"; ret=$?
-
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
+        if [[ -v functions[compadd] ]]; then
+          functions[.autocomplete.__tmp__]=$functions[compadd]
+          unfunction compadd
+        fi
+        functions[builtin]=$functions[.autocomplete.builtin]
+      }
+      autocomplete.$0 "$@"; ret=$?
     } always {
-      [[ -v functions[builtin] ]] &&
-        unfunction builtin
-      if [[ -v functions[.autocomplete.__tmp__] ]]; then
-        functions[compadd]=$functions[.autocomplete.__tmp__]
-        unfunction .autocomplete.__tmp__
-      fi
-
-      functions[compadd]=$functions[.autocomplete.compadd]
+      () {
+        emulate -L zsh; setopt $_autocomplete__options
+        [[ -v functions[builtin] ]] &&
+          unfunction builtin
+        if [[ -v functions[.autocomplete.__tmp__] ]]; then
+          functions[compadd]=$functions[.autocomplete.__tmp__]
+          unfunction .autocomplete.__tmp__
+        fi
+        functions[compadd]=$functions[.autocomplete.compadd]
+      }
     }
     return ret
   }

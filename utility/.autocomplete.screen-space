@@ -2,7 +2,7 @@
 zmodload -F zsh/terminfo b:echoti
 
 .autocomplete.screen-space() {
-  emulate zsh; setopt $_autocomplete__options
+  emulate -L zsh; setopt $_autocomplete__options
 
   echoti sc
   print -r $'\e[6n'; IFS=$'\e[;' read -Asd R

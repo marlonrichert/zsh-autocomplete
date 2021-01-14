@@ -1,6 +1,7 @@
 #!/bin/zsh
+setopt NO_singlelinezle
 () {
-  emulate zsh
+  emulate -L zsh
   zmodload -Fa zsh/parameter p:history p:funcstack p:functions
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
