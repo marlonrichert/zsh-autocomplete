@@ -58,13 +58,13 @@ _autocomplete.history_lines() {
     "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
   )
 
-  events=( "${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }" )
+  local -a matches=( "${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }" )
   [[ $curcontext == *-incremental-* ]] &&
-    events=( "${(@)${(@)events[@]##$lbuffer}[@]%%$rbuffer}" )
+    matches=( "${(@)${(@)events[@]##$lbuffer}[@]%%$rbuffer}" )
 
   local _comp_no_ignore=1 expl
   _description -2V $tag expl 'history line'
-  compadd "$expl[@]" -QU "$sopt[@]" -ld displays -a events
+  compadd "$expl[@]" -QU "$sopt[@]" -ld displays -a matches
 }
 
 _autocomplete.history_lines.suffix() {

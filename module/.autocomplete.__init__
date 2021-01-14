@@ -1,4 +1,7 @@
 #!/bin/zsh
+zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
+autoload -Uz .autocomplete.mathfunc
+.autocomplete.mathfunc
 
 .autocomplete.__init__.precmd() {
   emulate -L zsh; setopt $_autocomplete__options
@@ -20,10 +23,6 @@
     zf_mkdir -p $XDG_CACHE_HOME
   fi
 
-  typeset -gHr _autocomplete__sublist_delim=$'[|&!;\n<>{}]'
-
-  autoload -Uz .autocomplete.mathfunc
-  .autocomplete.mathfunc
   add-zsh-hook precmd .autocomplete.screen-space
 
   # Workaround for issue #43
