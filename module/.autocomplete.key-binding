@@ -6,7 +6,7 @@ zmodload zsh/complist
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
 
-  [[ -z $key[Tab] || -z $key[BackTab] ]] &&
+  [[ -z $key[Tab] || -z $key[Backtab] ]] &&
     .autocomplete.key
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
@@ -31,7 +31,7 @@ zmodload zsh/complist
   else
     bindkey $key[Tab] $tab_style
   fi
-  bindkey $key[BackTab] ${tab_style:/menu-complete/reverse-menu-complete}
+  bindkey $key[Backtab] ${tab_style:/menu-complete/reverse-menu-complete}
 }
 
 bindkey $key[ControlSpace] list-expand
@@ -41,7 +41,7 @@ bindkey $key[PageUp] history-search
 bindkey $key[PageDown] menu-select
 
 bindkey -M menuselect $key[Tab] menu-complete
-bindkey -M menuselect $key[BackTab] reverse-menu-complete
+bindkey -M menuselect $key[Backtab] reverse-menu-complete
 
 bindkey -M menuselect $key[Return] .accept-line
 bindkey -M menuselect $key[Alt]$key[Return] accept-line

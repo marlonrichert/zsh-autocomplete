@@ -7,25 +7,15 @@
 }
 
 .autocomplete.complete-word.comppostfunc() {
-  if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
+  local keyname="${(kL)key[(Re)$KEYS]}"
+
+  if zstyle -t ":autocomplete:${keyname}:" insert-unambiguous &&
       (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
     compstate[insert]="${${(M)WIDGET:#menu-*}:+automenu-}unambiguous"
     return 0
   fi
 
-  compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}"
-  case $KEYS in
-    $key[BackTab])
-      compstate[insert]+='0'
-      ;;
-    *)
-      compstate[insert]+='1'
-      ;|
-    $key[Tab])
-      [[ $compstate[context] == command ]] &&
-        compstate[insert]+=' '
-      ;;
-  esac
+  compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}${${${keyname:#backtab}:+1}:-0}"
   (( _lastcomp[nmatches] > 0 ))
 }
 
