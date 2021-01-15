@@ -214,7 +214,7 @@ compdef() {
 
 _bash_complete compgen complete () {
   unfunction _bash_complete compgen complete
-  autoload -Uz bashcompinit
+  builtin autoload -Uz bashcompinit
   bashcompinit
   bashcompinit() { : }
   ${(%):-%N} "$@"

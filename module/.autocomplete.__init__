@@ -1,6 +1,6 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
-autoload -Uz .autocomplete.mathfunc
+builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc
 .autocomplete.mathfunc
 
 .autocomplete.__init__.precmd() {
