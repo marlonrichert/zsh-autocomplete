@@ -1,17 +1,17 @@
 #!/bin/zsh
+  zmodload -F zsh/zpty b:zpty
+zmodload -F zsh/parameter p:parameters
+  zmodload -F zsh/system p:sysparams
+  zmodload -F zsh/zselect b:zselect
+  zmodload -F zsh/zutil b:zparseopts
+  builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
+
+export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 .autocomplete.async.precmd() {
   emulate -L zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
-
-  # Pre-load these, so they don't get loaded over & over in the async code.
-  zmodload -F zsh/zpty b:zpty
-  zmodload -F zsh/system p:sysparams
-  zmodload -F zsh/zselect b:zselect
-  zmodload -F zsh/zutil b:zparseopts
-
-  builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 
   typeset -gHF _autocomplete__async_avg_duration
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
@@ -30,7 +30,6 @@
   fi
 
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
-    typeset -gH ZSH_AUTOSUGGEST_USE_ASYNC=yes
     local action
     for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
     do
@@ -39,8 +38,6 @@
         _zsh_autosuggest_$action \$@
       }"
     done
-    functions[.autocomplete._zsh_autosuggest_fetch]=$functions[_zsh_autosuggest_fetch]
-    _zsh_autosuggest_fetch() { : }
   fi
 
   zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
@@ -80,11 +77,8 @@
     return 0
   fi
 
-  if [[ -v functions[_zsh_highlight] ]]; then
+  [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
-    typeset -gHa _autocomplete__highlight=( $region_highlight[@] )
-  fi
-
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
@@ -101,7 +95,6 @@
 .autocomplete.async.stop() {
   .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
   .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
-  .autocomplete.async.kill $_ZSH_AUTOSUGGEST_ASYNC_FD $_ZSH_AUTOSUGGEST_CHILD_PID
   return 0
 }
 
@@ -192,14 +185,12 @@
   read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
   zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
 
-  if [[ -z $MENUSELECT && -v functions[.autocomplete._zsh_autosuggest_fetch] ]]; then
-    unset _ZSH_AUTOSUGGEST_ASYNC_FD
-    .autocomplete._zsh_autosuggest_fetch
-  else
+  [[ -v functions[_zsh_autosuggest_highlight_apply] && -n $MENUSELECT ]] &&
+      unset POSTDISPLAY
+
     # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
     # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
     command true
-  fi
 }
 
 .autocomplete.async.complete.inner() {
@@ -294,8 +285,11 @@
     () {
       emulate -L zsh; setopt $_autocomplete__options
 
-    [[ -v functions[_zsh_highlight] ]] &&
-      region_highlight=( "$_autocomplete__highlight[@]" )
+      if [[ -v functions[_zsh_highlight] ]]; then
+        local p; for p in ${(@)parameters[(I)_zsh_highlight__highlighter_*_cache]}; do
+          region_highlight+=( "${(P@)p}" )
+        done
+      fi
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
 

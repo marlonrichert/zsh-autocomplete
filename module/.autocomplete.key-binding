@@ -1,4 +1,5 @@
 #!/bin/zsh
+zmodload zsh/complist
 
 .autocomplete.key-binding.precmd() {
   emulate -L zsh; setopt $_autocomplete__options
@@ -38,8 +39,6 @@ bindkey $key[Up] up-line-or-search
 bindkey $key[Down] down-line-or-select
 bindkey $key[PageUp] history-search
 bindkey $key[PageDown] menu-select
-
-zmodload zsh/complist
 
 bindkey -M menuselect $key[Tab] menu-complete
 bindkey -M menuselect $key[BackTab] reverse-menu-complete

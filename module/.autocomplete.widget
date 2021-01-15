@@ -1,4 +1,6 @@
 #!/bin/zsh
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+zmodload zsh/complist
 
 .autocomplete.widget.c() {
   local func=.autocomplete.$3.completion-widget
@@ -10,6 +12,14 @@
   local func=.autocomplete.$2.zle-widget
   builtin autoload -Uz $func
   zle -N $1 $func
+}
+
+.autocomplete.widget.non-tab() {
+  .autocomplete.widget.c list-expand complete-word list-expand
+  .autocomplete.widget.c _history_search menu-select history-search
+  .autocomplete.widget.z history-search history-search
+  .autocomplete.widget.z up-line-or-search up-line-or-search
+  .autocomplete.widget.z down-line-or-select down-line-or-select
 }
 
 .autocomplete.widget.precmd() {
@@ -29,29 +39,12 @@
   .autocomplete.widget.c reverse-menu-complete reverse-menu-complete complete-word
 
   # Declare these again, because compinit overrides them. See below.
-  .autocomplete.widget.c list-expand complete-word list-expand
-  .autocomplete.widget.c _history_search menu-select history-search
-  .autocomplete.widget.z history-search history-search
-  .autocomplete.widget.z up-line-or-search up-line-or-search
-  .autocomplete.widget.z down-line-or-select down-line-or-select
+  .autocomplete.widget.non-tab
 
   unfunction .autocomplete.widget.c .autocomplete.widget.z
-
-  if [[ -v functions[_zsh_autosuggest_bind_widgets] ]]; then
-    [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
-      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=( prompt_\* azhw:\* user:\* )
-    _zsh_autosuggest_bind_widgets
-  fi
 }
 
-export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-
 # Declare these already, so syntax highlighting doesn't complain. See above.
-zmodload zsh/complist
-.autocomplete.widget.c list-expand complete-word list-expand
-.autocomplete.widget.c _history_search menu-select history-search
-.autocomplete.widget.z history-search history-search
-.autocomplete.widget.z up-line-or-search up-line-or-search
-.autocomplete.widget.z down-line-or-select down-line-or-select
+.autocomplete.widget.non-tab
 
 add-zsh-hook precmd .autocomplete.widget.precmd

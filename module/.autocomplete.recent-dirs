@@ -1,11 +1,10 @@
 #!/bin/zsh
+zmodload -F zsh/parameter p:commands
 
 .autocomplete.recent-dirs.precmd() {
   emulate -L zsh; setopt $_autocomplete__options
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
-
-  zmodload -F zsh/parameter p:commands
 
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
