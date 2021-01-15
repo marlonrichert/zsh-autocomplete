@@ -52,10 +52,6 @@ EOF
     zle -F "$fd" .autocomplete.compinit.zle-f
   fi
 
-  local args; for args in $_autocomplete__compdef[@]; do
-    compdef "${(z@)${(Q)args}}"
-  done
-
   _comp_options+=(
     banghist functionargzero globdots globstarshort nullglob numericglobsort
     NO_alwaystoend NO_caseglob NO_completealiases
@@ -208,6 +204,21 @@ EOF
     fi
     .autocomplete._expand "$@"
   }
+}
+
+compinit() { : }
+
+compdef() {
+  .autocomplete.compinit.precmd
+  compdef "$@"
+}
+
+_bash_complete compgen complete () {
+  unfunction _bash_complete compgen complete
+  autoload -Uz bashcompinit
+  bashcompinit
+  bashcompinit() { : }
+  ${(%):-%N} "$@"
 }
 
 add-zsh-hook precmd .autocomplete.compinit.precmd

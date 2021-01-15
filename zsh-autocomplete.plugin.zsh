@@ -14,19 +14,6 @@ setopt NO_singlelinezle
   )
   setopt $_autocomplete__options
 
-  compinit() { : }
-  typeset -gHa _autocomplete__compdef=()
-  compdef() {
-    _autocomplete__compdef+=( "${(q)*}" )
-  }
-  _bash_complete compgen complete () {
-    unfunction _bash_complete compgen complete
-    autoload -Uz bashcompinit
-    bashcompinit
-    bashcompinit() { : }
-    ${(%):-%N} "$@"
-  }
-
   typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
 
   # In case we're sourced _after_ `zsh-autosuggestions`
