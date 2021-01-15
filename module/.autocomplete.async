@@ -1,10 +1,10 @@
 #!/bin/zsh
-  zmodload -F zsh/zpty b:zpty
+zmodload -F zsh/zpty b:zpty
 zmodload -F zsh/parameter p:parameters
-  zmodload -F zsh/system p:sysparams
-  zmodload -F zsh/zselect b:zselect
-  zmodload -F zsh/zutil b:zparseopts
-  builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
+zmodload -F zsh/system p:sysparams
+zmodload -F zsh/zselect b:zselect
+zmodload -F zsh/zutil b:zparseopts
+builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 
 export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
@@ -93,8 +93,8 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.stop() {
-  .autocomplete.async.kill $_autocomplete__async_complete_fd $_autocomplete__async_complete_pid
-  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
+  .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   return 0
 }
 
@@ -108,37 +108,33 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 .autocomplete.async.kill() {
   emulate -L zsh; setopt $_autocomplete__options
 
-  local -i fd=$1 pid=$2
-
-  if (( fd > 9 )) && { : <&$fd } 2>/dev/null; then
-    # Close the file descriptor and remove the handler widget.
-    exec {fd}<&-
+  local -i fd=${(P)1} pid=${(P)2}
+  if (( pid )); then
+    [[ -o MONITOR ]] &&
+      (( pid *= -1 ))
+    kill -KILL $pid 2>/dev/null
+  fi
+  if (( fd )) && { : <&$fd } 2>/dev/null; then
     zle -F $fd 2>/dev/null
+    exec {fd}<&-
   fi
-
-  if (( pid != 0 )); then
-    # Zsh will make a new process group for the child process only if job control is enabled.
-    local group=''; [[ -o MONITOR ]] &&
-      group='-'
-    kill -KILL $group$pid 2>/dev/null
-  fi
+  typeset -g $1= $2=
 }
 
 .autocomplete.async.start() {
   emulate -L zsh; setopt $_autocomplete__options
 
+  local +h -F SECONDS=0
+
   .autocomplete.async.stop
 
-  local +h -F SECONDS=0
-  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay
+  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
+    min_delay=0
 
-  unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-  typeset -gHi _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   exec {_autocomplete__async_complete_fd}< <(
-    emulate -L zsh; setopt $_autocomplete__options NO_verbose NO_xtrace
+    emulate -L zsh; setopt $_autocomplete__options
 
-    local pid=$sysparams[pid]
-    print $pid
+    print $sysparams[pid]
     {
       local REPLY
       zpty _autocomplete__zpty .autocomplete.async.complete.inner '$LBUFFER' '$RBUFFER'
@@ -153,65 +149,60 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
-      (( TRY_BLOCK_INTERRUPT > 0 )) ||
-        print -rNC1 - "$SECONDS" "$pid" "$line"
       zpty -d _autocomplete__zpty
-      kill -KILL $pid
+      (( TRY_BLOCK_INTERRUPT > 0 )) ||
+        print -rNC1 - "$SECONDS" "$line"
     }
   )
-  read _autocomplete__async_complete_pid <&$_autocomplete__async_complete_fd
+  read -u $_autocomplete__async_complete_fd _autocomplete__async_complete_pid
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
-  unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
-  typeset -gHi _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   exec {_autocomplete__async_timeout_fd}< <(
-    emulate -L zsh; setopt $_autocomplete__options NO_verbose NO_xtrace
+    emulate -L zsh; setopt $_autocomplete__options
 
-    local complete_pid=$_autocomplete__async_complete_pid
-    local complete_fd=$_autocomplete__async_complete_fd
-    local pid=$sysparams[pid]
-    print $pid
+    print $sysparams[pid]
     {
-      local -i timeout=$(( 100.0 * (min_delay - SECONDS +
-        10.0 * _autocomplete__async_avg_duration) ))
+      local -i timeout=$((
+        100.0 * (min_delay - SECONDS + 10.0 * _autocomplete__async_avg_duration)
+      ))
       (( timeout > 0 )) &&
         zselect -t $timeout
     } always {
-      (( TRY_BLOCK_INTERRUPT > 0 )) ||
-        print -rNC1 - "$pid" "$complete_fd" "$complete_pid"
-      kill -KILL $pid
+      (( TRY_BLOCK_INTERRUPT ))
+      print $?
     }
   )
-  read _autocomplete__async_timeout_pid <&$_autocomplete__async_timeout_fd
+  read -u $_autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
 
   [[ -v functions[_zsh_autosuggest_highlight_apply] && -n $MENUSELECT ]] &&
       unset POSTDISPLAY
 
-    # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
-    # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
-    command true
+  # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
+  # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
+  command true
 }
 
 .autocomplete.async.complete.inner() {
-  setopt $_autocomplete__options NO_xtrace NO_verbose
+  setopt $_autocomplete__options
   if [[ -n $curcontext ]]; then
     setopt completeinword
   else
     setopt NO_completeinword
   fi
 
+  PS1=''
   () {
-    emulate -L zsh; setopt $_autocomplete__options NO_xtrace NO_verbose
+    emulate -L zsh; setopt $_autocomplete__options
 
-  local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
-  unset ${^hooks}_functions &>/dev/null
-  $hooks[@] () { : }
-  .autocomplete.no-op() { : }
-  local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
-      history-line-set keymap-select; do
-    zle -N zle-$hook .autocomplete.no-op
-  done
+    local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
+    unset ${^hooks}_functions &>/dev/null
+    $hooks[@] () { : }
+    .autocomplete.no-op() { : }
+    local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
+        history-line-set keymap-select; do
+      zle -N zle-$hook .autocomplete.no-op
+    done
   }
 
   typeset -gH lbuffer=$1 rbuffer=$2
@@ -235,8 +226,8 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
     } always {
       () {
         emulate -L zsh; setopt $_autocomplete__options
-      print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
-    }
+        print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
+      }
     }
     compstate[insert]=''
     compstate[list]=''
@@ -258,19 +249,18 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
     setopt NO_completeinword
   fi
 
-  .autocomplete.async.kill $_autocomplete__async_timeout_fd $_autocomplete__async_timeout_pid
-
   local -F seconds
-  local -i pid nmatches current
-  local message
+  local -i nmatches
+  local message rest
   () {
     emulate -L zsh; setopt $_autocomplete__options
 
+    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r seconds pid nmatches message _ <&$1
+        IFS=$'\0' read -ru $1 seconds nmatches message rest
   } always {
-    .autocomplete.async.kill $1 $pid
+      .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   }
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
@@ -290,11 +280,11 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
           region_highlight+=( "${(P@)p}" )
         done
       fi
-    [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-      _zsh_autosuggest_highlight_apply
+      [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+        _zsh_autosuggest_highlight_apply
 
-    # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
-    zle -R
+      # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
+      zle -R
     }
   else
     .autocomplete.async.stop
@@ -489,14 +479,15 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  local -i pid complete_fd complete_pid
+  local -i timedout=0
   {
     [[ -z $2 || $2 == hup ]] &&
-      IFS=$'\0' read -r pid complete_fd complete_pid _ <&$1
+      read -ru $1 timedout
   } always {
-    .autocomplete.async.kill $1 $pid
+    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   }
-  .autocomplete.async.kill $complete_fd $complete_pid
+  (( timedout )) &&
+    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   .autocomplete.zle-flags
   (( _autocomplete__async_avg_duration *= 2 ))
 }
