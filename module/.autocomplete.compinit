@@ -159,8 +159,7 @@ EOF
   }
 
   .autocomplete.patch _approximate
-  .autocomplete.patch _correct
-  _approximate _correct () {
+  _approximate () {
     [[ -z $words[CURRENT] ]] &&
       return 1
     [[ -v compstate[quote] ]] &&
@@ -180,7 +179,7 @@ EOF
         fi
         functions[builtin]=$functions[.autocomplete.builtin]
       }
-      autocomplete.$0 "$@"; ret=$?
+      .autocomplete._approximate "$@"; ret=$?
     } always {
       () {
         emulate -L zsh; setopt $_autocomplete__options
