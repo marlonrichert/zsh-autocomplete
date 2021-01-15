@@ -3,8 +3,10 @@ builtin autoload -Uz zmathfunc
 zmathfunc
 
 _autocomplete__max_lines() {
+  (( _autocomplete__screen_space < 16 )) &&
+    (( _autocomplete__screen_space++ ))
   (( _autocomplete__screen_space = min(
-    ++_autocomplete__screen_space, LINES - BUFFERLINES - _autocomplete__pslines() )))
+    _autocomplete__screen_space, LINES - BUFFERLINES - _autocomplete__pslines() )))
   return $(( max( 5, _autocomplete__screen_space) ))
 }
 
