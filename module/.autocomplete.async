@@ -400,9 +400,9 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
           print -rNC1 - "$_matches_[@]"
         }
       )
-      IFS=$'\0' read list_lines <&$fd
-      IFS=$'\0' read nmatches <&$fd
-      IFS=$'\0' read -A _matches_ <&$fd
+      IFS=$'\0' read -u $fd list_lines
+      IFS=$'\0' read -u $fd nmatches
+      IFS=$'\0' read -u $fd -A _matches_
     } always {
       exec {fd}<&-
     }
