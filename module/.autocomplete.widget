@@ -27,12 +27,6 @@ zmodload zsh/complist
   add-zsh-hook -d precmd ${(%):-%N}
   unfunction ${(%):-%N}
 
-  local null
-  if zstyle -s :autocomplete:tab: completion null; then
-    print -u2 'Bad news: `zstyle -s '':autocomplete:tab:*'' completion` is no longer supported.'
-    print -u2 'Good news: Different tab settings can now be combined! Please see the Readme.'
-  fi
-
   local tab_style; for tab_style in complete-word menu-complete menu-select; do
     .autocomplete.widget.c $tab_style $tab_style complete-word
   done
