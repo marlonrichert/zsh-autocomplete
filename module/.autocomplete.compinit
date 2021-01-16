@@ -13,50 +13,49 @@ zmodload -Fa zsh/files b:zf_rm
   typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
 
   local -aU in_fpath=( $^fpath/_*~*.zwc(N-.:t) )
-  local -a autoloading=( ${(k@)functions[@]} )
-  [[ -v _comp_setup && ${#in_fpath:|autoloading} -gt 0 ]] &&
+  local -a declared=( ${(k@)functions[@]} )
+  [[ -v _comp_setup && ${#in_fpath:|declared} -gt 0 ]] &&
     zf_rm -f $_comp_dumpfile
 
   if [[ ! -v _comp_setup || ! -f $_comp_dumpfile ]]; then
-    zmodload zsh/complist
-    unfunction compinit 2>/dev/null
+    unfunction compdef compinit 2>/dev/null
     builtin autoload -Uz compinit
     compinit -C -d $_comp_dumpfile
-    compinit() { : }
 
-    local -i fd
-    exec {fd}< <(
-      # Prevent Oh My Zsh from deleting comp dump file.
-      (( $#omzdump > 0 )) &&
-        tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+    # Prevent Oh My Zsh from deleting comp dump file.
+    (( $#omzdump > 0 )) &&
+      tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
-
-      local cache_dir
-      zstyle -s ':completion:*' cache-path cache_dir && () {
-        local src bin
-        for src in $cache_dir/*~*.zwc(N-.); do
-          bin=$src.zwc
-          if [[ ! -e $bin || $bin -ot $src ]]; then
-            zcompile -Uz $src
-          fi
-        done
-      }
-    )
-    .autocomplete.compinit.zle-f() {
-      exec {1}<&-
-      zle -F $1 2>/dev/null
-      unfunction ${(%):-%N}
-    }
-    zle -F "$fd" .autocomplete.compinit.zle-f
   fi
+  compinit() { : }
 
   _comp_options+=(
     banghist functionargzero globdots globstarshort nullglob numericglobsort
     NO_alwaystoend NO_caseglob NO_completealiases
     NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
   )
+
+  local -i fd
+  exec {fd}< <(
+    local cache_dir
+    zstyle -s ':completion:*' cache-path cache_dir && () {
+      local src bin
+      for src in $cache_dir/*~*.zwc(N-.); do
+        bin=$src.zwc
+        if [[ ! -e $bin || $bin -ot $src ]]; then
+          zcompile -Uz $src
+        fi
+      done
+    }
+  )
+  .autocomplete.compinit.zle-f() {
+    exec {1}<&-
+    zle -F $1 2>/dev/null
+    unfunction ${(%):-%N}
+  }
+  zle -F "$fd" .autocomplete.compinit.zle-f
 
   .autocomplete.compadd() {
     setopt localoptions listtypes
@@ -207,10 +206,12 @@ EOF
 
 compinit() { : }
 
-compdef() {
-  .autocomplete.compinit.precmd
-  compdef "$@"
-}
+[[ -v _comp_setup ]] ||
+  compdef() {
+    unfunction ${(%):-%N}
+    .autocomplete.compinit.precmd
+    compdef "$@"
+  }
 
 _bash_complete compgen complete () {
   unfunction _bash_complete compgen complete
