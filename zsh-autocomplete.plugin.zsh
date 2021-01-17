@@ -1,5 +1,5 @@
 #!/bin/zsh
-setopt NO_singlelinezle
+setopt alwayslastprompt NO_singlelinezle
 () {
   emulate -L zsh
   zmodload -Fa zsh/parameter p:history p:funcstack p:functions
