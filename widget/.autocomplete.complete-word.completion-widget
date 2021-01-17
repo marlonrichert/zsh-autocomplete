@@ -15,8 +15,15 @@
     return 0
   fi
 
-  compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}${${${keyname:#backtab}:+1}:-0}"
-  (( _lastcomp[nmatches] > 0 ))
+  local -i nmatches=$compstate[nmatches]
+  [[ compstate[nmatches] -eq 0 && -n compstate[old_list] ]] &&
+    nmatches=$_lastcomp[nmatches]
+
+  compstate[insert]=1
+  (( nmatches > 1 )) &&
+    compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}${${${keyname:#backtab}:+1}:-0}"
+
+  (( nmatches > 0 ))
 }
 
 .autocomplete.complete-word.completion-widget "$@"
