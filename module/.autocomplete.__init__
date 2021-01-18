@@ -24,10 +24,6 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc
   fi
 
   add-zsh-hook precmd .autocomplete.screen-space
-
-  # Workaround for issue #43
-  # https://github.com/marlonrichert/zsh-autocomplete/issues/43
-  zle -N zle-line-finish azhw:zle-line-finish
 }
 
 add-zsh-hook precmd .autocomplete.__init__.precmd
