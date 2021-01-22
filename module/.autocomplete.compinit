@@ -116,7 +116,7 @@ EOF
       () {
         emulate -L zsh; setopt $_autocomplete__options
         # Stop `_complete_help` from complaining.
-        [[ $funcstack[2] == _complete_help ]] ||
+        [[ $funcstack == *_complete_help* ]] ||
           unfunction compadd
       }
     }
