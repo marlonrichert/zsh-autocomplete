@@ -5,16 +5,7 @@ zmathfunc
 _autocomplete__max_lines() {
   (( _autocomplete__screen_space < 16 )) &&
     (( _autocomplete__screen_space++ ))
-  (( _autocomplete__screen_space = min(
-    _autocomplete__screen_space, LINES - BUFFERLINES - _autocomplete__pslines() )))
-  return $(( max( 5, _autocomplete__screen_space) ))
-}
-
-_autocomplete__pslines() {
-  return ${#${(fA)PS1}}
+  return $(( max( 3, _autocomplete__screen_space - BUFFERLINES ) ))
 }
 
 functions -M _autocomplete__max_lines 0
-functions -M _autocomplete__pslines 0
-
-typeset -gHi _autocomplete__screen_space=$(( LINES - _autocomplete__pslines() - 2 ))

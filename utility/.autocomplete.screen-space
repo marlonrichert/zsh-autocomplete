@@ -5,9 +5,12 @@ zmodload -F zsh/terminfo b:echoti
   emulate -L zsh; setopt $_autocomplete__options
 
   echoti sc
+  local -a reply=()
   print -r $'\e[6n'; IFS=$'\e[;' read -Asd R
+  local -i y=$reply[-2]
+  local -i pslines=${#${(%%)PS1}//[^$'\n']}
+  _autocomplete__screen_space=$(( LINES - y - pslines - 2 ))
   echoti rc
-  _autocomplete__screen_space=$(( LINES - reply[-2] ))
 }
 
 .autocomplete.screen-space "$@"
