@@ -38,14 +38,16 @@ _autocomplete.history_lines() {
         continue
       [[ $curcontext == *-incremental-*-forward:* ]] &&
         matches=( "${(Oa@)matches}" )
-      (( $#events[@] + $#matches[@] > max_lines )) &&
-        matches=( "${(@)matches[1,max_lines - $#events[@]]}" )
       events+=( "$matches[@]" )
       (( $#events[@] < max_lines )) ||
         break
     done
     (( $#events[@] > max_lines )) &&
       events=( ${(@)events[1,max_lines]} )
+    if [[ $curcontext == *-incremental-* ]]; then
+      _autocomplete.sort_by_length "$events[@]"
+      events=( "$reply[@]" )
+    fi
   fi
 
   local -a sopt=( -S '' )
