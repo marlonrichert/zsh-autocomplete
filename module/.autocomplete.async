@@ -303,10 +303,12 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
   if [[ -n $curcontext ]]; then
     _main_complete
-  elif (( nmatches == 0 )) && [[ -n $message ]]; then
+  elif (( nmatches == 0 )); then
+    if [[ -n $message ]]; then
     local msg
     zformat -f msg "$message"
     compadd -x "$msg"
+    fi
   elif () {
     emulate -L zsh; setopt $_autocomplete__options
     [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input ))
