@@ -15,12 +15,10 @@
     return 0
   fi
 
-  local -i nmatches=$compstate[nmatches]
-  [[ compstate[nmatches] -eq 0 && -n compstate[old_list] ]] &&
-    nmatches=$_lastcomp[nmatches]
+  local -i nmatches=$_lastcomp[nmatches]; [[ $compstate[old_list] == keep ]] ||
+    nmatches=$compstate[nmatches]
 
-  compstate[insert]=1
-  (( nmatches > 1 )) &&
+  compstate[insert]=1; (( nmatches > 1 )) &&
     compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}${${${keyname:#backtab}:+1}:-0}"
 
   (( nmatches > 0 ))
