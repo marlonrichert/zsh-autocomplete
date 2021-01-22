@@ -195,7 +195,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   () {
     emulate -L zsh; setopt $_autocomplete__options
 
-    local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit zsh_directory_name )
+    local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
     unset ${^hooks}_functions &>/dev/null
     $hooks[@] () { : }
     .autocomplete.no-op() { : }
