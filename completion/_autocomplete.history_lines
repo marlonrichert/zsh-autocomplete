@@ -11,7 +11,8 @@ _autocomplete.history_lines() {
   if [[ -z $BUFFER ]]; then
     local query='<-16>'; [[ $curcontext == *-forward:* ]] ||
       query="<$(( HISTNO - max_lines ))->"
-    print -v events -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(I)$~query]}"
+    print -v events -f '%s:%s' "${(kv@)history[(I)$~query]}"
+    events=( ${(@)events[@]:#[[:space:]]#:} )
     [[ $curcontext == *-incremental-*-forward:* ]] &&
       events=( "${(Oa@)events}" )
   else
@@ -27,11 +28,11 @@ _autocomplete.history_lines() {
     fi
     local q; for q in $queries[@]; do
       matches=()
-      print -v matches -f "%$#HISTNO.${#HISTNO}s  %s" "${(kv@)history[(R)$~q]}"
+      print -v matches -f '%s:%s' "${(kv@)history[(R)$~q]}"
 
       # If there's only 1 match, `print` somehow changes `matches` to a scalar.
       # So, we cast it back to an array.
-      matches=( $matches[@] )
+      matches=( ${matches[@]:#[[:space:]]#:} )
 
       [[ $matches == [[:space:]]# ]] &&
         continue
@@ -54,13 +55,14 @@ _autocomplete.history_lines() {
   fi
 
   local MATCH; local -i MBEGIN MEND
-  local -a displays=(
-    "${(@)events[@]:/(#m)*/${(r:COLUMNS-1:)MATCH//(#m)[^[:print:]]##/${${${(q+)MATCH}#\$\'}%\'}}}"
-  )
+  local -a displays=()
+  zformat -a displays ' ' "${(@)events:/(#m)*/${(Z+C+)MATCH}}"
+  displays=( "${(@)displays//(#m)[^[:print:]]##/${(q+)MATCH}}" )
+  displays=( "${(@)displays:/(#m)*/${(r:COLUMNS-1:)MATCH}}" )
 
-  local -a matches=( "${(@)events[@]##[ [:digit:]](#c$#HISTNO)  }" )
+  matches=( "${(@)events[@]#<->:}" )
   [[ $curcontext == *-incremental-* ]] &&
-    matches=( "${(@)${(@)matches[@]##$lbuffer}[@]%%$rbuffer}" )
+    matches=( "${(@)${(@)matches[@]##$lbuffer}%%$rbuffer}" )
 
   local _comp_no_ignore=1 expl
   _description -2V $tag expl 'history line'
