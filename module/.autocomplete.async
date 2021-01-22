@@ -46,7 +46,8 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   bindkey -s -M menuselect '^S' '^G^S'
 
   add-zle-hook-widget line-init .autocomplete.async.reset-context
-  add-zle-hook-widget line-pre-redraw .autocomplete.async.line-pre-redraw
+  add-zle-hook-widget line-init .autocomplete.async.complete
+  add-zle-hook-widget line-pre-redraw .autocomplete.async.complete
   add-zle-hook-widget line-finish .autocomplete.async.clear
   add-zsh-hook zshexit .autocomplete.async.stop
 }
@@ -66,16 +67,11 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   return 0
 }
 
-.autocomplete.async.line-pre-redraw() {
+.autocomplete.async.complete() {
   .autocomplete.zle-flags $LASTWIDGET
 
   (( KEYS_QUEUED_COUNT + PENDING > 0 )) &&
     return 0
-
-  if [[ -z $curcontext && $BUFFER == [[:space:]]# ]]; then
-    zle -Rc
-    return 0
-  fi
 
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
