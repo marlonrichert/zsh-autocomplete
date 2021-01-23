@@ -39,7 +39,7 @@ _autocomplete.history_lines() {
       [[ $curcontext == *-incremental-*-forward:* ]] &&
         matches=( "${(Oa@)matches}" )
       events+=( "$matches[@]" )
-      (( $#events[@] < max_lines )) ||
+      (( $#events[@] > 0 )) &&
         break
     done
     (( $#events[@] > max_lines )) &&
