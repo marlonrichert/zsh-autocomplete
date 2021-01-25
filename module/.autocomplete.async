@@ -49,7 +49,6 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   add-zle-hook-widget line-init .autocomplete.async.complete
   add-zle-hook-widget line-pre-redraw .autocomplete.async.complete
   add-zle-hook-widget line-finish .autocomplete.async.clear
-  add-zsh-hook zshexit .autocomplete.async.stop
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -95,7 +94,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.clear() {
-  zle -Rc
+  zle -M ''  # Don't use `zle -Rc`, so we don't trigger a full redraw.
   .autocomplete.async.stop
   .autocomplete.async.reset-context
   return 0
@@ -491,3 +490,4 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 add-zsh-hook precmd .autocomplete.async.precmd
+add-zsh-hook zshexit .autocomplete.async.stop
