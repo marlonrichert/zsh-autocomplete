@@ -6,6 +6,8 @@ zstyle -t :autocomplete:tab: insert-unambiguous &&
   return 1
 [[ $compstate[unambiguous] == (?|(#a1)$PREFIX$SUFFIX) ]] &&
   return 1
+[[ $KEYS == $key[Backtab] ]] &&
+  return 1
 
 local tag=unambiguous
 _tags $tag

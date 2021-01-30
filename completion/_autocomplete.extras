@@ -5,9 +5,15 @@
 [[ -z $BUFFER ]] &&
   return 1
 
-if zstyle -t :autocomplete:tab: insert-unambiguous &&
+if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS != ($key[Tab]|$key[Backtab]) ]] &&
     (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
-  ZLS_COLORS="=*(#bi)(${(b)compstate[unambiguous]})*==07:$ZLS_COLORS"
+  local subs cols
+  local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
+    subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
+    cols+='=07'
+    (( prv = ++nxt ))
+  done
+  ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
   return
 fi
 

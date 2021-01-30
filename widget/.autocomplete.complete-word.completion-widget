@@ -9,7 +9,10 @@
 .autocomplete.complete-word.comppostfunc() {
   local keyname="${(kL)key[(Re)$KEYS]}"
 
-  if zstyle -t ":autocomplete:${keyname}:" insert-unambiguous &&
+  if  (
+        [[ $KEYS == "$key[Backtab]" ]] ||
+        ( [[ $KEYS == "$key[Tab]" ]] && zstyle -t :autocomplete:tab: insert-unambiguous )
+      ) &&
       (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
     compstate[insert]="${${(M)WIDGET:#menu-*}:+automenu-}unambiguous"
     return 0

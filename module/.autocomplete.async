@@ -78,7 +78,8 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
-  if [[ $LASTWIDGET == (list-expand|_complete_help) ||
+  if [[ $LASTWIDGET == ('list-expand'|'_complete_help') ||
+      $KEYS == ("$key[Tab]"|"$key[Backtab]") && $_lastcomp[insert] == *'unambiguous' ||
       -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
     .autocomplete.async.stop
     return 0

@@ -1,17 +1,20 @@
 #autoload
-
-zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS == $key[Tab] ]] &&
-    (( _lastcomp[nmatches] > 1 && $#_lastcomp[unambiguous] > $#words[CURRENT] )) &&
+if  (
+      (
+        [[ $KEYS == "$key[Backtab]" ]] ||
+        ( [[ $KEYS == "$key[Tab]" ]] && zstyle -t :autocomplete:tab: insert-unambiguous )
+      ) &&
+      (( _lastcomp[nmatches] > 1 && $#_lastcomp[unambiguous] > $#words[CURRENT] ))
+    ) ||
+    [[
+      -z $compstate[old_list] ||
+      $_autocomplete__words != $words ||
+      $_autocomplete__current -ne $CURRENT ||
+      $WIDGET == _complete_help
+    ]]; then
+  unset 'compstate[old_list]'
   return 1
-
-[[ $WIDGET == _complete_help ]] &&
-  return 1
-[[ -v compstate[old_list] ]] ||
-  return 1
-[[ $_autocomplete__words == $words ]] ||
-  return 1
-[[ $_autocomplete__current -eq $CURRENT ]] ||
-  return 1
+fi
 
 compstate[old_list]='keep'
 return 0

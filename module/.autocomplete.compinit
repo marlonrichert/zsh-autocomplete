@@ -125,7 +125,10 @@ EOF
 
     # Don't use `zstyle` for this, because it breaks horribly in `_setup`.
     compstate[list]='list packed rows'
+    _lastcomp[list]='list packed rows'
+
     compstate[list_max]=0
+    _lastcomp[list_max]=0
 
     return ret
   }
