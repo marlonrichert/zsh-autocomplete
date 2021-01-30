@@ -273,9 +273,13 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
       emulate -L zsh; setopt $_autocomplete__options
 
       if [[ -v functions[_zsh_highlight] ]]; then
-        local p; for p in ${(@)parameters[(I)_zsh_highlight__highlighter_*_cache]}; do
-          region_highlight+=( "${(P@)p}" )
-        done
+        if [[ -v _FAST_MAIN_CACHE ]]; then
+          region_highlight=( $_FAST_MAIN_CACHE )
+        else
+          local p; for p in ${(@)parameters[(I)_zsh_highlight__highlighter_*_cache]}; do
+            region_highlight+=( "${(P@)p}" )
+          done
+        fi
       fi
       [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
         _zsh_autosuggest_highlight_apply
