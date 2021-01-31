@@ -1,6 +1,6 @@
 #!/bin/zsh
 zmodload -F zsh/zpty b:zpty
-zmodload -F zsh/parameter p:parameters
+zmodload -F zsh/parameter p:funcstack p:functions p:parameters
 zmodload -F zsh/system p:sysparams
 zmodload -F zsh/zselect b:zselect
 zmodload -F zsh/zutil b:zparseopts

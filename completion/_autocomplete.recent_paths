@@ -1,4 +1,5 @@
 #autoload
+zmodload -F zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
   local -aU reply=()

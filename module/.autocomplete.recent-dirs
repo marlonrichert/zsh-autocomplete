@@ -1,5 +1,5 @@
 #!/bin/zsh
-zmodload -F zsh/parameter p:commands
+zmodload -Fa zsh/parameter p:commands p:functions
 
 .autocomplete.recent-dirs.precmd() {
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&

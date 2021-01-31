@@ -1,5 +1,6 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
+zmodload -F zsh/parameter p:funcstack p:functions
 
 .autocomplete.compinit.precmd() {
   # Decrease Oh My Zsh start-up time. See below.

@@ -2,8 +2,7 @@
 setopt alwayslastprompt NO_singlelinezle
 () {
   emulate -L zsh
-  zmodload -Fa zsh/parameter p:history p:funcstack p:functions
-  zmodload -F zsh/zutil b:zstyle
+  zmodload -F zsh/parameter p:functions
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] &&
