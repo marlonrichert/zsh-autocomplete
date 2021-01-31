@@ -14,7 +14,7 @@ setopt alwayslastprompt NO_singlelinezle
   )
   setopt $_autocomplete__options
 
-  typeset -gU FPATH fpath=( ${${(%):-%x}:A:h}/*(/) $fpath[@] )
+  export -U FPATH fpath=( ${${(%):-%x}:A:h}/*(-/) $fpath )
 
   builtin autoload -Uz .autocomplete.__init__
   .autocomplete.__init__
