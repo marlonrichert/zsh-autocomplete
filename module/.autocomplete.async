@@ -9,10 +9,6 @@ builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 .autocomplete.async.precmd() {
-  emulate -L zsh; setopt $_autocomplete__options
-  add-zsh-hook -d precmd ${(%):-%N}
-  unfunction ${(%):-%N}
-
   typeset -gHF _autocomplete__async_avg_duration
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
   (( _autocomplete__async_avg_duration += 0.1 ))
@@ -494,5 +490,3 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   .autocomplete.zle-flags
   (( _autocomplete__async_avg_duration *= 2 ))
 }
-
-add-zsh-hook precmd .autocomplete.async.precmd

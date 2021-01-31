@@ -19,13 +19,6 @@ setopt alwayslastprompt NO_singlelinezle
 
   builtin autoload -Uz .autocomplete.__init__
   .autocomplete.__init__
-  local mod; for mod in compinit config widget key key-binding recent-dirs async; do
-    if ! zstyle -t ':autocomplete:' $mod false no off 0; then
-      mod=.autocomplete.$mod
-      builtin autoload -Uz $mod
-      $mod
-    fi
-  done
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] &&

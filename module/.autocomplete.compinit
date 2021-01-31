@@ -2,10 +2,6 @@
 zmodload -Fa zsh/files b:zf_rm
 
 .autocomplete.compinit.precmd() {
-  emulate -L zsh; setopt $_autocomplete__options
-  add-zsh-hook -d precmd ${(%):-%N}
-  unfunction ${(%):-%N}
-
   # Decrease Oh My Zsh start-up time. See below.
   [[ -v ZSH_COMPDUMP ]] &&
     local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
@@ -234,8 +230,9 @@ compinit() { : }
 
 [[ -v _comp_setup ]] ||
   compdef() {
-    unfunction ${(%):-%N}
+    unfunction compdef
     .autocomplete.compinit.precmd
+    unfunction .autocomplete.compinit.precmd
     compdef "$@"
   }
 
@@ -246,5 +243,3 @@ _bash_complete compgen complete () {
   bashcompinit() { : }
   ${(%):-%N} "$@"
 }
-
-add-zsh-hook precmd .autocomplete.compinit.precmd

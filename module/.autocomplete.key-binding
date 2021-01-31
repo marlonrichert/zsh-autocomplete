@@ -2,10 +2,6 @@
 zmodload zsh/complist
 
 .autocomplete.key-binding.precmd() {
-  emulate -L zsh; setopt $_autocomplete__options
-  add-zsh-hook -d precmd ${(%):-%N}
-  unfunction ${(%):-%N}
-
   [[ -z $key[Tab] || -z $key[Backtab] ]] &&
     .autocomplete.key
 
@@ -53,5 +49,3 @@ bindkey -M menuselect $key[PageUp] backward-word
 bindkey -M menuselect $key[PageDown] forward-word
 bindkey -M menuselect $key[BeginningOfBuffer] beginning-of-history
 bindkey -M menuselect $key[EndOfBuffer] end-of-history
-
-add-zsh-hook precmd .autocomplete.key-binding.precmd
