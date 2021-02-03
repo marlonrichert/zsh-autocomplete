@@ -31,9 +31,11 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
   bindkey $key[Backtab] ${tab_style:/menu-complete/reverse-menu-complete}
 }
 
-bindkey $key[ControlSpace] list-expand
+bindkey $key[Control-Space] list-expand
 bindkey $key[Up] up-line-or-search
 bindkey $key[Down] down-line-or-select
+bindkey $key[Alt]$key[Up] up-line
+bindkey $key[Alt]$key[Down] down-line
 bindkey $key[PageUp] history-search
 bindkey $key[PageDown] menu-select
 
@@ -42,11 +44,26 @@ bindkey -M menuselect $key[Backtab] reverse-menu-complete
 
 bindkey -M menuselect $key[Return] .accept-line
 bindkey -M menuselect $key[Alt]$key[Return] accept-line
-bindkey -M menuselect $key[ControlSpace] accept-and-hold
+bindkey -M menuselect $key[Control-Space] accept-and-hold
 
-bindkey -M menuselect $key[BackwardWord] vi-backward-blank-word
-bindkey -M menuselect $key[ForwardWord] vi-forward-blank-word
+case $( bindkey -lL main ) in
+  *emacs* )
+    bindkey -M menuselect $'\C-[f' .forward-word
+    bindkey -M menuselect $'\C-[b' .backward-word
+    bindkey -M menuselect $'\C-A' .beginning-of-line
+    bindkey -M menuselect $'\C-E' .end-of-line
+    ;;
+  *vi* )
+    bindkey -M menuselect $'\C-[W' .vi-forward-word
+    bindkey -M menuselect $'\C-[B' .vi-backward-word
+    bindkey -M menuselect $'\C-[0' .vi-digit-or-beginning-of-line
+    bindkey -M menuselect $'\C-[$' .vi-end-of-line
+    ;;
+esac
+
+bindkey -M menuselect $key[Alt]$key[Up] vi-backward-blank-word
+bindkey -M menuselect $key[Alt]$key[Down] vi-forward-blank-word
 bindkey -M menuselect $key[PageUp] backward-word
 bindkey -M menuselect $key[PageDown] forward-word
-bindkey -M menuselect $key[BeginningOfBuffer] beginning-of-history
-bindkey -M menuselect $key[EndOfBuffer] end-of-history
+bindkey -M menuselect $key[Home] beginning-of-history
+bindkey -M menuselect $key[End] end-of-history

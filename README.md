@@ -1,6 +1,6 @@
 # `zsh-autocomplete`
 `zsh-autocomplete` adds **real-time type-ahead autocompletion** to Zsh. Find as you type, then
-press <kbd>Tab</kbd> to insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert the
+press <kbd>Tab</kbd> to insert the top completion, <kbd>Shift</kbd><kbd>Tab</kbd> to insert the
 bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 
 [![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
@@ -21,7 +21,7 @@ Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplet
 while providing a manageable list of [settings](#settings) for changing the defaults.
 
 ### Live history search
-Press <kbd>Ctrl</kbd>+<kbd>R</kbd> or <kbd>Ctrl</kbd>+<kbd>S</kbd> to do an interactive,
+Press <kbd>Control</kbd><kbd>R</kbd> or <kbd>Control</kbd><kbd>S</kbd> to do an interactive,
 multi-line, fuzzy history search.
 
 [![history-search](.img/history-search.gif)](https://asciinema.org/a/379844)
@@ -33,7 +33,7 @@ not empty, then it will instead list the 16 most recent fuzzy matches.
 ![history menu](.img/history-menu.png)
 
 ### Multi-selection
-Press <kbd>Ctrl</kbd>+<kbd>Space</kbd> in the completion menu or the history menu to insert more
+Press <kbd>Control</kbd><kbd>Space</kbd> in the completion menu or the history menu to insert more
 than one item.
 
 ![multi-select](.img/multi-select.png)
@@ -45,7 +45,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 ![recent dirs](.img/recent-dirs.png)
 
 ### Additional, context-sensitive completions
-Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
+Press <kbd>Shift</kbd><kbd>Tab</kbd> to insert:
 
 ![unambiguous](.img/unambiguous.png)
 
@@ -57,32 +57,32 @@ Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
 ## Key Bindings
 | Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
 | --- | --- | --- |
-| any | Show completions (asynchronously) | <sub>`_list_choices`</sub> |
+| any | Show completions (asynchronously) | <sub>NA</sub> |
 | <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
-| <kbd>Shift</kbd>+<kbd>Tab</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
-| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Show full completion menu | <sub>`list-expand`</sub> |
-| <kbd>↓</kbd> | Enter completion menu or move cursor down (in multi-line buffer) | <sub>`down-line-or-select`</sub> |
-| <kbd>PgDn</kbd> | Enter completion menu (always) | <sub>`menu-select`</sub> |
-| <kbd>↑</kbd> | Open history menu or move cursor up (in multi-line buffer) | <sub>`up-line-or-search`</sub> |
-| <kbd>PgUp</kbd> | Open history menu (always) | <sub>`history-search`</sub> |
-| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Search history from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
-| <kbd>Ctrl</kbd>+<kbd>S</kbd> | Search history from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
+| <kbd>Control</kbd><kbd>Space</kbd> | Reveal hidden completions | <sub>`list-expand`</sub> |
+| <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
+| <kbd>Alt</kbd><kbd>↓</kbd> | Cursor down (always) | <sub>`down-line-or-select`</sub> |
+| <kbd>PgDn</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
+| <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
+| <kbd>Alt</kbd><kbd>↑</kbd> | Cursor up (always) | <sub>`down-line-or-select`</sub> |
+| <kbd>PgUp</kbd> | History menu (always) | <sub>`history-search`</sub> |
+| <kbd>Control</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
+| <kbd>Control</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
 | <kbd>Enter</kbd> | Exit menu & execute command line |
-| <kbd>Alt</kbd>+<kbd>Enter</kbd> | Exit menu |
-| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Multi-select |
-| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
-| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
+| <kbd>Alt</kbd><kbd>Enter</kbd> | Exit menu |
+| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
+| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
 | <kbd>PgUp</kbd> | Page up |
 | <kbd>PgDn</kbd> | Page down |
-| <kbd>Alt</kbd>+<kbd>B</kbd> | Backward one group |
-| <kbd>Alt</kbd>+<kbd>F</kbd> | Forward one group |
-| <kbd>Home</kbd> | Beginning of line |
-| <kbd>End</kbd> | End of line |
+| <kbd>Home</kbd> | Beginning of menu |
+| <kbd>End</kbd> | End of menu |
 
 ### History Menu
 | Key(s) | Action |
@@ -90,11 +90,10 @@ Press <kbd>Shift</kbd>+<kbd>Tab</kbd> to insert:
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
 | <kbd>←</kbd>/<kbd>→</kbd> | Exit menu & move cursor |
 | <kbd>Enter</kbd> | Exit menu & execute command line |
-| <kbd>Alt</kbd>+<kbd>Enter</kbd> | Exit menu |
-| <kbd>Ctrl</kbd>+<kbd>Space</kbd> | Multi-select |
-| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> | Beginning of menu |
-| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>.</kbd> | End of menu |
-
+| <kbd>Alt</kbd><kbd>Enter</kbd> | Exit menu |
+| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Home</kbd> | Beginning of menu |
+| <kbd>End</kbd> | End of menu |
 
 ## Requirements
 Recommended:
@@ -141,7 +140,7 @@ former are unique to `zsh-autocomplete`.
 * [Use your own completion config](#use-your-own-completion-config)
 
 ### Change `Tab` behavior
-By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd>+<kbd>Tab</kbd> inserts the
+By default, <kbd>Tab</kbd> insert the top completion, <kbd>Shift</kbd><kbd>Tab</kbd> inserts the
 bottom completion, and <kbd>↓</kbd> activates menu selection.
 
 To make <kbd>Tab</kbd> first insert any common substring, before inserting full completions:
@@ -149,12 +148,12 @@ To make <kbd>Tab</kbd> first insert any common substring, before inserting full 
 zstyle ':autocomplete:tab:*' insert-unambiguous yes
 ```
 
-To make <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> activate menu selection:
+To make <kbd>Tab</kbd> or <kbd>Shift</kbd><kbd>Tab</kbd> activate menu selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-select
 ```
 
-To make <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> cycle completions _without_ using menu
+To make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> cycle completions _without_ using menu
 selection:
 ```zsh
 zstyle ':autocomplete:tab:*' widget-style menu-complete
@@ -172,7 +171,7 @@ your `~/.zshrc` file only.
 `widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
 
 ### Change other key bindings
-Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> can be overridden with
+Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd><kbd>Tab</kbd> can be overridden with
 the `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`. To make this easier,
 `zsh-autocomplete` defines an associative array `$key` that you can use:
 
@@ -181,12 +180,12 @@ source path/to/zsh-autocomplete.plugin.zsh
 # The following lines revert the given keys back to Zsh defaults:
 bindkey $key[Up] up-line-or-history
 bindkey $key[Down] down-line-or-history
-bindkey $key[ControlSpace] set-mark-command
+bindkey $key[Control-Space] set-mark-command
 bindkey -M menuselect $key[Return] accept-line
 ```
 
 ### Start autocompletion in history search mode
-To start each new command line as if <kbd>Ctrl</kbd>+<kbd>R</kbd> has been pressed:
+To start each new command line as if <kbd>Control</kbd><kbd>R</kbd> has been pressed:
 ```zsh
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
@@ -234,7 +233,7 @@ To show auto-generated command descriptions:
 zstyle ':completion:*' extra-verbose yes
 ```
 
-To show command descriptions only when you press <kbd>Ctrl</kbd>+<kbd>Space</kbd>:
+To show command descriptions only when you press <kbd>Control</kbd><kbd>Space</kbd>:
 ```zsh
 zstyle ':completion:list-expand:*' extra-verbose yes
 ```
@@ -249,7 +248,7 @@ To alter the message shown when the list of completions does not fit on screen:
 ```zsh
   local hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
   zstyle ':autocomplete:*:too-many-matches' message \
-    "${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
+    "${hint}(partial list; press ${kbd}Control${hint}-${kbd}Space$hint to expand)$end"
 ```
 
 ### Use your own completion config

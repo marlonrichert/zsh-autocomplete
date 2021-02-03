@@ -76,7 +76,7 @@ _autocomplete.history_lines.suffix() {
     "$key[Alt] ");
       LBUFFER+=' '
       ;&
-    $key[ControlSpace])
+    $key[Control-Space])
       ;;
     *)
       LBUFFER=$LBUFFER[1,$(( -1 - $1 ))]

@@ -1,22 +1,22 @@
 #!/bin/zsh
+local -i ret=1
 {
   local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
   local keymap_menuselect="$(bindkey -M menuselect -L)"
-  local -i ret=1
   () {
     emulate -L zsh; setopt $_autocomplete__options
 
-    local -A keymap_historysearch=(
-      $key[Left] .backward-char
-      $key[Right] .forward-char
-      $key[ForwardWord] .backward-word
-      $key[BackwardWord] .forward-word
-      $key[Home] .beginning-of-line
-      $key[End] .end-of-line
-    )
-    local k v; for k v in ${(kv@)keymap_historysearch}; do
-      bindkey -M menuselect $k $v
-    done
+    case $( bindkey -lL main ) in
+      *emacs* )
+        bindkey -M menuselect $key[Left] .backward-char
+        bindkey -M menuselect $key[Right] .forward-char
+        ;;
+      *vi* )
+        bindkey -M menuselect $key[Left] .vi-backward-char
+        bindkey -M menuselect $key[Right] .vi-forward-char
+        ;;
+    esac
+
     LBUFFER=${${(b)LBUFFER}//[[:space:]]##/$'\0'}
     RBUFFER=${${(b)RBUFFER}//[[:space:]]##/$'\0'}
   }

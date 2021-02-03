@@ -302,9 +302,9 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
     _main_complete
   elif (( nmatches == 0 )); then
     if [[ -n $message && -n $BUFFER ]]; then
-    local msg
-    zformat -f msg "$message"
-    compadd -x "$msg"
+      local msg
+      zformat -f msg "$message"
+      compadd -x "$msg"
     fi
   elif () {
     emulate -L zsh; setopt $_autocomplete__options
@@ -422,7 +422,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
   local info hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
   zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
-    info="${hint}(partial list; press ${kbd}Ctrl${hint}+${kbd}Space$hint to expand)$end"
+    info="${hint}(partial list; press ${kbd}Control${hint}-${kbd}Space$hint to expand)$end"
 
   if [[ -v _opts_[-D] ]]; then
     if (( $#uniques > lines_available )); then
