@@ -206,7 +206,9 @@ bindkey -s -M menuselect '^S' '^G^S'
   setopt NO_completeinword; [[ -z $curcontext ]] ||
     setopt completeinword
 
+  setopt promptsubst
   PS1=''
+  PS4=$_autocomplete__x
 
   local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
   unset ${^hooks}_functions &>/dev/null
@@ -234,7 +236,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     unset 'compstate[vared]'
     local +h -a comppostfuncs=( message )
     {
-      _main_complete
+      .autocomplete.async.list-choices.complete 2>&$_autocomplete__log_fd
     } always {
       print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     }
@@ -274,7 +276,9 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
+  setopt promptsubst
+  local +h PS4=$_autocomplete__x
+  if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>&$_autocomplete__log_fd; then
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
