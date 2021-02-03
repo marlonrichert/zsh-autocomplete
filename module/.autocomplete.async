@@ -301,7 +301,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   if [[ -n $curcontext ]]; then
     _main_complete
   elif (( nmatches == 0 )); then
-    if [[ -n $message ]]; then
+    if [[ -n $message && -n $BUFFER ]]; then
     local msg
     zformat -f msg "$message"
     compadd -x "$msg"
@@ -317,6 +317,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
   compstate[insert]=''
   _lastcomp[insert]=''
   unset MENUSELECT
+
   return 2
 }
 
