@@ -6,7 +6,7 @@
   return 1
 
 if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS != ($key[Tab]|$key[Backtab]) ]] &&
-    (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
+    [[ compstate[nmatches] -gt 1 && $compstate[unambiguous] != (?|(#a1)$PREFIX$SUFFIX) ]]; then
   local subs cols
   local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
     subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
@@ -14,11 +14,9 @@ if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS != ($key[Tab]|$ke
     (( prv = ++nxt ))
   done
   ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
-  return
+  return 1
 fi
 
-_autocomplete.alias_expansions ||
-  _autocomplete.requoted ||
-  _autocomplete.unambiguous
-
-(( compstate[nmatches] > 0 ))
+if _autocomplete.alias_expansions || _autocomplete.requoted || _autocomplete.unambiguous; then
+  (( nm++ ))
+fi
