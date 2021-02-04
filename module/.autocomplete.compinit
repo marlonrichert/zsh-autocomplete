@@ -39,7 +39,7 @@ EOF
     local cache_dir
     zstyle -s ':completion:*' cache-path cache_dir && () {
       local src bin
-      for src in $cache_dir/*~*.zwc(N-.); do
+      for src in $cache_dir/*~**.zwc~**/.*(N-.); do
         bin=$src.zwc
         if [[ ! -e $bin || $bin -ot $src ]]; then
           zcompile -Uz $src
