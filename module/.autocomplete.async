@@ -27,13 +27,17 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
     local action
-    for action in clear modify fetch suggest accept partial_accept execute enable disable toggle
-    do
+    for action in clear modify fetch accept partial_accept execute enable disable toggle; do
+      # Set flags according to widget name.
       eval "_zsh_autosuggest_widget_$action() {
         .autocomplete.zle-flags \$WIDGET
         _zsh_autosuggest_$action \$@
       }"
     done
+    _zsh_autosuggest_widget_suggest() {
+      .autocomplete.zle-flags # Maintain previously set flags.
+      _zsh_autosuggest_suggest $@
+    }
   fi
 
   zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
