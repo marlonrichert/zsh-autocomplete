@@ -1,5 +1,5 @@
 #!/bin/zsh
-zmodload -Fa zsh/parameter p:commands p:functions
+zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
 
 .autocomplete.recent-dirs.precmd() {
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
@@ -45,23 +45,23 @@ zmodload -Fa zsh/parameter p:commands p:functions
     }
 
   else
+    setopt autopushd
     builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
-    add-zsh-hook chpwd chpwd_recent_dirs
+
     zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
     zstyle -s :chpwd: recent-dirs-prune _ ||
       zstyle ':chpwd:*' recent-dirs-prune "pattern:^${HOME//[\/]/\\/}$" \
         "pattern:^${HOME//[\/]/\\/}\/[^\/]+$" 'pattern:^\/[^\/]+$' "pattern:^${TMPDIR:A}/.*$"
 
-    .autocomplete.recent_dirs.chpwd() {
-      chpwd_recent_filehandler
-      typeset -gHa _autocomplete__recent_dirs=( $~reply[@] )
-    }
-    add-zsh-hook chpwd .autocomplete.recent_dirs.chpwd
-    .autocomplete.recent_dirs.chpwd
+    chpwd_recent_filehandler
+    dirstack=( $^reply(N-/) )
+    chpwd_recent_filehandler "$dirstack[@]"
+
+    add-zsh-hook chpwd chpwd_recent_dirs
 
     _autocomplete.recent_dirs() {
-      reply=( $_autocomplete__recent_dirs[@] )
+      reply=( $dirstack[@] )
       local ancestor=$PWD:h
       while [[ $ancestor != '/' ]]; do
         reply=( ${(@)reply[@]:#$ancestor} )
