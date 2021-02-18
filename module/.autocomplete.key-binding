@@ -3,8 +3,11 @@ zmodload zsh/complist
 zmodload -Fa zsh/parameter p:funcstack p:functions
 
 .autocomplete.key-binding.precmd() {
-  [[ -z $key[Tab] || -z $key[Backtab] ]] &&
+  # Work around plugin managers making `key` local.
+  if [[ -z $key[Tab] || -z $key[Backtab] ]]; then
+    autoload -Uz .autocomplete.key
     .autocomplete.key
+  fi
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
     tab_style=complete-word
