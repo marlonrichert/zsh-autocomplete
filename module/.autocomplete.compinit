@@ -7,12 +7,14 @@ zmodload -F zsh/parameter p:funcstack p:functions
   [[ -v ZSH_COMPDUMP ]] &&
     local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
 
-  typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zcompdump}}
+  typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zsh/compdump}}
 
-  local -aU in_fpath=( $^fpath/_*~*.zwc(N-.:t) )
-  local -a declared=( ${(k@)functions[@]} )
-  [[ -v _comp_setup && ${#in_fpath:|declared} -gt 0 ]] &&
+  local f; for f in ${${(%):-%x}:h:h}/completion/*; do
+    if [[ $f -nt $_comp_dumpfile ]]; then
     zf_rm -f $_comp_dumpfile
+      break
+    fi
+  done
 
   if [[ ! -v _comp_setup || ! -f $_comp_dumpfile ]]; then
     unfunction compdef compinit 2>/dev/null
@@ -26,6 +28,7 @@ $omzdump[-2]
 $omzdump[-1]
 EOF
   fi
+
   compinit() { : }
 
   local -i fd
@@ -47,6 +50,8 @@ EOF
     unfunction ${(%):-%N}
   }
   zle -F "$fd" .autocomplete.compinit.zle-f
+
+  compinit() { : }
 
   .autocomplete.compadd() {
     setopt localoptions listtypes
@@ -206,8 +211,6 @@ EOF
     return 0
   }
 }
-
-compinit() { : }
 
 [[ -v _comp_setup ]] ||
   compdef() {
