@@ -17,6 +17,6 @@ if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS != ($key[Tab]|$ke
   return 1
 fi
 
-if _autocomplete.alias_expansions || _autocomplete.requoted || _autocomplete.unambiguous; then
+if _autocomplete.requoted || _autocomplete.unambiguous; then
   (( nm++ ))
 fi
