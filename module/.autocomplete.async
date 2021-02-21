@@ -79,11 +79,13 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     _zsh_autosuggest_highlight_apply
 
   if [[ $LASTWIDGET == ('list-expand'|'_complete_help') ||
-      $KEYS == ("$key[Tab]"|"$key[Backtab]") && $_lastcomp[insert] == *'unambiguous' ||
       -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
     .autocomplete.async.stop
     return 0
   fi
+
+  [[ $_lastcomp[insert] == *unambiguous ]] &&
+    zle .auto-suffix-retain # Makes the cursor stay in the right place.
 
   .autocomplete.async.start
   return 0
@@ -302,6 +304,8 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   local ignored; zstyle -s :autocomplete: ignored-input ignored ||
     ignored=' '
 
+  local +h -a compprefuncs=(  "$compprefuncs[@]"  .autocomplete.async.list-choices.pre )
+  local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.async.list-choices.post )
   if [[ -n $curcontext ]]; then
     _main_complete
   elif (( nmatches == 0 )); then
@@ -318,11 +322,17 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     .autocomplete.async.list-choices.complete
   fi
 
-  compstate[insert]=''
-  _lastcomp[insert]=''
-  unset MENUSELECT
-
   return 2
+}
+
+.autocomplete.async.list-choices.pre() {
+  compstate[old_list]=
+}
+
+.autocomplete.async.list-choices.post() {
+  compstate[insert]=
+  compstate[list]='list force packed rows'
+  unset MENUSELECT MENUMODE
 }
 
 .autocomplete.async.list-choices.complete() {
@@ -479,7 +489,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     fi
   fi
   _autocomplete.compadd_opts_len "$@"
-  .autocomplete.compadd "${(@)@[1,?]}" $dopt -U -a _matches_
+  .autocomplete.compadd "${(@)@[1,?]}" $dopt -a _matches_
 }
 
 .autocomplete.async.timeout.fd-widget() {

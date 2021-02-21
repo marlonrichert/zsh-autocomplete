@@ -5,8 +5,9 @@
 [[ -z $BUFFER ]] &&
   return 1
 
-if zstyle -t :autocomplete:tab: insert-unambiguous && [[ $KEYS != ($key[Tab]|$key[Backtab]) ]] &&
-    [[ compstate[nmatches] -gt 1 && $compstate[unambiguous] != (?|(#a1)$PREFIX$SUFFIX) ]]; then
+if zstyle -t :autocomplete:tab: insert-unambiguous &&
+    [[ compstate[nmatches] -gt 1 &&
+      $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then
   local subs cols
   local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
     subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'

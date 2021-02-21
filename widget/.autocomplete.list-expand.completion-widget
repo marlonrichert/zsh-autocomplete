@@ -1,17 +1,35 @@
 #!/bin/zsh
-local curcontext=${curcontext:-${WIDGET}:::}
+local 0=${(%):-%N}
 
-_main_complete
+$0() {
+  local 0=${(%):-%N}
+  local +h curcontext=${curcontext:-${WIDGET}:::}
 
-local -i pslines=${#${(%%)PS1}//[^$'\n']}
-local -i realestate=$(( LINES - BUFFERLINES - pslines ))
-if (( compstate[list_lines] > realestate )); then
-  compstate[insert]='menu'
-  _autocomplete__screen_space=$realestate
-else
-  unset MENUSELECT
-  compstate[insert]='';
-  _autocomplete__screen_space=$(( max( _autocomplete__screen_space, compstate[list_lines] ) ))
-fi
+  local +h -a compprefuncs=( "$compprefuncs[@]" $0.pre )
+  local +h -a comppostfuncs=( "$comppostfuncs[@]" $0.post )
+  _main_complete
+}
 
-(( compstate[nmatches] > 0 ))
+$0.pre() {
+  compstate[insert]=
+  compstate[list]='list force packed rows'
+  compstate[old_list]=
+}
+
+$0.post() {
+  local -i pslines=${#${(%%)PS1}//[^$'\n']}
+  local -i realestate=$(( LINES - BUFFERLINES - pslines ))
+  _autocomplete__screen_space=$((
+    max( _autocomplete__screen_space, min( realestate, compstate[list_lines] ) )
+  ))
+  if (( compstate[list_lines] > realestate )); then
+    compstate[insert]=menu
+    MENUSELECT=0
+  else
+    compstate[insert]=
+    unset MENUSELECT
+  fi
+  compstate[list]='list force packed rows'
+}
+
+$0 "$@"

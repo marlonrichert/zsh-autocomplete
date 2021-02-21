@@ -1,30 +1,42 @@
 #!/bin/zsh
+local 0=${(%):-%N}
 
-.autocomplete.complete-word.completion-widget() {
-  local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.complete-word.comppostfunc )
-  _main_complete
-  unset curcontext
-}
-
-.autocomplete.complete-word.comppostfunc() {
-  local keyname="${(kL)key[(Re)$KEYS]}"
-
-  if  (
-        [[ $KEYS == "$key[Backtab]" ]] ||
-        ( [[ $KEYS == "$key[Tab]" ]] && zstyle -t :autocomplete:tab: insert-unambiguous )
-      ) &&
-      (( compstate[nmatches] > 1 && $#compstate[unambiguous] > $#words[CURRENT] )); then
-    compstate[insert]="${${(M)WIDGET:#menu-*}:+automenu-}unambiguous"
-    return 0
+$0() {
+  local 0=${(%):-%N}
+  local +h curcontext=${curcontext:-${WIDGET}:::}
+  local +h -a comppostfuncs=( "$comppostfuncs[@]" $0.post )
+  if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
+        zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
+      ) && [[ $_lastcomp[iprefix]$_lastcomp[prefix]$_lastcomp[suffix]$_lastcomp[isuffix]
+                != *$_lastcomp[unambiguous]* ]]; then
+    compstate[old_list]=
+    _main_complete
+  elif [[ -n $compstate[old_list] ]]; then
+    compstate[old_list]=keep
+    _main_complete -
   fi
-
-  local -i nmatches=$_lastcomp[nmatches]; [[ $compstate[old_list] == keep ]] ||
-    nmatches=$compstate[nmatches]
-
-  compstate[insert]=1; (( nmatches > 1 )) &&
-    compstate[insert]="${${(M)WIDGET:#menu-*}:+menu:}${${${keyname:#backtab}:+1}:-0}"
-
-  (( nmatches > 0 ))
 }
 
-.autocomplete.complete-word.completion-widget "$@"
+$0.post() {
+  unset curcontext
+  compstate[list]=
+  if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
+        zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
+      ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then
+    compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
+  else
+    compstate[insert]=
+    if [[ $WIDGET == *menu-* ]]; then
+      compstate[insert]=menu
+      [[ $WIDGET == *-select ]] &&
+        MENUSELECT=0
+    fi
+    if [[ "$KEYS" == "$key[Backtab]" ]]; then
+      compstate[insert]+=0
+    else
+      compstate[insert]+=1
+    fi
+  fi
+}
+
+$0 "$@"

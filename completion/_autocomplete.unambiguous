@@ -4,16 +4,14 @@ zstyle -t :autocomplete:tab: insert-unambiguous &&
   return 1
 (( compstate[nmatches] > 1 )) ||
   return 1
-[[ $compstate[unambiguous] == (?|(#a1)$PREFIX$SUFFIX) ]] &&
-  return 1
-[[ $KEYS == $key[Backtab] ]] &&
+[[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *$compstate[unambiguous]* ]] &&
   return 1
 
 local tag=unambiguous
 _tags $tag
-_tags && _requested $tag ||
+_tags ||
+  return 1
+_requested $tag ||
   return 1
 
-local expl
-_description $tag expl 'common substring'
-compadd "$expl[@]" -QU - $compstate[unambiguous]
+_message -e unambiguous "common substring:%b %S$compstate[unambiguous]%s"
