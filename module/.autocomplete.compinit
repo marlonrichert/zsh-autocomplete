@@ -180,11 +180,30 @@ EOF
 
   .autocomplete.patch _expand
   _expand() {
-    if _autocomplete.is_glob && [[ $WIDGET != _complete_help ]]; then
-      [[ $words[CURRENT] == *[^*] ]] &&
+    if _autocomplete.is_glob; then
+      [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
         local ISUFFIX="*"
+
+      .autocomplete._expand "$@"
+      return
     fi
-    .autocomplete._expand "$@"
+
+    .autocomplete._expand "$@" ||
+      return
+
+    (( compstate[nmatches] > 1 )) &&
+      return 0
+
+    local exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+
+    [[ $exp == ($word|$compstate[unambiguous]) ]] &&
+      return 0
+
+    local expl
+    _description -V expansions expl expansions "o:$word"
+    compadd "$expl[@]" -UQ -qS '' - "${(q+)exp}"
+
+    return 0
   }
 }
 

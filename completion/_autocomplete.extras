@@ -18,6 +18,4 @@ if zstyle -t :autocomplete:tab: insert-unambiguous &&
   return 1
 fi
 
-if _autocomplete.requoted || _autocomplete.unambiguous; then
-  (( nm++ ))
-fi
+_autocomplete.unambiguous
