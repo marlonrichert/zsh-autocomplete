@@ -127,8 +127,6 @@ EOF
     .autocomplete._description "$@"
     local -i ret=$?
     _lastdescr=( ${(@)_lastdescr[@]:#(corrections|history word)} )
-    [[ ${${:-$PREFIX$SUFFIX}:h} == . ]] ||
-      _lastdescr=( ${(@)_lastdescr[@]:#recent directory} )
     return ret
   }
 

@@ -26,6 +26,10 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
   [[ -d $XDG_CACHE_HOME/zsh ]] ||
     zf_mkdir -pm 0700 $XDG_CACHE_HOME/zsh
 
+  export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+  [[ -d $XDG_DATA_HOME/zsh ]] ||
+    zf_mkdir -pm 0700 $XDG_DATA_HOME/zsh
+
   add-zsh-hook precmd .autocomplete.screen-space
   local -i pslines=${#${(%%)PS1}//[^$'\n']}
   typeset -gHi _autocomplete__screen_space=$(( LINES - pslines - 2 ))

@@ -48,14 +48,24 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     setopt autopushd
     builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
 
+    if ! zstyle -s :chpwd: recent-dirs-file _; then
+      local old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
+      local new=$XDG_DATA_HOME/zsh/chpwd-recent-dirs
+      zstyle ':chpwd:*' recent-dirs-file $new
+      if [[ -e $old && ! -e $new ]]; then
+        zmodload -F zsh/files b:zf_mv
+        zf_mv "$old" "$new"
+      fi
+    fi
     zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
     zstyle -s :chpwd: recent-dirs-prune _ ||
       zstyle ':chpwd:*' recent-dirs-prune "pattern:^${HOME//[\/]/\\/}$" \
         "pattern:^${HOME//[\/]/\\/}\/[^\/]+$" 'pattern:^\/[^\/]+$' "pattern:^${TMPDIR:A}/.*$"
 
+    local -a reply=()
     chpwd_recent_filehandler
-    dirstack=( $^reply(N-/) )
+    typeset -gaU dirstack=( $^reply(N-/) )
     chpwd_recent_filehandler "$dirstack[@]"
 
     add-zsh-hook chpwd chpwd_recent_dirs
@@ -69,7 +79,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       done
       reply=( ${(@)reply[@]:#$PWD(|/[^/]#)} )
       reply=( ${(M@)reply[@]:#**/(#i)${~${:-$PREFIX$SUFFIX}///[^/]#}[^/]#} )
-      reply=( ${(@)reply[1,10]} )
+      reply=( ${(@)reply[1,16]} )
       (( $#reply > 0 ))
     }
   fi
