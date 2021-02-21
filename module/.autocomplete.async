@@ -16,7 +16,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   zle -N .autocomplete.async.complete.fd-widget
   zle -N .autocomplete.async.timeout.fd-widget
 
-  zle -C .autocomplete.list-choices list-choices .autocomplete.async.list-choices.completion-widget
+  zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
 
   if [[ -v functions[_zsh_highlight_call_widget] ]]; then
     _zsh_highlight_call_widget() {
@@ -31,12 +31,12 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
       # Set flags according to widget name.
       eval "_zsh_autosuggest_widget_$action() {
         .autocomplete.zle-flags \$WIDGET
-        _zsh_autosuggest_$action \$@
+        _zsh_autosuggest_$action \"\$@\"
       }"
     done
     _zsh_autosuggest_widget_suggest() {
       .autocomplete.zle-flags # Maintain previously set flags.
-      _zsh_autosuggest_suggest $@
+      _zsh_autosuggest_suggest "$@"
     }
   fi
 
@@ -246,6 +246,9 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.complete.fd-widget() {
+  .autocomplete.zle-flags ||
+    return 0
+
   setopt $_autocomplete__options
   if [[ -n $curcontext ]]; then
     setopt completeinword
@@ -270,12 +273,9 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
   } "$@"
 
-  .autocomplete.zle-flags ||
-    return 0
-
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  if ! zle .autocomplete.list-choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
+  if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
     () {
       emulate -L zsh; setopt $_autocomplete__options
 
@@ -307,7 +307,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   local min_input; zstyle -s :autocomplete: min-input min_input ||
     min_input=0
   local ignored; zstyle -s :autocomplete: ignored-input ignored ||
-    ignored=' '
+    ignored=$'\0'
 
   local +h -a compprefuncs=(  "$compprefuncs[@]"  .autocomplete.async.list-choices.pre )
   local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.async.list-choices.post )
@@ -319,10 +319,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
       zformat -f msg "$message"
       compadd -x "$msg"
     fi
-  elif () {
-    emulate -L zsh; setopt $_autocomplete__options
-    [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input ))
-  }; then
+  elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
@@ -355,8 +352,8 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
       unfunction compadd
     [[ -v functions[comptags] ]] &&
       unfunction comptags
+    }
   }
-}
 }
 
 .autocomplete.async.compadd() {
@@ -498,6 +495,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.timeout.fd-widget() {
+  .autocomplete.zle-flags
   local -i timedout=0
   {
     [[ -z $2 || $2 == hup ]] &&
@@ -507,6 +505,5 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   }
   (( timedout )) &&
     .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-  .autocomplete.zle-flags
   (( _autocomplete__async_avg_duration *= 2 ))
 }
