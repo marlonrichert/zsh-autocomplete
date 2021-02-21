@@ -13,7 +13,7 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
     tab_style=complete-word
 
   if zstyle -t :autocomplete:tab: fzf || zstyle -t :autocomplete:tab: fzf-completion; then
-    export -H fzf_default_completion=$tab_style
+    typeset -gH fzf_default_completion=$tab_style
 
     functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
     fzf-completion() {

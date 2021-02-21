@@ -6,7 +6,7 @@ zmodload -F zsh/zselect b:zselect
 zmodload -F zsh/zutil b:zparseopts
 builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 
-export ZSH_AUTOSUGGEST_USE_ASYNC=yes
+typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 .autocomplete.async.precmd() {
   typeset -gHF _autocomplete__async_avg_duration

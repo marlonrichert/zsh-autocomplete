@@ -1,5 +1,5 @@
 #!/bin/zsh
-export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
 
 .autocomplete.widget.c() {

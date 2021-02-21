@@ -16,15 +16,15 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
   add-zsh-hook -d precmd $0
   unfunction $0
 
-  # Don't let `|` remove suffixes.
+  # Don't let `&` and `|` remove suffixes.
   [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
-    export ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&'
+    typeset -g ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;'
+  [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
+    typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-  if [[ ! -d $XDG_CACHE_HOME ]]; then
-    zmodload -F zsh/files b:zf_mkdir
-    zf_mkdir -p $XDG_CACHE_HOME
-  fi
+  [[ -d $XDG_CACHE_HOME/zsh ]] ||
+    zf_mkdir -pm 0700 $XDG_CACHE_HOME/zsh
 
   add-zsh-hook precmd .autocomplete.screen-space
   local -i pslines=${#${(%%)PS1}//[^$'\n']}
