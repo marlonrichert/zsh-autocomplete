@@ -70,13 +70,18 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 .autocomplete.async.complete() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  (( KEYS_QUEUED_COUNT + PENDING > 0 )) &&
+  (( KEYS_QUEUED_COUNT || PENDING )) &&
     return 0
 
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
+
+  if (( REGION_ACTIVE )); then
+    zle -Rc
+    return 0
+  fi
 
   if [[ $LASTWIDGET == ('list-expand'|'_complete_help') ||
       -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
