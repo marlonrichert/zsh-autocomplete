@@ -139,18 +139,6 @@ EOF
     return ret
   }
 
-  .autocomplete.patch _path_files
-  _path_files() {
-    .autocomplete._path_files "$@"; local -i ret=$?
-
-    [[ $words[CURRENT] == */* ]] &&
-      return ret
-
-    _autocomplete.ancestor_dirs
-    _autocomplete.recent_paths
-    return ret
-  }
-
   .autocomplete.patch _complete
   _complete() {
     .autocomplete._complete "$@"; local -i ret=$?

@@ -1,4 +1,8 @@
 #autoload
+[[ $_comp_tags != *directories* ]] &&
+  return 1
+
+local -i nmatches=$compstate[nmatches]
 
 local -aU reply=() display=()
 _tags parent-directories
@@ -14,3 +18,5 @@ while (( ${#dir} > 1 )); do
   compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)dir:t}
   dir="${dir:h}"
 done
+
+(( compstate[nmatches] > nmatches ))
