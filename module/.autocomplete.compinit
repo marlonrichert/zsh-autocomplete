@@ -141,27 +141,6 @@ EOF
     return ret
   }
 
-  .autocomplete.builtin() {
-    () {
-      emulate -L zsh; setopt $_autocomplete__options
-      [[ -v functions[builtin] ]] &&
-        unfunction builtin
-    }
-    {
-      if [[ $1 == compadd && $funcstack[2] == compadd ]]; then
-        shift $(( $#_correct_expl[@] + 1 ))
-        builtin compadd "$@"
-      else
-        builtin "$@"
-      fi
-    } always {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        functions[builtin]=$functions[.autocomplete.builtin]
-      }
-    }
-  }
-
   .autocomplete.patch _approximate
   _approximate () {
     [[ -z $words[CURRENT] ]] &&
