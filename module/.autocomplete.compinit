@@ -28,12 +28,6 @@ EOF
   fi
   compinit() { : }
 
-  _comp_options+=(
-    banghist functionargzero globdots globstarshort nullglob numericglobsort
-    NO_alwaystoend NO_caseglob NO_completealiases
-    NO_globcomplete NO_listbeep NO_listtypes NO_markdirs
-  )
-
   local -i fd
   exec {fd}< <(
     local cache_dir
