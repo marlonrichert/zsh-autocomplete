@@ -226,7 +226,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     unset 'compstate[vared]'
     local +h -a comppostfuncs=( message )
     {
-      .autocomplete.async.list-choices.complete
+      _main_complete
     } always {
       () {
         emulate -L zsh; setopt $_autocomplete__options
