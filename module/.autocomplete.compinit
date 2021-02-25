@@ -11,7 +11,7 @@ zmodload -F zsh/parameter p:funcstack p:functions
 
   local f; for f in ${${(%):-%x}:h:h}/completion/*; do
     if [[ $f -nt $_comp_dumpfile ]]; then
-    zf_rm -f $_comp_dumpfile
+      zf_rm -f $_comp_dumpfile
       break
     fi
   done
@@ -92,46 +92,40 @@ EOF
   _main_complete() {
     local -i ret=1 _autocomplete__reserved_lines=0
 
-    compstate[exact]=''
-    compstate[insert]=''
-    compstate[list]=''
+    compstate[insert]=  # To get consistent output from `_expand`
 
     local +h -a comppostfuncs=(
       _autocomplete.extras
+      _autocomplete._main_complete.post
       "$comppostfuncs[@]"
     )
     {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        # Don't break `_complete_help`, async completion, etc.
-        [[ -v functions[compadd] ]] ||
-          functions[compadd]=$functions[.autocomplete.compadd]
-      }
+      # Don't break `_complete_help`, async completion, etc.
+      [[ -v functions[compadd] ]] ||
+        functions[compadd]=$functions[.autocomplete.compadd]
+
       .autocomplete._main_complete "$@"; ret=$?
     } always {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        # Stop `_complete_help` from complaining.
-        [[ $funcstack == *_complete_help* ]] ||
-          unfunction compadd
-      }
+      # Stop `_complete_help` from complaining.
+      [[ $WIDGET == _complete_help ]] ||
+        unfunction compadd
     }
     typeset -gHi _autocomplete__current=$CURRENT
     typeset -gH _autocomplete__words="$words"
 
-    # Don't use `zstyle` for this, because it breaks horribly in `_setup`.
-    compstate[list]='list packed rows'
-    _lastcomp[list]='list packed rows'
-
-    compstate[list_max]=0
-    _lastcomp[list_max]=0
-
     return ret
+  }
+
+  _autocomplete._main_complete.post() {
+    compstate[list]='list packed rows'
+    compstate[list_max]=0
+    MENUSCROLL=0
   }
 
   .autocomplete.patch _description
   _description() {
-    .autocomplete._description "$@"; local -i ret=$?
+    .autocomplete._description "$@"
+    local -i ret=$?
     _lastdescr=( ${(@)_lastdescr[@]:#(corrections|history word)} )
     [[ ${${:-$PREFIX$SUFFIX}:h} == . ]] ||
       _lastdescr=( ${(@)_lastdescr[@]:#recent directory} )
@@ -140,17 +134,16 @@ EOF
 
   .autocomplete.patch _complete
   _complete() {
-    .autocomplete._complete "$@"; local -i ret=$?
-    (( ret > 0 )) &&
-      _comp_mesg=''
+    .autocomplete._complete "$@"
+    local -i ret=$?
+    (( ret )) &&
+      _comp_mesg='' # Otherwise, the next completer won't get tried.
     return ret
   }
 
   .autocomplete.patch _approximate
-  _approximate () {
-    [[ -z $words[CURRENT] ]] &&
-      return 1
-    [[ -v compstate[quote] ]] &&
+  _approximate() {
+    [[ -z $words[CURRENT] || -v compstate[quote] ]] &&
       return 1
     [[ -o banghist && $words[CURRENT] == [$histchars]* ]] &&
       return 1
@@ -159,26 +152,23 @@ EOF
 
     local -i ret=1
     {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        if [[ -v functions[compadd] ]]; then
-          functions[.autocomplete.__tmp__]=$functions[compadd]
-          unfunction compadd
-        fi
-        functions[builtin]=$functions[.autocomplete.builtin]
-      }
-      .autocomplete._approximate "$@"; ret=$?
+      if [[ -v functions[compadd] ]]; then
+        functions[.autocomplete.__tmp__]=$functions[compadd]
+        unfunction compadd
+      fi
+      functions[builtin]=$functions[_autocomplete.builtin]
+
+      _approximate "$@"
+      ret=$?
+
     } always {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        [[ -v functions[builtin] ]] &&
-          unfunction builtin
-        if [[ -v functions[.autocomplete.__tmp__] ]]; then
-          functions[compadd]=$functions[.autocomplete.__tmp__]
-          unfunction .autocomplete.__tmp__
-        fi
-        functions[compadd]=$functions[.autocomplete.compadd]
-      }
+      [[ -v functions[builtin] ]] &&
+        unfunction builtin
+      if [[ -v functions[.autocomplete.__tmp__] ]]; then
+        functions[compadd]=$functions[.autocomplete.__tmp__]
+        unfunction .autocomplete.__tmp__
+      fi
+      functions[compadd]=$functions[.autocomplete.compadd]
     }
     return ret
   }
