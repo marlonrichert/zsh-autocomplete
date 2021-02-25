@@ -57,16 +57,15 @@ Press <kbd>Shift</kbd><kbd>Tab</kbd> to insert:
 ## Key Bindings
 | Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
 | --- | --- | --- |
-| any | Show completions (asynchronously) | <sub>NA</sub> |
-| <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion | <sub>`expand-word`</sub> |
+| <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`expand-word`</sub> |
 | <kbd>Control</kbd><kbd>Space</kbd> | Reveal hidden completions | <sub>`list-expand`</sub> |
-| <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
-| <kbd>Alt</kbd><kbd>↓</kbd> | Cursor down (always) | <sub>`down-line-or-select`</sub> |
-| <kbd>PgDn</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
+| <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Cursor up (always) | <sub>`down-line-or-select`</sub> |
+| <kbd>Alt</kbd><kbd>↓</kbd> | Cursor down (always) | <sub>`down-line-or-select`</sub> |
 | <kbd>PgUp</kbd> | History menu (always) | <sub>`history-search`</sub> |
+| <kbd>PgDn</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>Control</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
 | <kbd>Control</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
@@ -74,26 +73,28 @@ Press <kbd>Shift</kbd><kbd>Tab</kbd> to insert:
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
-| <kbd>Enter</kbd> | Exit menu & execute command line |
-| <kbd>Alt</kbd><kbd>Enter</kbd> | Exit menu |
-| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
 | <kbd>PgUp</kbd> | Page up |
 | <kbd>PgDn</kbd> | Page down |
 | <kbd>Home</kbd> | Beginning of menu |
 | <kbd>End</kbd> | End of menu |
+| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Tab</kbd> | Accept selection |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Discard selection |
+| <kbd>Enter</kbd> | Accept selection & execute command line |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
-| <kbd>←</kbd>/<kbd>→</kbd> | Exit menu & move cursor |
-| <kbd>Enter</kbd> | Exit menu & execute command line |
-| <kbd>Alt</kbd><kbd>Enter</kbd> | Exit menu |
-| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>Home</kbd> | Beginning of menu |
 | <kbd>End</kbd> | End of menu |
+| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Tab</kbd> | Accept selection |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Discard selection |
+| <kbd>←</kbd>/<kbd>→</kbd> | Accept selection & move cursor |
+| <kbd>Enter</kbd> | Accept selection & execute command line |
 
 ## Requirements
 Recommended:
@@ -168,7 +169,8 @@ zstyle ':autocomplete:tab:*' fzf-completion yes
 changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
 your `~/.zshrc` file only.
 
-`widget-style`, `insert-unambiguous` and `fzf` are mutually compatible and can be used in parallel.
+The settings `widget-style`, `insert-unambiguous` and `fzf-completion` are mutually compatible and
+can be used in parallel.
 
 ### Change other key bindings
 Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd><kbd>Tab</kbd> can be overridden with
@@ -254,7 +256,7 @@ To alter the message shown when the list of completions does not fit on screen:
 ### Use your own completion config
 To disable `zsh-autocomplete`'s pre-packaged completion config completely:
 ```zsh
-zstyle ':autocomplete:*' config off
+zstyle ':autocomplete:*' config no
 ```
 
 ## Author

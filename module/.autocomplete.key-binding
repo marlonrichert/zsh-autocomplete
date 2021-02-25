@@ -29,24 +29,24 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
     }
 
   else
-    bindkey $key[Tab] $tab_style
+    bindkey -M emacs $key[Tab] $tab_style
   fi
-  bindkey $key[Backtab] ${tab_style:/menu-complete/reverse-menu-complete}
+  bindkey -M emacs $key[Backtab] ${tab_style:/menu-complete/reverse-menu-complete}
+  if [[ $tab_style != menu-* ]]; then
+    bindkey -M menuselect $key[Tab] accept-line
+    bindkey -M menuselect $key[Backtab] send-break
+  fi
 }
 
-bindkey $key[Control-Space] list-expand
-bindkey $key[Up] up-line-or-search
-bindkey $key[Down] down-line-or-select
-bindkey $key[Alt]$key[Up] up-line
-bindkey $key[Alt]$key[Down] down-line
-bindkey $key[PageUp] history-search
-bindkey $key[PageDown] menu-select
-
-bindkey -M menuselect $key[Tab] menu-complete
-bindkey -M menuselect $key[Backtab] reverse-menu-complete
+bindkey -M emacs $key[Control-Space] list-expand
+bindkey -M emacs $key[Up] up-line-or-search
+bindkey -M emacs $key[Down] down-line-or-select
+bindkey -M emacs $key[Alt]$key[Up] up-line
+bindkey -M emacs $key[Alt]$key[Down] down-line
+bindkey -M emacs $key[PageUp] history-search
+bindkey -M emacs $key[PageDown] menu-select
 
 bindkey -M menuselect $key[Return] .accept-line
-bindkey -M menuselect $key[Alt]$key[Return] accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold
 
 case $( bindkey -lL main ) in
