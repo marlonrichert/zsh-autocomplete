@@ -224,8 +224,10 @@ zstyle ':completion:*:complete:*:' tag-order \
 ### Change the order of completions
 To list certain completions in a particular order _before_ all other completions:
 ```zsh
-zstyle ':completion:*:complete:*:' group-order \
-  options arguments values local-directories files builtins history-words
+zstyle ':completion:*' group-order \
+  options \
+  executables directories suffix-aliases \
+  aliases functions builtins reserved-words
 ```
 ⚠️ **Note** the additional `:` at the end of the namespace selector.
 
