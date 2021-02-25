@@ -75,6 +75,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
+  typeset -g _autocomplete__highlight=( "$region_highlight[@]" )
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
@@ -276,24 +277,12 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>/dev/null; then
-    () {
-      emulate -L zsh; setopt $_autocomplete__options
+    region_highlight=( "$_autocomplete__highlight[@]" )
+    [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
+      _zsh_autosuggest_highlight_apply
 
-      if [[ -v functions[_zsh_highlight] ]]; then
-        if [[ -v _FAST_MAIN_CACHE ]]; then
-          region_highlight=( $_FAST_MAIN_CACHE )
-        else
-          local p; for p in ${(@)parameters[(I)_zsh_highlight__highlighter_*_cache]}; do
-            region_highlight+=( "${(P@)p}" )
-          done
-        fi
-      fi
-      [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-        _zsh_autosuggest_highlight_apply
-
-      # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
-      zle -R
-    }
+    # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
+    zle -R
   else
     .autocomplete.async.stop
   fi
