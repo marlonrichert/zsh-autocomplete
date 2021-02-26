@@ -8,6 +8,11 @@ builtin autoload -Uz add-zle-hook-widget .autocomplete.zle-flags
 
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
+zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
+zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
+bindkey -s -M menuselect '^R' '^G^R'
+bindkey -s -M menuselect '^S' '^G^S'
+
 .autocomplete.async.precmd() {
   typeset -gHF _autocomplete__async_avg_duration
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
@@ -16,6 +21,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   zle -N .autocomplete.async.complete.fd-widget
   zle -N .autocomplete.async.timeout.fd-widget
 
+  # Name starting with `.` avoids getting wrapped by syntax highlighting.
   zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
 
   if [[ -v functions[_zsh_highlight_call_widget] ]]; then
@@ -28,27 +34,23 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
     local action
     for action in clear modify fetch accept partial_accept execute enable disable toggle; do
-      # Set flags according to widget name.
       eval "_zsh_autosuggest_widget_$action() {
-        .autocomplete.zle-flags \$WIDGET
+        .autocomplete.zle-flags \$WIDGET  # Set flags according to widget name.
         _zsh_autosuggest_$action \"\$@\"
       }"
     done
     _zsh_autosuggest_widget_suggest() {
-      .autocomplete.zle-flags # Maintain previously set flags.
+      .autocomplete.zle-flags  # Maintain previously set flags.
       _zsh_autosuggest_suggest "$@"
     }
   fi
-
-  zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
-  zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
-  bindkey -s -M menuselect '^R' '^G^R'
-  bindkey -s -M menuselect '^S' '^G^S'
 
   add-zle-hook-widget line-init .autocomplete.async.reset-context
   add-zle-hook-widget line-init .autocomplete.async.complete
   add-zle-hook-widget line-pre-redraw .autocomplete.async.complete
   add-zle-hook-widget line-finish .autocomplete.async.clear
+  add-zle-hook-widget isearch-update .autocomplete.async.isearch-update
+  add-zle-hook-widget isearch-exit .autocomplete.async.isearch-exit
   add-zsh-hook zshexit .autocomplete.async.stop
 }
 
@@ -67,6 +69,15 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   return 0
 }
 
+.autocomplete.async.isearch-update() {
+  typeset -gHi _autocomplete__isearch=1
+}
+
+.autocomplete.async.isearch-exit() {
+  .autocomplete.zle-flags $LASTWIDGET
+  unset _autocomplete__isearch
+}
+
 .autocomplete.async.complete() {
   .autocomplete.zle-flags $LASTWIDGET
 
@@ -79,7 +90,8 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
-  if (( REGION_ACTIVE )); then
+  if (( REGION_ACTIVE )) ||
+      [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
     zle -Rc
     return 0
   fi
@@ -91,7 +103,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   fi
 
   [[ $_lastcomp[insert] == *unambiguous ]] &&
-    zle .auto-suffix-retain # Makes the cursor stay in the right place.
+    zle .auto-suffix-retain  # Makes the cursor stay in the right place.
 
   .autocomplete.async.start
   return 0
@@ -105,6 +117,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 .autocomplete.async.clear() {
   zle -Rc
+  unset _autocomplete__isearch
   .autocomplete.async.stop
   .autocomplete.async.reset-context
   return 0
@@ -484,7 +497,9 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete.async.timeout.fd-widget() {
-  .autocomplete.zle-flags
+  .autocomplete.zle-flags ||
+    return 0
+
   local -i timedout=0
   {
     [[ -z $2 || $2 == hup ]] &&
