@@ -10,11 +10,10 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
   fi
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
-    tab_style=complete-word
+    tab_style='complete-word'
 
   if zstyle -t :autocomplete:tab: fzf || zstyle -t :autocomplete:tab: fzf-completion; then
     typeset -gH fzf_default_completion=$tab_style
-
     functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
     fzf-completion() {
       zle() {
@@ -27,11 +26,13 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
           unfunction zle
       }
     }
-
   else
     bindkey -M emacs $key[Tab] $tab_style
+    bindkey -M viins $key[Tab] $tab_style
   fi
-  bindkey -M emacs $key[Backtab] ${tab_style:/menu-complete/reverse-menu-complete}
+  local backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
+  bindkey -M emacs $key[Backtab] $backtab_style
+  bindkey -M viins $key[Backtab] $backtab_style
   if [[ $tab_style != menu-* ]]; then
     bindkey -M menuselect $key[Tab] accept-line
     bindkey -M menuselect $key[Backtab] send-break
@@ -39,16 +40,29 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
 }
 
 bindkey -M emacs $key[Control-Space] list-expand
+bindkey -M vicmd $key[Control-Space] list-expand
+bindkey -M viins $key[Control-Space] list-expand
+
 bindkey -M emacs $key[Up] up-line-or-search
+bindkey -M viins $key[Up] up-line-or-search
+
 bindkey -M emacs $key[Down] down-line-or-select
-bindkey -M emacs $key[Alt]$key[Up] up-line
-bindkey -M emacs $key[Alt]$key[Down] down-line
+bindkey -M viins $key[Down] down-line-or-select
+
+bindkey -M emacs $key[Alt]$key[Up]  up-line
+bindkey -M vicmd $key[Up]           up-line
+
+bindkey -M emacs $key[Alt]$key[Down]  down-line
+bindkey -M vicmd $key[Down]           down-line
+
 bindkey -M emacs $key[PageUp] history-search
+bindkey -M viins $key[PageUp] history-search
+
 bindkey -M emacs $key[PageDown] menu-select
+bindkey -M viins $key[PageDown] menu-select
 
 bindkey -M menuselect $key[Return] .accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold
-
 case $( bindkey -lL main ) in
   *emacs* )
     bindkey -M menuselect $'\C-[f' .forward-word
@@ -63,7 +77,6 @@ case $( bindkey -lL main ) in
     bindkey -M menuselect $'\C-[$' .vi-end-of-line
     ;;
 esac
-
 bindkey -M menuselect $key[Alt]$key[Up] vi-backward-blank-word
 bindkey -M menuselect $key[Alt]$key[Down] vi-forward-blank-word
 bindkey -M menuselect $key[PageUp] backward-word
