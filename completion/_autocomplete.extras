@@ -11,7 +11,7 @@ if zstyle -t :autocomplete:tab: insert-unambiguous &&
   local subs cols
   local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
     subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
-    cols+='=07'
+    cols+='=30;103'   # black foreground, bright yellow background
     (( prv = ++nxt ))
   done
   ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"

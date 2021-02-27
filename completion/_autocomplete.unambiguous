@@ -14,4 +14,5 @@ _tags ||
 _requested $tag ||
   return 1
 
-_message -e unambiguous "common substring:%b %S$compstate[unambiguous]%s"
+# Black foreground, bright yellow background
+_message -e unambiguous "common substring:%b %F{0}%K{11}$compstate[unambiguous]%f%k"
