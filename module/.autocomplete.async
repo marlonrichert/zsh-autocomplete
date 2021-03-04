@@ -313,7 +313,7 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   local +h -a compprefuncs=(  "$compprefuncs[@]"  .autocomplete.async.list-choices.pre )
   local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.async.list-choices.post )
-  if [[ -n $curcontext ]]; then
+  if [[ -n $curcontext || -z $BUFFER ]]; then
     _main_complete
   elif (( nmatches == 0 )); then
     if [[ -n $message && -n $BUFFER ]]; then
