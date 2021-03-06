@@ -313,15 +313,17 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   local +h -a compprefuncs=(  "$compprefuncs[@]"  .autocomplete.async.list-choices.pre )
   local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.async.list-choices.post )
-  if [[ -n $curcontext || -z $BUFFER ]]; then
+  if [[ -n $curcontext ]]; then
     _main_complete
   elif (( nmatches == 0 )); then
-    if [[ -n $message && -n $BUFFER ]]; then
+    if [[ -n $message ]]; then
       local msg
       zformat -f msg "$message"
       compadd -x "$msg"
     fi
   elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
+    [[ -z $BUFFER ]] &&
+      (( _autocomplete__screen_space = max( 16, _autocomplete__screen_space ) ))
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
