@@ -8,13 +8,13 @@ bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 * [Other Features](#other-features)
 * [Key Bindings](#key-bindings)
 * [Requirements](#requirements)
-* [Installation](#installation)
+* [Installing & Updating](#installing--updating)
 * [Settings](#settings)
 * [Author](#author)
 * [License](#license)
 
 ## Other Features
-Besides live autocompletion, `zsh-autocomplete` comes with many more useful completion features.
+Besides live autocompletion, `zsh-autocomplete` comes with many other useful completion features.
 
 ### Optimized completion config
 Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplete` does it for you,
@@ -43,15 +43,6 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 `rupa/z.sh`, `autojump` and `fasd`.
 
 ![recent dirs](.img/recent-dirs.png)
-
-### Additional, context-sensitive completions
-Press <kbd>Shift</kbd><kbd>Tab</kbd> to insert:
-
-![unambiguous](.img/unambiguous.png)
-
-![requoted](.img/requoted.png)
-
-![alias expansion](.img/alias-expansion.png)
 
 
 ## Key Bindings
@@ -101,21 +92,28 @@ Minimum:
 * Zsh 5.3 or later.
 
 
-## Installation
-1.  `git clone` this repo.
+## Installing & Updating
+To install:
+1.  Clone the repo:
+    ```zsh
+    % cd ~/git  # or wherever you keep your Git repos/Zsh plugins
+    % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+    ```
 1.  Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
     ```zsh
-    source path/to/zsh-autocomplete.plugin.zsh
+    source ~/git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
     ```
 1.  Remove any calls to `compinit` from your `~/.zshrc` file.
 
-### Updating
-1.  `cd` into `zsh-autocomplete`'s directory.
-1.  Do `git pull`.
+To update:
+```zsh
+git -C ~/git/zsh-autocomplete pull
+```
 
 ### As a Plugin
-`zsh-autocomplete` should work as a plugin with most frameworks & plugin managers. Please refer to
-your framework's/plugin manager's documentation for instructions.
+Instead of following the instructions above, you can also install `zsh-autocomplete` through
+whichever Zsh frameworks or plugin manager you use. Please refer to your framework's/plugin
+manager's documentation for instructions.
 
 
 ## Settings
