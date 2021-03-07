@@ -2,6 +2,22 @@
 zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
 
+[[ -v _comp_setup ]] ||
+  compdef() {
+    unfunction compdef
+    .autocomplete.compinit.precmd
+    unfunction .autocomplete.compinit.precmd
+    compdef "$@"
+  }
+
+_bash_complete compgen complete () {
+  unfunction _bash_complete compgen complete
+  builtin autoload -Uz bashcompinit
+  bashcompinit
+  bashcompinit() { : }
+  ${(%):-%N} "$@"
+}
+
 .autocomplete.compinit.precmd() {
   # Decrease Oh My Zsh start-up time. See below.
   [[ -v ZSH_COMPDUMP ]] &&
@@ -53,40 +69,7 @@ EOF
 
   compinit() { : }
 
-  .autocomplete.compadd() {
-    setopt localoptions listtypes
-
-    if [[ $_completer == expand* ]]; then
-      builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-    else
-      builtin compadd "$@"
-    fi
-  }
-
   builtin autoload -Uz .autocomplete.patch
-
-  .autocomplete.patch _wanted
-  _wanted() {
-    if [[ $funcstack == *_parameters* ]] &&
-        zstyle -T ":completion:${curcontext}:parameters" verbose; then
-      local -a params=( $@[(re)-,-1] )
-      shift -p $#params
-      shift params
-      _description "$@[1,3]"
-      builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
-      local -a displays=()
-      local sep; zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
-        sep=--
-      local MATCH MBEGIN MEND
-      zformat -a displays " $sep " \
-        "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
-      displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
-      displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
-      .autocomplete._wanted "$@" -d displays -a params
-    else
-      .autocomplete._wanted "$@"
-    fi
-  }
 
   .autocomplete.patch _main_complete
   _main_complete() {
@@ -120,6 +103,34 @@ EOF
     compstate[list_max]=0
     MENUSCROLL=0
     _autocomplete.unambiguous
+  }
+
+  .autocomplete.patch _expand
+  _expand() {
+    if _autocomplete.is_glob; then
+      [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
+        local ISUFFIX="*"
+
+      .autocomplete._expand "$@"
+      return
+    fi
+
+    .autocomplete._expand "$@" ||
+      return
+
+    (( compstate[nmatches] > 1 )) &&
+      return 0
+
+    local exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+
+    [[ $exp == ($word|$compstate[unambiguous]) ]] &&
+      return 0
+
+    local expl
+    _description -V expansions expl expansions "o:$word"
+    compadd "$expl[@]" -UQ -qS '' - "${(q+)exp}"
+
+    return 0
   }
 
   .autocomplete.patch _complete
@@ -172,47 +183,36 @@ EOF
     return ret
   }
 
-  .autocomplete.patch _expand
-  _expand() {
-    if _autocomplete.is_glob; then
-      [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
-        local ISUFFIX="*"
-
-      .autocomplete._expand "$@"
-      return
+  .autocomplete.patch _wanted
+  _wanted() {
+    if [[ $funcstack == *_parameters* ]] &&
+        zstyle -T ":completion:${curcontext}:parameters" verbose; then
+      local -a params=( $@[(re)-,-1] )
+      shift -p $#params
+      shift params
+      _description "$@[1,3]"
+      builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
+      local -a displays=()
+      local sep; zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+        sep=--
+      local MATCH MBEGIN MEND
+      zformat -a displays " $sep " \
+        "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
+      displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
+      displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
+      .autocomplete._wanted "$@" -d displays -a params
+    else
+      .autocomplete._wanted "$@"
     fi
-
-    .autocomplete._expand "$@" ||
-      return
-
-    (( compstate[nmatches] > 1 )) &&
-      return 0
-
-    local exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
-
-    [[ $exp == ($word|$compstate[unambiguous]) ]] &&
-      return 0
-
-    local expl
-    _description -V expansions expl expansions "o:$word"
-    compadd "$expl[@]" -UQ -qS '' - "${(q+)exp}"
-
-    return 0
-  }
-}
-
-[[ -v _comp_setup ]] ||
-  compdef() {
-    unfunction compdef
-    .autocomplete.compinit.precmd
-    unfunction .autocomplete.compinit.precmd
-    compdef "$@"
   }
 
-_bash_complete compgen complete () {
-  unfunction _bash_complete compgen complete
-  builtin autoload -Uz bashcompinit
-  bashcompinit
-  bashcompinit() { : }
-  ${(%):-%N} "$@"
+  .autocomplete.compadd() {
+    setopt localoptions listtypes
+
+    if [[ $_completer == expand* ]]; then
+      builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
+    else
+      builtin compadd "$@"
+    fi
+  }
 }
