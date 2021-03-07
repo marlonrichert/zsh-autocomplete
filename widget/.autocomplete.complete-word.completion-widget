@@ -24,15 +24,21 @@ $0.post() {
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then
     compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
-  else
-    compstate[insert]=
-    if [[ $WIDGET == *menu-* ]]; then
-      compstate[insert]=menu
-      [[ $WIDGET == *-select ]] &&
-        MENUSELECT=0
-    fi
-    compstate[insert]+="${${${KEYS:#$key[Backtab]}:+1}:-0}${${CURRENT:#1}:+ }"
+    return
   fi
+  compstate[insert]=
+  if [[ $WIDGET == *menu-* ]]; then
+    compstate[insert]=menu
+    [[ $WIDGET == *-select ]] &&
+      MENUSELECT=0
+  fi
+  if [[ "$KEYS" == "$key[Backtab]" ]]; then
+    compstate[insert]+=0
+  else
+    compstate[insert]+=1
+  fi
+  (( CURRENT == 1 )) &&
+    compstate[insert]+=' '
 }
 
 $0 "$@"
