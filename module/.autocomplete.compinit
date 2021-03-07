@@ -93,6 +93,8 @@ EOF
     local -i ret=1 _autocomplete__reserved_lines=0
 
     compstate[insert]=  # To get consistent output from `_expand`
+    compstate[last_prompt]=yes
+    compstate[list]='list force packed rows'
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     {
@@ -100,7 +102,9 @@ EOF
       [[ -v functions[compadd] ]] ||
         functions[compadd]=$functions[.autocomplete.compadd]
 
-      .autocomplete._main_complete "$@"; ret=$?
+      .autocomplete._main_complete "$@"
+      ret=$?
+
     } always {
       # Stop `_complete_help` from complaining.
       [[ $WIDGET == _complete_help ]] ||
@@ -113,7 +117,6 @@ EOF
   }
 
   _autocomplete._main_complete.post() {
-    compstate[list]='list packed rows'
     compstate[list_max]=0
     MENUSCROLL=0
     _autocomplete.unambiguous

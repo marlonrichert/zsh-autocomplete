@@ -311,8 +311,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   local ignored; zstyle -s :autocomplete: ignored-input ignored ||
     ignored=$'\0'
 
-  local +h -a compprefuncs=(  "$compprefuncs[@]"  .autocomplete.async.list-choices.pre )
-  local +h -a comppostfuncs=( "$comppostfuncs[@]" .autocomplete.async.list-choices.post )
+  local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
   if [[ -n $curcontext ]]; then
     _main_complete
   elif (( nmatches == 0 )); then
@@ -327,17 +326,11 @@ bindkey -s -M menuselect '^S' '^G^S'
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
-
   return 2
-}
-
-.autocomplete.async.list-choices.pre() {
-  compstate[old_list]=
 }
 
 .autocomplete.async.list-choices.post() {
   compstate[insert]=
-  compstate[list]='list force packed rows'
   unset MENUSELECT MENUMODE
 }
 

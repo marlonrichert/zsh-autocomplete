@@ -5,15 +5,9 @@ $0() {
   local 0=${(%):-%N}
   local +h curcontext=${curcontext:-${WIDGET}:::}
 
-  local +h -a compprefuncs=( "$compprefuncs[@]" $0.pre )
-  local +h -a comppostfuncs=( "$comppostfuncs[@]" $0.post )
-  _main_complete
-}
-
-$0.pre() {
-  compstate[insert]=
-  compstate[list]='list force packed rows'
   compstate[old_list]=
+  local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
+  _main_complete
 }
 
 $0.post() {
@@ -29,7 +23,6 @@ $0.post() {
     compstate[insert]=
     unset MENUSELECT
   fi
-  compstate[list]='list force packed rows'
 }
 
 $0 "$@"

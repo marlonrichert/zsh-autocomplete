@@ -5,17 +5,16 @@ $0() {
   local 0=${(%):-%N}
   typeset -gH curcontext=${WIDGET}:::
 
-  local +h -a comppostfuncs=( "$comppostfuncs[@]" $0.post )
-  unset 'compstate[old_list]'
+  local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
+  compstate[old_list]=
   _main_complete _autocomplete.history_lines
-  (( compstate[nmatches] > 0 ))
 
   unset curcontext
+  (( compstate[nmatches] > 0 ))
 }
 
 $0.post() {
   compstate[insert]='menu:0'
-  compstate[list]='list force'
 }
 
 $0 "$@"

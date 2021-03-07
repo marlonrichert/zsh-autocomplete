@@ -4,7 +4,7 @@ local 0=${(%):-%N}
 $0() {
   local 0=${(%):-%N}
   local +h curcontext=${curcontext:-${WIDGET}:::}
-  local +h -a comppostfuncs=( "$comppostfuncs[@]" $0.post )
+  local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
   if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[ $_lastcomp[iprefix]$_lastcomp[prefix]$_lastcomp[suffix]$_lastcomp[isuffix]
@@ -15,11 +15,11 @@ $0() {
     compstate[old_list]=keep
     _main_complete -
   fi
+  return 0  # Prevent beeping.
 }
 
 $0.post() {
   unset curcontext
-  compstate[list]=
   if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then
@@ -31,11 +31,7 @@ $0.post() {
       [[ $WIDGET == *-select ]] &&
         MENUSELECT=0
     fi
-    if [[ "$KEYS" == "$key[Backtab]" ]]; then
-      compstate[insert]+=0
-    else
-      compstate[insert]+=1
-    fi
+    compstate[insert]+="${${${KEYS:#$key[Backtab]}:+1}:-0}${${CURRENT:#1}:+ }"
   fi
 }
 
