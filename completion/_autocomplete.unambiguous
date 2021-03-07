@@ -1,18 +1,24 @@
 #autoload
 
-zstyle -t :autocomplete:tab: insert-unambiguous &&
-  return 1
 (( compstate[nmatches] > 1 )) ||
   return 1
-[[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *$compstate[unambiguous]* ]] &&
+[[ -z $BUFFER || $curcontext == history-*:* ||
+    $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *$compstate[unambiguous]* ]] &&
   return 1
+
+if zstyle -t :autocomplete:tab: insert-unambiguous; then
+  local subs cols
+  local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
+    subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
+    cols+='=30;103'  # black foreground, bright yellow background
+    (( prv = ++nxt ))
+  done
+  ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
+  return 1
+fi
 
 local tag=unambiguous
 _tags $tag
-_tags ||
-  return 1
-_requested $tag ||
-  return 1
-
-# Black foreground, bright yellow background
-_message -e unambiguous "common substring:%b %F{0}%K{11}$compstate[unambiguous]%f%k"
+_tags && _requested $tag &&
+  _message -e unambiguous "common substring:%b %F{0}%K{11}$compstate[unambiguous]%f%k"
+  # Black text on bright yellow background

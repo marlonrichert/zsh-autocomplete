@@ -94,11 +94,7 @@ EOF
 
     compstate[insert]=  # To get consistent output from `_expand`
 
-    local +h -a comppostfuncs=(
-      _autocomplete.extras
-      _autocomplete._main_complete.post
-      "$comppostfuncs[@]"
-    )
+    local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     {
       # Don't break `_complete_help`, async completion, etc.
       [[ -v functions[compadd] ]] ||
@@ -120,6 +116,7 @@ EOF
     compstate[list]='list packed rows'
     compstate[list_max]=0
     MENUSCROLL=0
+    _autocomplete.unambiguous
   }
 
   .autocomplete.patch _complete
