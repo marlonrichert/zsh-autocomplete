@@ -49,7 +49,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
 | --- | --- | --- |
 | <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`expand-word`</sub> |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`complete-word`</sub> |
 | <kbd>Control</kbd><kbd>Space</kbd> | Reveal hidden completions | <sub>`list-expand`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
@@ -91,7 +91,6 @@ Recommended:
 Minimum:
 * Zsh 5.3 or later.
 
-
 ## Installing & Updating
 To install:
 1.  Clone the repo:
@@ -115,130 +114,71 @@ Instead of following the instructions above, you can also install `zsh-autocompl
 whichever Zsh frameworks or plugin manager you use. Please refer to your framework's/plugin
 manager's documentation for instructions.
 
-
 ## Settings
-To change your settings, just copy-paste any of the code below to your `~/.zshrc` file.
-
-⚠️ **Note** that while most of these settings use the `:autocomplete:` namespace, some of them use
-`:completion:`. This is because the latter are managed by Zsh's own completion system, whereas the
-former are unique to `zsh-autocomplete`.
-
-* [Change Tab behavior](#change-tab-behavior)
-* [Change other key bindings](#change-other-key-bindings)
-* [Always start with live history search](#always-start-with-live-history-search)
-* [Disable live history search](#disable-live-history-search)
-* [Wait for a minimum amount of time](#wait-for-a-minimum-amount-of-time)
-* [Wait for a minimum amount of input](#wait-for-a-minimum-amount-of-input)
-* [Ignore certain inputs](#ignore-certain-inputs)
-* [Disable certain completions](#disable-certain-completions)
-* [Change the order of completions](#change-the-order-of-completions)
-* [Change the "partial list" message](#change-the-partial-list-message)
-
-### Change Tab behavior
-By default, <kbd>Tab</kbd> inserts the top completion, <kbd>Shift</kbd><kbd>Tab</kbd> inserts the
-bottom completion, and <kbd>↓</kbd> activates menu selection.
-
-To make <kbd>Tab</kbd> first insert any common substring, before inserting full completions:
+The code below shows all of `zsh-autocomplete`'s settings with their default values. To adjust a
+ setting, copy-paste it into your `.zshrc` file and change the value there.
 ```zsh
-zstyle ':autocomplete:tab:*' insert-unambiguous yes
-```
+zstyle ':autocomplete:*' default-context ''
+# '': Start each new command line with normal autocompletion.
+# history-incremental-search-backward: Start in live history search mode.
 
-To make <kbd>Tab</kbd> or <kbd>Shift</kbd><kbd>Tab</kbd> activate menu selection:
-```zsh
-zstyle ':autocomplete:tab:*' widget-style menu-select
-```
+zstyle ':autocomplete:*' min-delay 0      # number of seconds (float)
+# 0:   Start autocompletion immediately when you stop typing.
+# 0.4: Wait 0.4 seconds for more keyboard input before showing completions.
 
-To make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> cycle completions _without_ using menu
-selection:
-```zsh
-zstyle ':autocomplete:tab:*' widget-style menu-complete
-```
+zstyle ':autocomplete:*' min-input 0      # number of characters (integer)
+# 0: Show completions immediately on each new command line.
+# 1: Wait for at least 1 character of input.
 
-To make <kbd>Tab</kbd> try Fzf's completion before using Zsh's:
-```zsh
-zstyle ':autocomplete:tab:*' fzf-completion yes
-```
+zstyle ':autocomplete:*' ignored-input '' # (extended) glob pattern
+# '':     Always show completions.
+# '..##': Don't show completions when the input consists of two or more dots.
 
-⚠️ **Note** that, unlike most other settings, changing `widget-style` at runtime has no effect and
-changing `fzf-completion` at runtime will not function correctly. These settings can be changed in
-your `~/.zshrc` file only.
+# Order in which completions are listed on screen, if shown at the same time:
+zstyle ':completion:*:' group-order history-words options executables \
+  directories suffix-aliases aliases functions builtins reserved-words
+# NOTE: This is NOT the order in which they are generated!
 
-The settings `widget-style`, `insert-unambiguous` and `fzf-completion` are mutually compatible and
-can be used in parallel.
+zstyle ':autocomplete:tab:*' insert-unambiguous no
+# no:  (Shift-)Tab inserts top (bottom) completion.
+# yes: Tab first inserts substring common to all listed completions (if any).
 
-### Change other key bindings
-Key bindings other than <kbd>Tab</kbd> or <kbd>Shift</kbd><kbd>Tab</kbd> can be overridden with
-the `bindkey` command, if you do so _after_ sourcing `zsh-autocomplete`. To make this easier,
-`zsh-autocomplete` defines an associative array `$key` that you can use:
+zstyle ':autocomplete:tab:*' widget-style complete-word
+# complete-word: (Shift-)Tab inserts top (bottom) completion.
+# menu-complete: Press again to cycle to next (previous) completion.
+# menu-select:   Same as `menu-complete`, but updates selection in menu.
+# NOTE: Can NOT be changed at runtime.
 
-```zsh
+zstyle ':autocomplete:tab:*' fzf-completion no
+# no:  Tab uses Zsh's completion system only.
+# yes: Tab first tries Fzf's completion, then falls back to Zsh's.
+# NOTE 1: Can NOT be changed at runtime.
+# NOTE 2: Requires that you have installed Fzf's shell extensions.
+
 source path/to/zsh-autocomplete.plugin.zsh
-# The following lines revert the given keys back to Zsh defaults:
-bindkey $key[Up] up-line-or-history
-bindkey $key[Down] down-line-or-history
-bindkey $key[Control-Space] set-mark-command
-bindkey -M menuselect $key[Return] accept-line
-```
+#
+# NOTE: All settings below should come AFTER sourcing zsh-autocomplete!
+#
 
-### Always start with live history search
-To start each new command line as if <kbd>Control</kbd><kbd>R</kbd> has been pressed:
-```zsh
-zstyle ':autocomplete:*' default-context history-incremental-search-backward
-```
+bindkey $key[Up]    up-line-or-search
+# up-line-or-search:  Open history menu.
+# up-line-or-history: Cycle to previous history line.
 
-### Disable live history search
-To revert <kbd>Control</kbd><kbd>R</kbd> and <kbd>Control</kbd><kbd>S</kbd> to Zsh's default
-behavior:
-```zsh
-zle -A .history-incremental-search-forward history-incremental-search-forward
-zle -A .history-incremental-search-backward history-incremental-search-backward
-```
+bindkey $key[Down]  down-line-or-select
+# down-line-or-select:  Open completion menu.
+# down-line-or-history: Cycle to next history line.
 
-### Wait for a minimum amount of time
-To suppress autocompletion until you have stopped typing for a certain number of seconds:
-```zsh
-zstyle ':autocomplete:*' min-delay .3  # 300 milliseconds
-```
+bindkey $key[Control-Space] list-expand
+# list-expand:      Reveal hidden completions.
+# set-mark-command: Activate text selection.
 
-### Wait for a minimum amount of input
-To suppress autocompletion until a minimum number of characters have been typed:
-```zsh
-zstyle ':autocomplete:*' min-input 3  # characters
-```
+bindkey -M menuselect $key[Return] .accept-line
+# .accept-line: Accept command line.
+# accept-line:  Accept selection and exit menu.
 
-### Ignore certain inputs
-To not trigger autocompletion for input that matches a pattern:
-```zsh
-# This example matches any input word consisting of two or more dots (and no other chars).
-zstyle ':autocomplete:*' ignored-input '..##'
-```
-The pattern syntax supported here is that of [Zsh's extended glob
-operators](http://zsh.sourceforge.net/Doc/Release/Expansion.html#Glob-Operators).
-
-### Disable certain completions
-To disable, for example, ancestor directories, recent directories and recent files:
-```zsh
-zstyle ':completion:*:complete:*:' tag-order \
-  '! ancestor-directories recent-directories recent-files' -
-```
-⚠️ **Note** the additional `:` at the end of the namespace selector and the `-` as the last value.
-
-### Change the order of completions
-To list certain completions in a particular order _before_ all other completions:
-```zsh
-zstyle ':completion:*:' group-order \
-  options \
-  executables directories suffix-aliases \
-  aliases functions builtins reserved-words
-```
-⚠️ **Note** the additional `:` at the end of the namespace selector.
-
-### Change the "partial list" message
-To alter the message shown when the list of completions does not fit on screen:
-```zsh
-  local hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
-  zstyle ':autocomplete:*:too-many-matches' message \
-    "${hint}(partial list; press ${kbd}Control${hint}-${kbd}Space$hint to expand)$end"
+# Uncomment the following lines to disable live history search:
+# zle -A {.,}history-incremental-search-forward
+# zle -A {.,}history-incremental-search-backward
 ```
 
 ## Author
