@@ -140,7 +140,7 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.start() {
-  emulate -L zsh; setopt $_autocomplete__options
+  setopt $_autocomplete__options
 
   local +h -F SECONDS=0
 
@@ -150,8 +150,6 @@ bindkey -s -M menuselect '^S' '^G^S'
     min_delay=0
 
   exec {_autocomplete__async_complete_fd}< <(
-    emulate -L zsh; setopt $_autocomplete__options
-
     print $sysparams[pid]
     {
       local REPLY
@@ -176,8 +174,6 @@ bindkey -s -M menuselect '^S' '^G^S'
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
   exec {_autocomplete__async_timeout_fd}< <(
-    emulate -L zsh; setopt $_autocomplete__options
-
     print $sysparams[pid]
     {
       local -i timeout=$((
@@ -203,25 +199,19 @@ bindkey -s -M menuselect '^S' '^G^S'
 
 .autocomplete.async.complete.inner() {
   setopt $_autocomplete__options
-  if [[ -n $curcontext ]]; then
+  setopt NO_completeinword; [[ -z $curcontext ]] ||
     setopt completeinword
-  else
-    setopt NO_completeinword
-  fi
 
   PS1=''
-  () {
-    emulate -L zsh; setopt $_autocomplete__options
 
-    local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
-    unset ${^hooks}_functions &>/dev/null
-    $hooks[@] () { : }
-    .autocomplete.no-op() { : }
-    local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
-        history-line-set keymap-select; do
-      zle -N zle-$hook .autocomplete.no-op
-    done
-  }
+  local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
+  unset ${^hooks}_functions &>/dev/null
+  $hooks[@] () { : }
+  .autocomplete.no-op() { : }
+  local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
+      history-line-set keymap-select; do
+    zle -N zle-$hook .autocomplete.no-op
+  done
 
   typeset -gH lbuffer=$1 rbuffer=$2
 
@@ -242,10 +232,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     {
       _main_complete
     } always {
-      () {
-        emulate -L zsh; setopt $_autocomplete__options
-        print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
-      }
+      print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     }
     compstate[insert]=''
     compstate[list]=''
@@ -264,28 +251,22 @@ bindkey -s -M menuselect '^S' '^G^S'
     return 0
 
   setopt $_autocomplete__options
-  if [[ -n $curcontext ]]; then
+  setopt NO_completeinword; [[ -z $curcontext ]] ||
     setopt completeinword
-  else
-    setopt NO_completeinword
-  fi
+
+  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
 
   local -F seconds
   local -i nmatches
   local message rest
-  () {
-    emulate -L zsh; setopt $_autocomplete__options
-
-    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   {
-    [[ -z $2 || $2 == hup ]] &&
-        IFS=$'\0' read -ru $1 seconds nmatches message rest
+    [[ $2 == (|hup) ]] &&
+      IFS=$'\0' read -ru $1 seconds nmatches message rest
   } always {
-      .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   }
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
-  } "$@"
 
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
@@ -497,12 +478,16 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   local -i timedout=0
   {
-    [[ -z $2 || $2 == hup ]] &&
+    [[ $2 == (|hup) ]] &&
       read -ru $1 timedout
   } always {
     .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   }
-  (( timedout )) &&
-    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-  (( _autocomplete__async_avg_duration *= 2 ))
+
+  (( timedout )) ||
+    return 0
+
+  (( _autocomplete__async_avg_duration *= 1.1 ))
+  .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  return 0
 }

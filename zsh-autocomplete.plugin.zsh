@@ -10,7 +10,7 @@ setopt NO_singlelinezle
 
   typeset -gHa _autocomplete__options=(
     localoptions extendedglob rcquotes
-    NO_aliases NO_banghist NO_caseglob NO_clobber NO_listbeep
+    NO_aliases NO_banghist NO_clobber NO_listbeep
   )
   setopt $_autocomplete__options
 
