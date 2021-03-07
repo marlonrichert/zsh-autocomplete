@@ -122,14 +122,6 @@ EOF
     MENUSCROLL=0
   }
 
-  .autocomplete.patch _description
-  _description() {
-    .autocomplete._description "$@"
-    local -i ret=$?
-    _lastdescr=( ${(@)_lastdescr[@]:#(corrections|history word)} )
-    return ret
-  }
-
   .autocomplete.patch _complete
   _complete() {
     .autocomplete._complete "$@"
@@ -150,23 +142,32 @@ EOF
 
     local -i ret=1
     {
-      if [[ -v functions[compadd] ]]; then
+      [[ -v functions[compadd] ]] &&
         functions[.autocomplete.__tmp__]=$functions[compadd]
-        unfunction compadd
+
+      compadd() {
+        local ppre="$argv[(I)-p]"
+
+        [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 &&
+          "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] && return
+
+        if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
+          PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
+        else
+          PREFIX="(#a${_comp_correct})$PREFIX"
       fi
-      functions[builtin]=$functions[_autocomplete.builtin]
+
+        builtin compadd "$@"
+      }
 
       .autocomplete._approximate "$@"
       ret=$?
 
     } always {
-      [[ -v functions[builtin] ]] &&
-        unfunction builtin
       if [[ -v functions[.autocomplete.__tmp__] ]]; then
         functions[compadd]=$functions[.autocomplete.__tmp__]
         unfunction .autocomplete.__tmp__
       fi
-      functions[compadd]=$functions[.autocomplete.compadd]
     }
     return ret
   }
