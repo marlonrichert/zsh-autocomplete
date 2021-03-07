@@ -2,44 +2,33 @@
 zmodload -F zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
-  [[ $_comp_tags != *directories* ]] &&
+  (( _matcher_num > 1 )) &&
     return 1
 
-  local -i nmatches=$compstate[nmatches]
   local -aU reply=()
   _tags recent-directories recent-files
-
   while _tags; do
+
     _requested recent-directories &&
-      [[ -v functions[_autocomplete.recent_dirs] ]] &&
-        _autocomplete.recent_dirs $words[CURRENT] &&
+      [[ $_comp_tags == *directories* && -v functions[_autocomplete.recent_dirs] ]] &&
+      _autocomplete.recent_dirs "$PREFIX$SUFFIX" &&
       .autocomplete.recent_paths.add recent-directories 'recent directory' $reply[@]
 
     _requested recent-files &&
-      [[ -v functions[_autocomplete.recent_files] ]] &&
-        _autocomplete.recent_files $words[CURRENT] &&
+      [[ $_comp_tags == *files* && -v functions[_autocomplete.recent_files] ]] &&
+      _autocomplete.recent_files "$PREFIX$SUFFIX" &&
       .autocomplete.recent_paths.add recent-files 'recent file' $reply[@]
-  done
 
-  (( compstate[nmatches] > nmatches ))
+  done
+  return 1  # Always continue to next completer.
 }
 
 .autocomplete.recent_paths.add() {
-  local expl
+  local expl _comp_no_ignore=yes _saved_list='list rows'
   _description -V $1 expl $2
   shift 2
-
-  local -a display=()
-  local path_ prefix
-
-  for path_ in ${@:a}; do
-    [[ -e $path_ ]] ||
-      continue
-
-    prefix=$path_:h; prefix+=${${prefix:#/}:+/}
-    display=( "${(D)path_}" )
-    compadd "$expl[@]" -fQ -P ${(q)prefix} -W $prefix -d display - ${(q)path_:t}
-  done
+  local -a display=( "${(D)@}" )
+  compadd "$expl[@]" -d display -fW / -U - "$@"
 }
 
 _autocomplete.recent_paths "$@"

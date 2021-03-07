@@ -60,8 +60,8 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
     zstyle -s :chpwd: recent-dirs-prune _ ||
-      zstyle ':chpwd:*' recent-dirs-prune "pattern:^${HOME//[\/]/\\/}$" \
-        "pattern:^${HOME//[\/]/\\/}\/[^\/]+$" 'pattern:^\/[^\/]+$' "pattern:^${TMPDIR:A}/.*$"
+      zstyle ':chpwd:*' recent-dirs-prune \
+        'pattern:^\/$' "pattern:^${HOME//\//\/}$" "pattern:^${TMPDIR:A}/.*$"
 
     local -a reply=()
     chpwd_recent_filehandler
@@ -71,16 +71,25 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     add-zsh-hook chpwd chpwd_recent_dirs
 
     _autocomplete.recent_dirs() {
-      reply=( $dirstack[@] )
+      local -a dirs=( $dirstack[@] )
       local ancestor=$PWD:h
       while [[ $ancestor != '/' ]]; do
-        reply=( ${(@)reply[@]:#$ancestor} )
+        dirs=( ${(@)dirs[@]:#$ancestor} )
         ancestor=$ancestor:h
       done
-      reply=( ${(@)reply[@]:#$PWD(|/[^/]#)} )
-      reply=( ${(M@)reply[@]:#**/(#i)${~${:-$PREFIX$SUFFIX}///[^/]#}[^/]#} )
-      reply=( ${(@)reply[1,16]} )
-      (( $#reply > 0 ))
+      dirs=( ${(@)dirs[@]:#$PWD(|/[^/]#)} )
+
+      local -i e max=2
+      reply=()
+      zstyle -a ":completion:${curcontext}:" max-errors max_ &&
+        max=${${(M)max_:#<->}[1]}
+      for (( e = 0; e <= max; e++ )); do
+        reply=( ${(M@)dirs[@]:#*(#ia$e)${PREFIX}${SUFFIX}[^/]#} )
+        (( $#reply[@] )) &&
+          break
+      done
+      reply=( ${(@)reply[1,10]} )
+      (( $#reply[@] ))
     }
   fi
 

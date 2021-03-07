@@ -19,4 +19,4 @@ while (( ${#dir} > 1 )); do
   dir="${dir:h}"
 done
 
-(( compstate[nmatches] > nmatches ))
+return 1  # Always continue to next completer.
