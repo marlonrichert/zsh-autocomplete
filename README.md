@@ -134,11 +134,6 @@ zstyle ':autocomplete:*' ignored-input '' # (extended) glob pattern
 # '':     Always show completions.
 # '..##': Don't show completions when the input consists of two or more dots.
 
-# Order in which completions are listed on screen, if shown at the same time:
-zstyle ':completion:*:' group-order history-words options executables \
-  directories suffix-aliases aliases functions builtins reserved-words
-# NOTE: This is NOT the order in which they are generated!
-
 zstyle ':autocomplete:tab:*' insert-unambiguous no
 # no:  (Shift-)Tab inserts top (bottom) completion.
 # yes: Tab first inserts substring common to all listed completions (if any).
@@ -154,6 +149,13 @@ zstyle ':autocomplete:tab:*' fzf-completion no
 # yes: Tab first tries Fzf's completion, then falls back to Zsh's.
 # NOTE 1: Can NOT be changed at runtime.
 # NOTE 2: Requires that you have installed Fzf's shell extensions.
+
+# Order in which completions are listed on screen, if shown at the same time:
+zstyle ':completion:*:' group-order \
+  expansions history-words options \
+  executables local-directories directories suffix-aliases \
+  aliases functions builtins reserved-words
+# NOTE: This is NOT the order in which they are generated!
 
 source path/to/zsh-autocomplete.plugin.zsh
 #

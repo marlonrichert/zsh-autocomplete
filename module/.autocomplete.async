@@ -84,6 +84,9 @@ bindkey -s -M menuselect '^S' '^G^S'
   (( KEYS_QUEUED_COUNT || PENDING )) &&
     return 0
 
+  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
+    return 0
+
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
   typeset -g _autocomplete__highlight=( "$region_highlight[@]" )
@@ -307,6 +310,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
+
   return 2
 }
 
@@ -349,9 +353,9 @@ bindkey -s -M menuselect '^S' '^G^S'
   fi
 
   local -a _matches_=()
-  local -i header=$+_opts_[-X] number_of_new_matches lines_of_new_matches ret
+  local -i header=$+_opts_[-X] footer=1 number_of_new_matches lines_of_new_matches ret
   local -i lines_available=$((
-    max(0, _autocomplete__max_lines - header - compstate[list_lines]) ))
+    max(0, _autocomplete__max_lines - header - footer - compstate[list_lines]) ))
 
   if [[ -v _opts_[-D] ]]; then
     .autocomplete.compadd "$@"; ret=$?

@@ -14,6 +14,8 @@ $0() {
     _main_complete
   elif [[ -n $compstate[old_list] ]]; then
     compstate[old_list]=keep
+    [[ "$KEYS" == "$key[Backtab]" && $_lastcomp[tags] == *all-matches ]] &&
+      compstate[insert]=all
     _main_complete -
   fi
   return 0  # Prevent beeping.
@@ -21,6 +23,8 @@ $0() {
 
 $0.post() {
   unset curcontext
+  compstate[list]=
+
   if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then

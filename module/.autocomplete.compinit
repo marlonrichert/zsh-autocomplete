@@ -19,6 +19,9 @@ _bash_complete compgen complete () {
 }
 
 .autocomplete.compinit.precmd() {
+  [[ -z $CDPATH ]] &&
+    unset cdpath CDPATH
+
   # Decrease Oh My Zsh start-up time. See below.
   [[ -v ZSH_COMPDUMP ]] &&
     local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
@@ -102,6 +105,14 @@ EOF
   _autocomplete._main_complete.post() {
     compstate[list_max]=0
     MENUSCROLL=0
+    if (( CURRENT > 1 && compstate[nmatches] > 1 )) && (
+          [[ $words[1] != cd && $_comp_tags == *( directories| (|(all|globbed)-)files)* ]] ||
+          ( [[ $_completer == expand ]] && _autocomplete.is_glob )
+        ); then
+      _description all-matches expl 'all matches'
+      compadd "$expl[@]" -C &&
+        _comp_tags+=' all-matches'
+    fi
     _autocomplete.unambiguous
   }
 
