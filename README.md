@@ -50,7 +50,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | --- | --- | --- |
 | <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`complete-word`</sub> |
-| <kbd>Control</kbd><kbd>Space</kbd> | Reveal hidden completions | <sub>`list-expand`</sub> |
+| <kbd>Control</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Cursor up (always) | <sub>`up-line`</sub> |

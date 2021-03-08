@@ -5,10 +5,11 @@ $0() {
   local 0=${(%):-%N}
   local +h curcontext=${curcontext:-${WIDGET}:::}
   local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
-  if  ( [[ "$KEYS" == "$key[Backtab]" ]] ||
-        zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
-      ) && [[ $_lastcomp[iprefix]$_lastcomp[prefix]$_lastcomp[suffix]$_lastcomp[isuffix]
-                != *$_lastcomp[unambiguous]* ]]; then
+  if  [[ $WIDGET == *-select ]] &&
+        (( _lastcomp[list_lines] + 1 >= _autocomplete__screen_space - 1 )) ||
+      ( ( [[ "$KEYS" == "$key[Backtab]" ]] ||
+          zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
+        ) && [[ $_lastcomp[tags] == *unambiguous* ]] ); then
     compstate[old_list]=
     _main_complete
   elif [[ -n $compstate[old_list] ]]; then
@@ -26,6 +27,7 @@ $0.post() {
     compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
     return
   fi
+
   compstate[insert]=
   if [[ $WIDGET == *menu-* ]]; then
     compstate[insert]=menu
