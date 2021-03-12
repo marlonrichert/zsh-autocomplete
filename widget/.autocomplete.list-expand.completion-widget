@@ -12,9 +12,8 @@ $0() {
 
 $0.post() {
   local -i pslines=${#${(%%)PS1}//[^$'\n']}
-  local -i realestate=$(( LINES - BUFFERLINES - pslines ))
   _autocomplete__screen_space=$((
-    max( _autocomplete__screen_space, min( realestate, compstate[list_lines] ) )
+    max( _autocomplete__screen_space, min( LINES - pslines, compstate[list_lines] ) )
   ))
   if (( compstate[list_lines] > realestate )); then
     compstate[insert]=menu

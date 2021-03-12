@@ -305,8 +305,6 @@ bindkey -s -M menuselect '^S' '^G^S'
       compadd -x "$msg"
     fi
   elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
-    [[ -z $BUFFER ]] &&
-      (( _autocomplete__screen_space = max( 16, _autocomplete__screen_space ) ))
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
@@ -353,9 +351,11 @@ bindkey -s -M menuselect '^S' '^G^S'
   fi
 
   local -a _matches_=()
-  local -i header=$+_opts_[-X] footer=1 number_of_new_matches lines_of_new_matches ret
+  local -i header=$+_opts_[-X] footer=1 allinsert=2
   local -i lines_available=$((
-    max(0, _autocomplete__max_lines - header - footer - compstate[list_lines]) ))
+    max(0, _autocomplete__max_lines - header - footer - allinsert - compstate[list_lines])
+  ))
+  local -i ret number_of_new_matches lines_of_new_matches
 
   if [[ -v _opts_[-D] ]]; then
     .autocomplete.compadd "$@"; ret=$?
@@ -384,7 +384,7 @@ bindkey -s -M menuselect '^S' '^G^S'
           .autocomplete.compadd -O _matches_ "$@"
 
           # Pre-emptively trim all matches that will definitely not fit on screen.
-          local -i surplus=$(( $#_matches_ - COLUMNS * _autocomplete__screen_space / 3 ))
+          local -i surplus=$(( $#_matches_ - COLUMNS * _autocomplete__max_lines / 3 ))
           (( surplus > 0 )) &&
             shift -p $surplus _matches_
 

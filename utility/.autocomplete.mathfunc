@@ -3,9 +3,9 @@ builtin autoload -Uz zmathfunc
 zmathfunc
 
 _autocomplete__max_lines() {
-  (( _autocomplete__screen_space < 16 )) &&
-    (( _autocomplete__screen_space++ ))
-  return $(( max( 3, _autocomplete__screen_space - BUFFERLINES ) ))
+  local -i lines; zstyle -s ":autocomplete:${curcontext}:" list-lines lines ||
+    lines=16
+  return $(( max( lines, _autocomplete__screen_space - BUFFERLINES ) ))
 }
 
 functions -M _autocomplete__max_lines 0
