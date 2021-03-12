@@ -27,8 +27,8 @@ _autocomplete.recent_paths() {
   local expl _comp_no_ignore=yes _saved_list='list rows'
   _description -V $1 expl $2
   shift 2
-  local -a display=( "${(D)@}" )
-  compadd "$expl[@]" -d display -fW / -U - "$@"
+  local -a displ=( "${(D)@}" )
+  compadd "$expl[@]" -d displ -fW / -U - "$@"
 }
 
 _autocomplete.recent_paths "$@"

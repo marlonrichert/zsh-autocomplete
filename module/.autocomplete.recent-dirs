@@ -45,7 +45,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     }
 
   else
-    setopt autopushd
+    setopt autopushd pushdignoredups
     builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
 
     if ! zstyle -s :chpwd: recent-dirs-file _; then
@@ -59,14 +59,10 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     fi
     zstyle -s :chpwd: recent-dirs-max _ ||
       zstyle ':chpwd:*' recent-dirs-max 0
-    zstyle -s :chpwd: recent-dirs-prune _ ||
-      zstyle ':chpwd:*' recent-dirs-prune \
-        'pattern:^\/$' "pattern:^${HOME//\//\/}$" "pattern:^${TMPDIR:A}/.*$"
 
-    local -a reply=()
+    local -aU reply=()
     chpwd_recent_filehandler
-    typeset -gaU dirstack=( $^reply(N-/) )
-    chpwd_recent_filehandler "$dirstack[@]"
+    dirstack=( (#i)${^reply[@]:#$PWD}(N-/) )
 
     add-zsh-hook chpwd chpwd_recent_dirs
 
