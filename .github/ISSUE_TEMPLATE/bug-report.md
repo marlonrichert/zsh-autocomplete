@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-* `zsh-autocomplete` version: <!-- `git -C /path/to/zsh-autocomplete rev-parse --short HEAD` -->
+* `zsh-autocomplete` version: <!-- `git -C /path/to/zsh-autocomplete rev-parse @` -->
 * Zsh version: <!-- `print $ZSH_PATCHLEVEL` -->
 * Framework: <!-- Oh My Zsh, Prezto, Zimfw, etc. or just "none" -->
 * Plugin manager: <!-- Znap, Zinit, Antigen, etc. or just "none" -->
@@ -15,14 +15,11 @@ assignees: ''
 <!-- Please use the following template to put together a minimal test case with which I can
 reproduce the bug. If I cannot reproduce the bug, then I cannot fix it! -->
 ```zsh
-# Go to your clone of the `zsh-autocomplete` repo.
-$ cd /path/to/zsh-autocomplete
-
  # Make sure you always test with the `main` branch.
-$ git checkout main
+$ git -C /path/to/zsh-autocomplete switch main
 
 # Update to the latest commit.
-$ git pull
+$ git -C /path/to/zsh-autocomplete pull
 
 # Create a temp dir and enter it.
 $ cd $(mktemp -d)
@@ -34,5 +31,5 @@ $ ZDOTDIR=$PWD HOME=$PWD exec zsh -f
 % source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
 # Test and document the steps that reproduce the problem.
-% <steps to reproduce>
+% <insert your steps to reproduce here>
 ```
