@@ -114,6 +114,31 @@ Instead of following the instructions above, you can also install `zsh-autocompl
 whichever Zsh frameworks or plugin manager you use. Please refer to your framework's/plugin
 manager's documentation for instructions.
 
+#### 1. oh-my-zsh
+
+1. Clone this repo to your custom plugins
+
+`git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git ~/.oh-my-zsh/custom/plugins/zsh-autocomplete`
+
+2. Add `zsh-autocomplete` to list of plugins 
+
+Edit zshrc with `nano ~./zshrc`. Find list of plugins and add `zsh-autocomplete` to it. Then save the file.
+
+```
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+
+plugins=(
+        git
+        zsh-autocomplete
+)
+```
+
+3. Update your settings by running `source ~/.zshrc`, or restart terminal.
+
 ## Settings
 The code below shows all of `zsh-autocomplete`'s settings with their default values. To adjust a
  setting, copy-paste it into your `.zshrc` file and change the value there.
