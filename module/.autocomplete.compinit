@@ -78,9 +78,9 @@ EOF
   _main_complete() {
     local -i ret=1 _autocomplete__reserved_lines=0
 
-    compstate[insert]=  # To get consistent output from `_expand`
-    compstate[last_prompt]=yes
-    compstate[list]='list force packed rows'
+    compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
+    compstate[last_prompt]=yes  # Completion doesn't stay on same prompt without this.
+    compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     {
@@ -96,8 +96,6 @@ EOF
       [[ $WIDGET == _complete_help ]] ||
         unfunction compadd
     }
-    typeset -gHi _autocomplete__current=$CURRENT
-    typeset -gH _autocomplete__words="$words"
 
     return ret
   }
@@ -106,8 +104,9 @@ EOF
     compstate[list_max]=0
     MENUSCROLL=0
     if (( CURRENT > 1 && compstate[nmatches] > 1 )) && (
-          [[ $words[1] != cd && $_comp_tags == *( directories| (|(all|globbed)-)files)* ]] ||
-          ( [[ $_completer == expand ]] && _autocomplete.is_glob )
+          ( [[ $_completer == expand ]] && _autocomplete.is_glob ) ||
+          [[ $words[1] != cd &&
+            $_comp_tags == *( (|-local)directories | (|(all|globbed)-)files ) ]]
         ); then
       _description all-matches expl 'all matches'
       compadd "$expl[@]" -C &&
