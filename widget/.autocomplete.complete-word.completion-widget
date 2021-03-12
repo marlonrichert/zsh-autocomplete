@@ -43,7 +43,10 @@ $0.post() {
   else
     compstate[insert]+=1
   fi
-  (( CURRENT == 1 )) &&
+
+  local -a tags; zstyle -a :autocomplete: add-space tags ||
+    tags=( executables aliases functions builtins reserved-words commands )
+  (( ${#${=${_comp_tags:-$_lastcomp[tags]}}:*tags} )) &&
     compstate[insert]+=' '
 }
 

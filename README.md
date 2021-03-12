@@ -150,6 +150,9 @@ zstyle ':autocomplete:tab:*' fzf-completion no
 # NOTE 1: Can NOT be changed at runtime.
 # NOTE 2: Requires that you have installed Fzf's shell extensions.
 
+# Add a space after these completions:
+zstyle ':autocomplete:*' add-space executables aliases functions builtins reserved-words commands
+
 # Order in which completions are listed on screen, if shown at the same time:
 zstyle ':completion:*:' group-order \
   expansions history-words options \
