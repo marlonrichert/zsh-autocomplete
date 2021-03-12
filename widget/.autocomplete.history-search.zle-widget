@@ -1,10 +1,22 @@
 #!/bin/zsh
-local -i ret=1
-{
-  local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-  local keymap_menuselect="$(bindkey -M menuselect -L)"
-  () {
-    emulate -L zsh; setopt $_autocomplete__options
+local 0=${(%):-%N}
+
+${0}.context() {
+  lcontext=${LBUFFER%${(~j:*:)words[1,CURRENT-1]}*$QIPREFIX$IPREFIX$PREFIX}
+  lcontext+=${lcontext:+ }${(pj:\0:)words}
+  rcontext=${RBUFFER#$SUFFIX$ISUFFIX$QISUFFIX*${(~j:*:)words[CURRENT+1,-1]}}
+}
+
+zle -C ${0}.context list-choices ${0}.context
+
+${0}() {
+  local 0=${(%):-%N}
+  setopt localoptions completeinword
+
+  local -i ret=1
+  {
+    local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+    local keymap_menuselect="$(bindkey -M menuselect -L)"
 
     case $( bindkey -lL main ) in
       *emacs* )
@@ -17,18 +29,21 @@ local -i ret=1
         ;;
     esac
 
-    LBUFFER=${${(b)LBUFFER}//[[:space:]]##/$'\0'}
-    RBUFFER=${${(b)RBUFFER}//[[:space:]]##/$'\0'}
+    local lcontext rcontext
+    zle ${0}.context
+    LBUFFER="$lcontext"
+    RBUFFER="$rcontext"
+
+    zle _history_search; ret=$?
+
+  } always {
+    if [[ $BUFFER == $lcontext$rcontext ]] then
+      LBUFFER="$lbuffer"
+      RBUFFER="$rbuffer"
+    fi
+    eval "$keymap_menuselect"
   }
-  local buffer="$BUFFER"
-
-  zle _history_search; ret=$?
-
-} always {
-  if [[ $buffer == $BUFFER ]] then
-    LBUFFER="$lbuffer"
-    RBUFFER="$rbuffer"
-  fi
-  eval "$keymap_menuselect"
+  return ret
 }
-return ret
+
+$0 "$@"

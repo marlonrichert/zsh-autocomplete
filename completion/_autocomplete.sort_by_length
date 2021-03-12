@@ -1,6 +1,7 @@
 #autoload
-local -a items=( "$@" ) len=( "${(N@)@:#*}" )
 reply=()
-local null=$'\0'
-print -v reply -f "%s$null%s" "${(@)len[@]:^items}"
-reply=( "${${(n@)reply}[@]#<->$null}" )
+(( # )) ||
+  return
+local -a items=( "$@" ) len=( "${(N@)@:#*}" )
+print -v reply -f '%s\0%s' "${(@)len[@]:^items}"
+reply=( ${${(n@)reply}[@]#<->$'\0'} )

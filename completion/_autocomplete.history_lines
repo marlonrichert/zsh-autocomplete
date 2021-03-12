@@ -18,11 +18,11 @@ _autocomplete.history_lines() {
   else
     local -aU matches=() queries reply
     if [[ $curcontext == *-incremental-*:* ]]; then
-      local prefix="$IPREFIX$PREFIX" suffix="$SUFFIX$ISUFFIX"
-      local word="$prefix$suffix"
-      local lbuffer="${LBUFFER%%$prefix}$QIPREFIX"
-      local rbuffer="$QISUFFIX${RBUFFER##$suffix}"
-      queries=( "${(b)lbuffer}*((#ia"{0..$(( min(7, $#word / 3) ))}")${(b)word})*${(b)rbuffer}" )
+      local word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+      local lbuffer=$words[1,CURRENT-1] rbuffer=$words[CURRENT+1,-1]
+      queries=(
+        "$lbuffer*((#ia"{0..$(( min(7, $#word / 3) ))}")${(b)word})*$rbuffer"
+        )
     else
       queries=( '(#ia'{0..$(( min(7, $#words / 3) ))}')*'${words[CURRENT]//$'\0'/*}'*' )
     fi
@@ -37,16 +37,16 @@ _autocomplete.history_lines() {
       [[ $matches == [[:space:]]# ]] &&
         continue
       [[ $curcontext == *-incremental-*-forward:* ]] &&
-        matches=( "${(Oa@)matches}" )
-      events+=( "$matches[@]" )
+        matches=( ${(Oa@)matches} )
+      events+=( $matches[@] )
       (( $#events[@] > 0 )) &&
         break
     done
     (( $#events[@] > max_lines )) &&
       events=( ${(@)events[1,max_lines]} )
     if [[ $curcontext == *-incremental-* ]]; then
-      _autocomplete.sort_by_length "$events[@]"
-      events=( "$reply[@]" )
+      _autocomplete.sort_by_length $events[@]
+      events=( $reply[@] )
     fi
   fi
 
