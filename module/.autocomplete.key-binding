@@ -33,7 +33,11 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
   local backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
   bindkey -M emacs $key[Backtab] $backtab_style
   bindkey -M viins $key[Backtab] $backtab_style
-  if [[ $tab_style != menu-* ]]; then
+
+  if [[ $tab_style == menu-* ]]; then
+    bindkey -M menuselect $key[Tab] menu-complete
+    bindkey -M menuselect $key[Backtab] reverse-menu-complete
+  else
     bindkey -M menuselect $key[Tab] accept-line
     bindkey -M menuselect $key[Backtab] send-break
   fi

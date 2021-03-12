@@ -34,7 +34,7 @@ $0.post() {
 
   compstate[insert]=
   if [[ $WIDGET == *menu-* ]]; then
-    compstate[insert]=menu
+    compstate[insert]='menu:'
     [[ $WIDGET == *-select ]] &&
       MENUSELECT=0
   fi
