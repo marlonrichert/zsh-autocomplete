@@ -87,9 +87,10 @@ bindkey -s -M menuselect '^S' '^G^S'
   [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
     return 0
 
+  region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
-  typeset -g _autocomplete__highlight=( "$region_highlight[@]" )
+  typeset -gH _autocomplete__highlight=( "$region_highlight[@]" )
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
