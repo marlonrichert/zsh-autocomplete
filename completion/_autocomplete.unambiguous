@@ -3,7 +3,7 @@
 (( compstate[nmatches] > 1 )) ||
   return 1
 [[ -z $BUFFER || $curcontext == history-*:* ||
-    $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *$compstate[unambiguous]* ]] &&
+    $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
   return 1
 
 if zstyle -t :autocomplete:tab: insert-unambiguous; then

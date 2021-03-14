@@ -26,7 +26,7 @@ $0.post() {
 
   if  ( [[ $KEYS == $key[Backtab] ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
-      ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *$compstate[unambiguous]* ]]; then
+      ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
     compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
     return
   fi
