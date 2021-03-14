@@ -297,19 +297,23 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   local min_input; zstyle -s :autocomplete: min-input min_input ||
     min_input=0
-  local ignored; zstyle -s :autocomplete: ignored-input ignored ||
-    ignored=$'\0'
+  local ignored; zstyle -s :autocomplete: ignored-input ignored
 
   local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
   if [[ -n $curcontext ]]; then
     _main_complete
+  elif (( $#words[@] == 1 && $#words[CURRENT] < min_input )) ||
+      [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
+    zle -Rc
   elif (( nmatches == 0 )); then
     if [[ -n $message ]]; then
       local msg
       zformat -f msg "$message"
       compadd -x "$msg"
+    else
+      zle -Rc
     fi
-  elif [[ $words[CURRENT] != $~ignored ]] && (( CURRENT > 1 || $#words[1] >= min_input )); then
+  else
     local curcontext=list-choices:::
     .autocomplete.async.list-choices.complete
   fi
