@@ -1,57 +1,16 @@
 #!/bin/zsh
-local 0=${(%):-%N}
-
-$0() {
-  local 0=${(%):-%N}
-  local +h curcontext=${curcontext:-${WIDGET}:::}
-  local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
-  if  [[ $WIDGET == *-select ]] ||
-      ( ( [[ "$KEYS" == "$key[Backtab]" ]] ||
-          zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
-        ) && [[ $_lastcomp[tags] == *unambiguous* ]] ); then
-    compstate[old_list]=
-    _main_complete
-  elif [[ -n $compstate[old_list] ]]; then
-    compstate[old_list]=keep
-    [[ "$KEYS" == "$key[Backtab]" && $_lastcomp[tags] == *all-matches ]] &&
-      compstate[insert]=all
-    _main_complete -
-  fi
-  return 0  # Prevent beeping.
-}
-
-$0.post() {
-  unset curcontext
-  compstate[list]=
-
-  if  ( [[ $KEYS == $key[Backtab] ]] ||
+local +h curcontext=${curcontext:-${WIDGET}:::}
+local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
+if  [[ $WIDGET == *-select ]] ||
+    ( ( [[ "$KEYS" == "$key[Backtab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
-      ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
-    compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
-    return
-  fi
-
-  compstate[insert]=
-  if [[ $WIDGET == *menu-* ]]; then
-    compstate[insert]='menu:'
-    if [[ $WIDGET == *-select ]]; then
-      local -i pslines=${#${(%%)PS1}//[^$'\n']}
-      _autocomplete__screen_space=$((
-        max( _autocomplete__screen_space, min( LINES - pslines, compstate[list_lines] ) )
-      ))
-      MENUSELECT=0
-  fi
-  fi
-  if [[ $KEYS == $key[Backtab] ]]; then
-    compstate[insert]+=0
-  else
-    compstate[insert]+=1
-  fi
-
-  local -a tags; zstyle -a :autocomplete: add-space tags ||
-    tags=( executables aliases functions builtins reserved-words commands )
-  (( ${#${=${_comp_tags:-$_lastcomp[tags]}}:*tags} )) &&
-    compstate[insert]+=' '
-}
-
-$0 "$@"
+      ) && [[ $_lastcomp[tags] == *unambiguous* ]] ); then
+  compstate[old_list]=
+  _main_complete
+elif [[ -n $compstate[old_list] ]]; then
+  compstate[old_list]=keep
+  [[ "$KEYS" == "$key[Backtab]" && $_lastcomp[tags] == *all-matches ]] &&
+    compstate[insert]=all
+  _main_complete -
+fi
+return 0  # Prevent beeping.
