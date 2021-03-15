@@ -1,0 +1,29 @@
+name: clitest
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  doctest:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out this repo.
+        uses: actions/checkout@v2
+
+      - name: Check out clitest.
+        uses: actions/checkout@v2
+        with:
+          repository: 'aureliojargas/clitest'
+          path: clitest
+
+      - name: Add clitest to $PATH.
+        run: echo "$GITHUB_WORKSPACE/clitest" >> $GITHUB_PATH
+
+      - name: Run clitest
+        run: |
+          print $ZSH_PATCHLEVEL
+          zmodload zsh/mapfile
+          local src=$GITHUB_WORKSPACE/clitest/clitest
+          mapfile[$src]="${mapfile[$src]/sh/zsh}"
+          clitest --list-run --progress test --prompt '%' $GITHUB_WORKSPACE/zsh-autocomplete/.test/*.md
+        shell: zsh {0}
