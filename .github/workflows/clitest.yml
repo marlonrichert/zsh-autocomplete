@@ -1,0 +1,30 @@
+name: clitest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  clitest:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Check out clitest
+        uses: actions/checkout@v2
+        with:
+          repository: 'aureliojargas/clitest'
+          path: bin
+
+      - name: Run clitest
+        run: |
+          print $ZSH_PATCHLEVEL
+          fpath+=( $GITHUB_WORKSPACE/*(/) )
+          FPATH=$FPATH zsh \
+            $GITHUB_WORKSPACE/bin/clitest --list-run --progress dot --prompt '%' .clitest/**.md
+        shell: zsh {0}

@@ -1,0 +1,35 @@
+#autoload
+unset curcontext
+compstate[list]=
+
+if  ( [[ $KEYS == $key[Backtab] ]] ||
+      zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
+    ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
+  compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
+  return
+fi
+
+compstate[insert]=
+unset MENUSELECT
+
+if [[ $WIDGET == *menu-* ]]; then
+  compstate[insert]='menu:'
+  if [[ $WIDGET == *-select ]]; then
+    local -i pslines=${#${(%%)PS1}//[^$'\n']}
+    _autocomplete__screen_space=$((
+      max( _autocomplete__screen_space, min( LINES - pslines, compstate[list_lines] ) )
+    ))
+    MENUSELECT=0
+  fi
+fi
+
+if [[ $KEYS == $key[Backtab] ]]; then
+  compstate[insert]+=0
+else
+  compstate[insert]+=1
+fi
+
+local -a tags; zstyle -a :autocomplete: add-space tags ||
+  tags=( executables aliases functions builtins reserved-words commands )
+(( ${#${=${_comp_tags:-$_lastcomp[tags]}}:*tags} )) &&
+  compstate[insert]+=' '
