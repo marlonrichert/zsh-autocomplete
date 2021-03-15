@@ -22,7 +22,6 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
   [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
     typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
-  typeset -gHi _autocomplete__log_fd
   typeset -gH _autocomplete__p=$'\0' _autocomplete__c=$'\n%e %N %x\n'
   typeset -gH _autocomplete__x=$'%(?,,\t→ %?\n)'
   _autocomplete__x+='${${${(%)_autocomplete__p}:#${(%)_autocomplete__c}}:+${_autocomplete__p::=${(%)_autocomplete__c}}}'
@@ -35,12 +34,8 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
   local -a older_than_1_day=( $datadir/*(N-.m+1) )
   [[ -n $older_than_1_day ]] &&
     zf_rm -f $older_than_1_day[@]
-  local logfile=$datadir/$TERM_SESSION_ID.log
-  exec {_autocomplete__log_fd}>|$logfile
-  .autocomplete.__init__.close-fd() {
-    exec {_autocomplete__log_fd}>&-
-  }
-  add-zsh-hook zshexit .autocomplete.__init__.close-fd
+
+  exec {_autocomplete__log_fd}>$(mktemp $datadir/XXXXXXXXXXXX)
 
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
   [[ -d $XDG_CACHE_HOME/zsh ]] ||

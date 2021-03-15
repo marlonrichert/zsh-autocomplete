@@ -140,7 +140,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     zle -F $fd 2>/dev/null
     exec {fd}<&-
   fi
-  typeset -g $1= $2=
+  unset $1 $2
 }
 
 .autocomplete.async.start() {
