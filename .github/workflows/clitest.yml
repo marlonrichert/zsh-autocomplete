@@ -1,0 +1,29 @@
+name: clitest
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  doctest:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out this repo
+        uses: actions/checkout@v2
+
+      - name: Check out clitest
+        uses: actions/checkout@v2
+        with:
+          repository: 'aureliojargas/clitest'
+          path: clitest
+
+      - name: Run clitest
+        run: |
+          fpath+="$GITHUB_WORKSPACE/clitest"
+          autoload -Uz clitest
+          clitest --list-run --progress test --prompt '%' .test/*.md
+        shell: zsh {0}
