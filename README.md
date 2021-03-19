@@ -106,7 +106,7 @@ To install:
 
 To update:
 ```zsh
-git -C ~/git/zsh-autocomplete pull
+git -C ~zsh-autocomplete pull
 ```
 
 ### As a Plugin
