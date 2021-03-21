@@ -5,13 +5,12 @@ _autocomplete.history_lines() {
   _tags $tag
   _tags && _requested $tag ||
     return 1
-  echo "hello"
   local -aU events=()
   local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
   if [[ -z $BUFFER ]]; then
     local query='<-16>'; [[ $curcontext == *-forward:* ]] ||
       query="<$(( HISTNO - max_lines ))->"
-    print -v events -f '%s:%s' "${(kv@)history[(I)$~query]}"
+    print -v events -f '%s:%s' "${(ukv@)history[(I)$~query]}"
     events=( ${(@)events[@]:#[[:space:]]#:} )
     [[ $curcontext == *-incremental-*-forward:* ]] &&
       events=( "${(Oa@)events}" )
@@ -28,7 +27,7 @@ _autocomplete.history_lines() {
     fi
     local q; for q in $queries[@]; do
       matches=()
-      print -v matches -f '%s:%s' "${(kv@)history[(R)$~q]}"
+      print -v matches -f '%s:%s' "${(ukv@)history[(R)$~q]}"
 
       # If there's only 1 match, `print` somehow changes `matches` to a scalar.
       # So, we cast it back to an array.
