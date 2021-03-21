@@ -5,7 +5,7 @@ _autocomplete.history_lines() {
   _tags $tag
   _tags && _requested $tag ||
     return 1
-
+  echo "hello"
   local -aU events=()
   local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
   if [[ -z $BUFFER ]]; then
