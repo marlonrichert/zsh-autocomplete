@@ -6,20 +6,23 @@ _autocomplete.recent_paths() {
     return 1
 
   local -aU reply=()
+  local tag
   _tags recent-directories recent-files
   while _tags; do
 
-    _requested recent-directories &&
-      [[ $_comp_tags == *directories* && -v functions[_autocomplete.recent_dirs] ]] &&
+    tag=recent-directories
+    _requested $tag &&
+      [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *( | local-)directories* ]] &&
       _autocomplete.recent_dirs "$PREFIX$SUFFIX" &&
-      .autocomplete.recent_paths.add recent-directories 'recent directory' $reply[@]
+      .autocomplete.recent_paths.add $tag 'recent directory' $reply[@]
 
-    _requested recent-files &&
-      [[ $_comp_tags == *files* && -v functions[_autocomplete.recent_files] ]] &&
+    tag=recent-files
+    _requested $tag &&
+      [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *' files '* ]] &&
       _autocomplete.recent_files "$PREFIX$SUFFIX" &&
-      .autocomplete.recent_paths.add recent-files 'recent file' $reply[@]
-
+      .autocomplete.recent_paths.add $tag 'recent file' $reply[@]
   done
+
   return 1  # Always continue to next completer.
 }
 

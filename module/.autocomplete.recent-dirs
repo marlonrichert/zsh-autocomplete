@@ -78,11 +78,13 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       done
       dirs=( ${(@)dirs[@]:#$PWD(|/[^/]#)} )
 
-      local -i e max=2
+      local -a max=()
+      zstyle -a ":completion:${curcontext}:" max-errors max ||
+        max=( 2 )
+      max=( ${(M)max_:#<->} )
+
       reply=()
-      zstyle -a ":completion:${curcontext}:" max-errors max_ &&
-        max=${${(M)max_:#<->}[1]}
-      for (( e = 0; e <= max; e++ )); do
+      local -i e; for (( e = 0; e <= max[1]; e++ )); do
         reply=( ${(M@)dirs[@]:#*(#ia$e)${PREFIX}${SUFFIX}[^/]#} )
         (( $#reply[@] )) &&
           break
@@ -96,7 +98,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
 
     _autocomplete.recent_files() {
-      reply=( "$( fasd -flR $1 2>/dev/null )" )
+      reply=( $( fasd -flR $1 2>/dev/null ) )
     }
   fi
 }

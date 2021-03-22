@@ -1,19 +1,24 @@
 #autoload
-local -i nmatches=$compstate[nmatches]
+[[ $_comp_tags == *( | local-)'directories '* ]] ||
+  return
 
-local -aU reply=() display=()
 local tag=ancestor-directories
 _tags $tag
 ( _tags && _requested $tag ) ||
   return
 
-local -a expl displ dir=( "${PWD:h}" )
+local -a expl dirs=( "$PWD:h" )
+
+[[ $dirs[-1] == / ]] &&
+  return 1
+
 local _comp_no_ignore=yes
 _description -V $tag expl "ancestor directory"
-while (( $#dir[1] > 1 )); do
-  displ=( "${(D)dir[1]}" )
-  compadd "$expl[@]" -d displ -P ${dir[1]:h}/ -fW ${dir[1]:h}/ - "$dir[1]:t"
-  dir=( $dir[1]:h )
+
+while (( $#dirs[-1] > 1 )); do
+  dirs+=( "$dirs[-1]:h" )
 done
+local -a displ=( "${(@D)dirs}" )
+compadd "$expl[@]" -d displ -fW / - "$dirs[@]"
 
 return 1  # Always continue to next completer.
