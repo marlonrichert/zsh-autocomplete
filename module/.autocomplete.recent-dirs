@@ -6,42 +6,45 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "$( zshz --complete -l $1 2>/dev/null )" )
+      reply=( $( zshz --complete -l $1 2>/dev/null ) )
     }
 
   elif [[ -v commands[zoxide] && -v functions[__zoxide_hook] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "$( zoxide query --list $1 2>/dev/null )" )
+      reply=( $( zoxide query --list $1 2>/dev/null ) )
     }
 
   elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( _zlua --complete $1 2>/dev/null )}##<->[[:space:]]##}" )
+      reply=( $( _zlua --complete $1 2>/dev/null ) )
+      reply=( ${reply[@]##<->[[:space:]]##} )
     }
 
   elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( _z -l $1 2>&1 )}##(common:|<->)[[:space:]]##}" )
+      reply=( $( _z -l $1 2>&1 ) )
+      reply=( ${reply[@]##(common:|<->)[[:space:]]##} )
     }
 
   elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "${(@)${(f)$( autojump --complete $1 2>/dev/null )}##${1}__<->__}" )
+      reply=( $( autojump --complete $1 2>/dev/null ) )
+      reply=( ${reply[@]##${1}__<->__} )
     }
 
   elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
 
     _autocomplete.recent_dirs() {
-      reply=( "$( fasd -dlR $1 2>/dev/null )" )
+      reply=( $( fasd -dlR $1 2>/dev/null ) )
     }
 
   else
