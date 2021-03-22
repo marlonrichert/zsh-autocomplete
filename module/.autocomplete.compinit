@@ -2,21 +2,19 @@
 zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
 
-[[ -v _comp_setup ]] ||
-  compdef() {
-    unfunction compdef
-    .autocomplete.compinit.precmd
-    unfunction .autocomplete.compinit.precmd
-    compdef "$@"
-  }
-
-_bash_complete compgen complete () {
-  unfunction _bash_complete compgen complete
-  builtin autoload -Uz bashcompinit
-  bashcompinit
-  bashcompinit() { : }
-  ${(%):-%N} "$@"
+typeset -gHa _autocomplete_compdef=()
+compdef() {
+  _autocomplete_compdef+=( "${(j: :)${(@q+)@}}" )
 }
+
+[[ -v functions[_bash_complete] ]] ||
+  _bash_complete compgen complete () {
+    unfunction _bash_complete compgen complete
+    builtin autoload -Uz bashcompinit
+    bashcompinit
+    bashcompinit() { : }
+    ${(%):-%N} "$@"
+  }
 
 .autocomplete.compinit.precmd() {
   [[ -z $CDPATH ]] &&
@@ -50,6 +48,11 @@ EOF
 
   compinit() { : }
 
+  local args; for args in "$_autocomplete_compdef[@]"; do
+    eval "compdef $args"
+  done
+  unset _autocomplete_compdef
+
   local -i fd
   exec {fd}< <(
     local cache_dir
@@ -79,7 +82,7 @@ EOF
     local -i ret=1 _autocomplete__reserved_lines=0
 
     compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
-    compstate[last_prompt]=yes  # Completion doesn't stay on same prompt without this.
+    compstate[last_prompt]=yes  # Completion doesn't stay on the same command line without this.
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
@@ -98,6 +101,14 @@ EOF
     }
 
     return ret
+  }
+
+  .autocomplete.compadd() {
+    if [[ $_completer == expand* ]]; then
+      builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
+    else
+      builtin compadd "$@"
+    fi
   }
 
   _autocomplete._main_complete.post() {
@@ -213,16 +224,6 @@ EOF
       .autocomplete._wanted "$@" -d displays -a params
     else
       .autocomplete._wanted "$@"
-    fi
-  }
-
-  .autocomplete.compadd() {
-    setopt localoptions listtypes
-
-    if [[ $_completer == expand* ]]; then
-      builtin compadd -f -W "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-    else
-      builtin compadd "$@"
     fi
   }
 }
