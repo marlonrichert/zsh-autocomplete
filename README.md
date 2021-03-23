@@ -10,6 +10,7 @@ bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 * [Requirements](#requirements)
 * [Installing & Updating](#installing--updating)
 * [Configuration](.zshrc)
+* [Troubleshooting](#troubleshooting)
 * [Author](#author)
 * [License](#license)
 
@@ -113,6 +114,29 @@ git -C ~zsh-autocomplete pull
 Instead of following the instructions above, you can also install `zsh-autocomplete` through
 whichever Zsh frameworks or plugin manager you use. Please refer to your framework's/plugin
 manager's documentation for instructions.
+
+## Configuration
+See the included [`.zshrc` file](.zshrc).
+
+## Troubleshooting
+Check out the latest development version:
+```zsh
+cd ~zsh-autocomplete; git switch main; git pull
+```
+Then restart your shell.
+
+If that doesn't help, try deleting completion cache files:
+```zsh
+rm -f $_comp_dumpfile $XDG_CACHE_HOME/zsh
+```
+Then restart your shell.
+
+If that fails, try restarting Zsh without global config files:
+```zsh
+exec zsh -d
+```
+
+Failing that, try the steps in the [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
 
 ## Author
 © 2020 [Marlon Richert](https://github.com/marlonrichert)
