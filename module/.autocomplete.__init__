@@ -2,7 +2,7 @@
 zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
 zmodload -Fa zsh/parameter p:functions
 zmodload -F zsh/zutil b:zstyle
-builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-space
+builtin autoload -Uz add-zsh-hook
 .autocomplete.mathfunc
 
 .autocomplete.__init__.precmd() {
@@ -34,16 +34,11 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
   local -a older_than_1_day=( $datadir/*(N-.m+1) )
   [[ -n $older_than_1_day ]] &&
     zf_rm -f $older_than_1_day[@]
-
   exec {_autocomplete__log_fd}>$(mktemp $datadir/XXXXXXXXXXXX)
 
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
   [[ -d $XDG_CACHE_HOME/zsh ]] ||
     zf_mkdir -pm 0700 $XDG_CACHE_HOME/zsh
-
-  export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-  [[ -d $XDG_DATA_HOME/zsh ]] ||
-    zf_mkdir -pm 0700 $XDG_DATA_HOME/zsh
 
   add-zsh-hook precmd .autocomplete.screen-space
   local -i pslines=${#${(%%)PS1}//[^$'\n']}
@@ -61,9 +56,9 @@ builtin autoload -Uz add-zsh-hook .autocomplete.mathfunc .autocomplete.screen-sp
 local mod; for mod in compinit config widget key key-binding recent-dirs async; do
   if ! zstyle -t ':autocomplete:' $mod false no off 0; then
     mod=.autocomplete.$mod
-    builtin autoload -Uz $mod
     $mod
     unfunction $mod
+    builtin autoload -Uz $mod
   fi
 done
 

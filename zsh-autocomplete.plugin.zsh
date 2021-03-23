@@ -14,10 +14,27 @@ setopt NO_singlelinezle
   )
   setopt $_autocomplete__options
 
-  hash -d zsh-autocomplete=${${(%):-%x}:h}
-  typeset -gU FPATH fpath=( ~zsh-autocomplete/*(-/) $fpath )
+  local basedir=${${(%):-%x}:h}
+  if ! [[ -n $basedir && -d $basedir ]]; then
+    print -u2 -- 'zsh-autocomplete: Failed to find base dir. Aborting.'
+    return 66
+  fi
+  hash -d zsh-autocomplete=$basedir
 
-  builtin autoload -Uz .autocomplete.__init__
+  local -a subdirs=( ~zsh-autocomplete/*(N-/) )
+  if ! (( $#subdirs )); then
+    print -u2 -- 'zsh-autocomplete: Failed to find sub dirs. Aborting.'
+    return 66
+  fi
+  typeset -gU FPATH fpath=( $subdirs[@] $fpath[@] )
+
+  local -a funcs=( $^subdirs/.autocomplete.*~*.zwc(N-.) )
+  if ! (( $#funcs )); then
+    print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
+    return 66
+  fi
+  builtin autoload -Uz $funcs[@]
+
   .autocomplete.__init__
 
   # Workaround for https://github.com/zdharma/zinit/issues/366

@@ -3,15 +3,11 @@ typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
 
 .autocomplete.widget.c() {
-  local func=.autocomplete.$3.completion-widget
-  builtin autoload -Uz $func
-  zle -C $1 $2 $func
+  zle -C $1 $2 .autocomplete.$3.completion-widget
 }
 
 .autocomplete.widget.z() {
-  local func=.autocomplete.$2.zle-widget
-  builtin autoload -Uz $func
-  zle -N $1 $func
+  zle -N $1 .autocomplete.$2.zle-widget
 }
 
 .autocomplete.widget.non-tab() {

@@ -2,8 +2,6 @@
 zmodload -F zsh/parameter p:functions
 
 .autocomplete.patch() {
-  emulate -L zsh; setopt $_autocomplete__options
-
   builtin autoload +X -Uz $1
   functions[.autocomplete.$1]=$functions[$1]
 }

@@ -26,7 +26,12 @@ compdef() {
 
   typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zsh/compdump}}
 
-  local f; for f in ${${(%):-%x}:h:h}/completion/*; do
+  local -a comps=( $^fpath/_autocomplete.*~*.zwc(N-.) )
+  if ! (( $#comps )); then
+    print -u2 -- 'zsh-autocomplete: Failed to find completion functions. Aborting.'
+    return 66
+  fi
+  local f; for f in $comps[@]; do
     if [[ $f -nt $_comp_dumpfile ]]; then
       zf_rm -f $_comp_dumpfile
       break
@@ -74,8 +79,6 @@ EOF
   zle -F "$fd" .autocomplete.compinit.zle-f
 
   compinit() { : }
-
-  builtin autoload -Uz .autocomplete.patch
 
   .autocomplete.patch _main_complete
   _main_complete() {
