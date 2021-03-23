@@ -67,26 +67,26 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     chpwd_recent_filehandler
     dirstack=( (#i)${^reply[@]:#$PWD}(N-/) )
 
-    add-zsh-hook chpwd chpwd_recent_dirs
+    _autocomplete.recent_dirs.save() {
+      chpwd_recent_filehandler $PWD $dirstack[@]
+    }
+    add-zsh-hook chpwd _autocomplete.recent_dirs.save
 
     _autocomplete.recent_dirs() {
-      local -a dirs=( $dirstack[@] )
+      reply=( $dirstack[@] )
+
       local ancestor=$PWD:h
       while [[ $ancestor != '/' ]]; do
-        dirs=( ${(@)dirs[@]:#$ancestor} )
+        reply=( ${reply[@]:#$ancestor} )
         ancestor=$ancestor:h
       done
-      dirs=( ${(@)dirs[@]:#$PWD(|/[^/]#)} )
+      reply=( ${reply[@]:#$PWD(|/[^/]#)} )
 
-      local -i e max=2
-      reply=()
-      zstyle -a ":completion:${curcontext}:" max-errors max_ &&
-        max=${${(M)max_:#<->}[1]}
-      for (( e = 0; e <= max; e++ )); do
-        reply=( ${(M@)dirs[@]:#*(#ia$e)${PREFIX}${SUFFIX}[^/]#} )
-        (( $#reply[@] )) &&
-          break
-      done
+      local -a max=()
+      zstyle -a ":completion:${curcontext}:" max-errors max ||
+        max=( 2 )
+
+      reply=( ${(M)reply[@]:#*(#ia$max[1])${PREFIX}${SUFFIX}[^/]#} )
       reply=( ${(@)reply[1,10]} )
       (( $#reply[@] ))
     }
@@ -96,7 +96,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
 
     _autocomplete.recent_files() {
-      reply=( "$( fasd -flR $1 2>/dev/null )" )
+      reply=( $( fasd -flR $1 2>/dev/null ) )
     }
   fi
 }

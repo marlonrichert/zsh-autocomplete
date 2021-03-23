@@ -22,7 +22,7 @@ compdef() {
 
   # Decrease Oh My Zsh start-up time. See below.
   [[ -v ZSH_COMPDUMP ]] &&
-    local -a omzdump=( ${(f)"$(<$ZSH_COMPDUMP)"} )
+    local -a omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
 
   typeset -gH _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-$XDG_CACHE_HOME/zsh/compdump}}
 
@@ -38,7 +38,7 @@ compdef() {
     fi
   done
 
-  if [[ ! -v _comp_setup || ! -f $_comp_dumpfile ]]; then
+  if ! [[ -v _comp_setup && -f $_comp_dumpfile ]]; then
     unfunction compdef compinit 2>/dev/null
     builtin autoload -Uz compinit
     compinit -C -d $_comp_dumpfile
@@ -163,6 +163,12 @@ EOF
     local -i ret=$?
     (( ret )) &&
       _comp_mesg='' # Otherwise, the next completer won't get tried.
+
+    [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
+      return ret
+
+    _autocomplete.ancestor_dirs "$@"
+    _autocomplete.recent_paths "$@"
     return ret
   }
 
