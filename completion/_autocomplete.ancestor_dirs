@@ -1,6 +1,4 @@
 #autoload
-setopt localoptions NO_autonamedirs
-
 [[ $_comp_tags == *( | local-)'directories '* ]] ||
   return
 
@@ -9,19 +7,20 @@ _tags $tag
 ( _tags && _requested $tag ) ||
   return
 
-local -a displ expl
+local -a displ expl dirs=()
 local pref dir=$PWD:h
-
-local _comp_no_ignore=yes
 _description -V $tag expl "ancestor directory"
-
 while (( $#dir > 1 )); do
-  displ=( "${(D)dir}" )
-  pref=${dir:h:A}/
-  [[ $pref == // ]] &&
-    pref=/
-  compadd "$expl[@]" -d displ -P $pref -fW $pref - "$dir:t"
+  dirs=( $dir $dirs[@] )
   dir=$dir:h
+done
+unset dir
+
+# Work around `setopt autonamedirs` by not assigning absolute path to scalar.
+while (( $#dirs[@] )); do
+  displ=( "${${(D)dirs[1]}:t}" )
+  compadd "$expl[@]" -d displ -P "${${(D)dirs[1]:h}%/}/" -fW "${${dirs[1]:h}%/}/" - "$dirs[1]:t"
+  shift dirs
 done
 
 return 1  # Always continue to next completer.

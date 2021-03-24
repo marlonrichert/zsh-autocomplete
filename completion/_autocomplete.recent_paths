@@ -27,18 +27,17 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  setopt localoptions NO_autonamedirs
-
   local -a displ expl
-  local pref _path _comp_no_ignore=yes
   _description -V $1 expl $2
   shift 2
-  for _path in $@; do
-    displ=( "${(D)_path}" )
-    pref=$_path:h/
-    [[ $pref == // ]] &&
-      pref=/
-    compadd "$expl[@]" -d displ -P $pref -fW $pref - "$_path:t"
+
+  # Work around `setopt autonamedirs` by not assigning absolute path to scalar.
+  while (( # )); do
+    displ=( "${(D)1}" )
+    [[ $displ == ? ]] &&
+      continue
+    compadd "$expl[@]" -d displ -P "${${(D)1:h}%/}/" -fW "${${1:h}%/}/" - "$1:t"
+    shift
   done
 }
 
