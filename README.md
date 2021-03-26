@@ -127,7 +127,7 @@ Then restart your shell.
 
 If that doesn't help, try deleting completion cache files:
 ```zsh
-rm -f $_comp_dumpfile $XDG_CACHE_HOME/zsh
+rm -rf $_comp_dumpfile $XDG_CACHE_HOME/zsh
 ```
 Then restart your shell.
 
