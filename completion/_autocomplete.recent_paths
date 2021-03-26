@@ -27,16 +27,22 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  local -a displ expl
+  local -a displ expl line
   _description -V $1 expl $2
   shift 2
 
   # Work around `setopt autonamedirs` by not assigning absolute path to scalar.
   while (( # )); do
     displ=( "${(D)1}" )
-    [[ $displ == ? ]] &&
-      continue
-    compadd "$expl[@]" -d displ -P "${${(D)1:h}%/}/" -fW "${${1:h}%/}/" - "$1:t"
+    if [[ $displ == ??* ]]; then
+
+      # Workaround to prevent the prompt from jumping
+      line+=( "$displ/" )
+      (( ${#$( print -c $line[@] )} < COLUMNS )) ||
+        break
+
+      compadd "$expl[@]" -d displ -P "${${(D)1:h}%/}/" -fW "${${1:h}%/}/" - "$1:t"
+    fi
     shift
   done
 }
