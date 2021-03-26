@@ -1,16 +1,26 @@
 #autoload
 
 _autocomplete.history_lines() {
+  local -A values
+  local -A values_sorted
+  local -A reversed
   local tag=history-lines
   _tags $tag
   _tags && _requested $tag ||
     return 1
+  for key val in "${(@kv)history}"; do
+    values[$val]=$key
+  done
+  for key val in "${(@kv)values}"; do
+    values_sorted[$val]=$key
+  done
+  for k v ("${(@kv}values_sorted}") reversed[$v]=$k
   local -aU events=()
   local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
   if [[ -z $BUFFER ]]; then
     local query='<-16>'; [[ $curcontext == *-forward:* ]] ||
       query="<$(( HISTNO - max_lines ))->"
-    print -v events -f '%s:%s' "${(ukv@)history[(I)$~query]}"
+    print -v events -f '%s:%s' "${(kv@)reversed[(I)$~query]}"
     events=( ${(@)events[@]:#[[:space:]]#:} )
     [[ $curcontext == *-incremental-*-forward:* ]] &&
       events=( "${(Oa@)events}" )
@@ -27,7 +37,7 @@ _autocomplete.history_lines() {
     fi
     local q; for q in $queries[@]; do
       matches=()
-      print -v matches -f '%s:%s' "${(ukv@)history[(R)$~q]}"
+      print -v matches -f '%s:%s' "${(kv@)reversed[(R)$~q]}"
 
       # If there's only 1 match, `print` somehow changes `matches` to a scalar.
       # So, we cast it back to an array.
