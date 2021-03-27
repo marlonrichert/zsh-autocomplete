@@ -5,15 +5,6 @@ bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 
 [![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
 
-* [Other Features](#other-features)
-* [Key Bindings](#key-bindings)
-* [Requirements](#requirements)
-* [Installing & Updating](#installing--updating)
-* [Configuration](.zshrc)
-* [Troubleshooting](#troubleshooting)
-* [Author](#author)
-* [License](#license)
-
 ## Other Features
 Besides live autocompletion, `zsh-autocomplete` comes with many other useful completion features.
 
@@ -44,7 +35,6 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 `rupa/z.sh`, `autojump` and `fasd`.
 
 ![recent dirs](.img/recent-dirs.png)
-
 
 ## Key Bindings
 | Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
@@ -93,27 +83,36 @@ Minimum:
 * Zsh 5.3 or later.
 
 ## Installing & Updating
-To install:
-1.  Clone the repo:
-    ```zsh
-    % cd ~/git  # or wherever you keep your Git repos/Zsh plugins
-    % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
-    ```
-1.  Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
-    ```zsh
-    source ~/git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-    ```
-1.  Remove any calls to `compinit` from your `~/.zshrc` file.
-
-To update:
+If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the following to your
+`.zshrc` file:
 ```zsh
-git -C ~zsh-autocomplete pull
+znap source marlonrichert/zsh-autocomplete
+```
+To update, do
+```zsh
+% znap pull
 ```
 
-### As a Plugin
-Instead of following the instructions above, you can also install `zsh-autocomplete` through
-whichever Zsh frameworks or plugin manager you use. Please refer to your framework's/plugin
-manager's documentation for instructions.
+### Manually
+ 1. Clone the repo:
+    ```zsh
+    % cd ~/Git  # or wherever you keep your Git repos/Zsh plugins
+    % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+    ```
+ 1. Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
+    ```zsh
+    source ~/Git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+    ```
+ 1. Remove any calls to `compinit` from your `~/.zshrc` file.
+
+Then, to update, do:
+```zsh
+% git -C ~zsh-autocomplete pull
+```
+
+### Other Frameworks/Plugin Managers
+To install with another Zsh framework or plugin manager, please refer to your
+framework's/plugin manager's documentation for instructions.
 
 ## Configuration
 See the included [`.zshrc` file](.zshrc).
