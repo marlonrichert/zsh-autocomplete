@@ -87,6 +87,7 @@ EOF
     compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
     compstate[last_prompt]=yes  # Completion doesn't stay on the same command line without this.
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
+    unset 'compstate[vared]'
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     {
