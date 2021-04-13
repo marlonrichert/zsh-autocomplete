@@ -86,7 +86,10 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       zstyle -a ":completion:${curcontext}:" max-errors max ||
         max=( 2 )
 
-      reply=( ${(M)reply[@]:#*(#ia$max[1])${PREFIX}${SUFFIX}[^/]#} )
+      reply=(
+        ${(M)reply[@]:#*/${PREFIX}${SUFFIX}}
+        ${(M)reply[@]:#*(#ia$max[1])${PREFIX}${SUFFIX}[^/]#}
+      )
       reply=( ${(@)reply[1,10]} )
       (( $#reply[@] ))
     }
