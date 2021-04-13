@@ -38,7 +38,7 @@ _autocomplete.recent_paths() {
 
       # Workaround to prevent the prompt from jumping
       line+=( "$displ/" )
-      (( ${#$( print -c $line[@] )} < COLUMNS )) ||
+      [[ "$( print -ac $line[@] '' )" == *$'\n'* ]] &&
         break
 
       compadd "$expl[@]" -d displ -P "${${(D)1:h}%/}/" -fW "${${1:h}%/}/" - "$1:t"
