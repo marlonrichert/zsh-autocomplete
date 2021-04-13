@@ -31,5 +31,5 @@ fi
 
 local -a tags; zstyle -a :autocomplete: add-space tags ||
   tags=( executables aliases functions builtins reserved-words commands )
-(( ${#${=${_comp_tags:-$_lastcomp[tags]}}:*tags} )) &&
+[[ $RBUFFER == [^[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]] &&
   compstate[insert]+=' '
