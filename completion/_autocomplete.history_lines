@@ -64,7 +64,7 @@ _autocomplete.history_lines() {
 
   matches=( "${(@)events[@]#<->:}" )
   [[ $curcontext == *-incremental-* ]] &&
-    matches=( "${(@)${(@)matches[@]##$lbuffer}%%$rbuffer}" )
+    matches=( "${(@)${(@)matches[@]##${lbuffer}[[:space:]]#}%%[[:space:]]#${rbuffer}}" )
 
   local _comp_no_ignore=1 expl
   _description -2V $tag expl 'history line'
