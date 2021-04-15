@@ -1,18 +1,19 @@
 #autoload
 
 _autocomplete.history_lines() {
-  local -A values
+  local -a just_values
   local -A values_sorted
-  local -A reversed
+  local -A keys
   local tag=history-lines
   _tags $tag
   _tags && _requested $tag ||
     return 1
   for key val in "${(@kv)history}"; do
-    values[$val]=$key
+    keys[$val]=$key
+    just_values=$val
   done
-  for key val in "${(@kv)values}"; do
-    values_sorted[$val]=$key
+  for val in "${(@vu)just_values}"; do
+    values_sorted[$values[$val]]=$val
   done
   local -aU events=()
   local -i max_lines=$(( min( 16, HISTNO, LINES - BUFFERLINES ) ))
