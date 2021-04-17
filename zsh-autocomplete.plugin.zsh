@@ -20,13 +20,13 @@ setopt NO_singlelinezle
     return 66
   fi
   hash -d zsh-autocomplete=$basedir
+  typeset -gU FPATH fpath=( ~zsh-autocomplete/completion $fpath[@] )
 
   local -a subdirs=( ~zsh-autocomplete/*(N-/) )
   if ! (( $#subdirs )); then
     print -u2 -- 'zsh-autocomplete: Failed to find sub dirs. Aborting.'
     return 66
   fi
-  typeset -gU FPATH fpath=( $subdirs[@] $fpath[@] )
 
   local -a funcs=( $^subdirs/.autocomplete.*~*.zwc(N-.) )
   if ! (( $#funcs )); then
