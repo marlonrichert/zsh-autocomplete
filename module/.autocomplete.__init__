@@ -28,13 +28,16 @@ builtin autoload -Uz add-zsh-hook
   _autocomplete__x+=$'%I\t%(1_,%_ ,)'
 
   export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
-  local datadir=$XDG_DATA_HOME/zsh-autocomplete/log
-  [[ -d $datadir ]] ||
-    zf_mkdir -p $datadir
-  local -a older_than_1_day=( $datadir/*(N-.m+1) )
+  [[ -d $XDG_DATA_HOME/zsh ]] ||
+    zf_mkdir -pm 0700 $XDG_DATA_HOME/zsh
+
+  local logdir=$XDG_DATA_HOME/zsh-autocomplete/log
+  [[ -d $logdir ]] ||
+    zf_mkdir -p $logdir
+  local -a older_than_1_day=( $logdir/*(N-.m+1) )
   [[ -n $older_than_1_day ]] &&
     zf_rm -f $older_than_1_day[@]
-  exec {_autocomplete__log_fd}>$(mktemp $datadir/XXXXXXXXXXXX)
+  exec {_autocomplete__log_fd}>$(mktemp $logdir/XXXXXXXXXXXX)
 
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
   [[ -d $XDG_CACHE_HOME/zsh ]] ||
