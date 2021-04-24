@@ -1,4 +1,4 @@
-name: clitest
+name: test
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  clitest:
+  run-tests:
     runs-on: macos-latest
 
     steps:
@@ -21,10 +21,6 @@ jobs:
           repository: 'aureliojargas/clitest'
           path: bin
 
-      - name: Run clitest
-        run: |
-          print $ZSH_PATCHLEVEL
-          fpath+=( $GITHUB_WORKSPACE/*(/) )
-          FPATH=$FPATH zsh \
-            $GITHUB_WORKSPACE/bin/clitest --list-run --progress dot --prompt '%' .clitest/**.md
+      - name: Run tests
+        run: PATH=$GITHUB_WORKSPACE/bin/:$PATH ./run-tests.zsh
         shell: zsh {0}
