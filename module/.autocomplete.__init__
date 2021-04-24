@@ -2,8 +2,8 @@
 zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
 zmodload -Fa zsh/parameter p:functions
 zmodload -Fa zsh/zutil b:zstyle
-builtin autoload -Uz add-zsh-hook
-.autocomplete.mathfunc
+builtin autoload -Uz add-zsh-hook zmathfunc
+zmathfunc
 
 .autocomplete.__init__.precmd() {
   emulate -L zsh; setopt $_autocomplete__options
@@ -42,10 +42,6 @@ builtin autoload -Uz add-zsh-hook
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
   [[ -d $XDG_CACHE_HOME/zsh ]] ||
     zf_mkdir -pm 0700 $XDG_CACHE_HOME/zsh
-
-  add-zsh-hook precmd .autocomplete.screen-space
-  local -i pslines=${#${(%%)PS1}//[^$'\n']}
-  typeset -gHi _autocomplete__screen_space=$(( LINES - pslines - 2 ))
 
   local mod; for mod in compinit config widget key key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd
