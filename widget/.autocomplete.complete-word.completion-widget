@@ -1,5 +1,5 @@
 #!/bin/zsh
-autoload -Uz .autocomplete.complete-word.post
+builtin autoload -Uz .autocomplete.complete-word.post
 
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
