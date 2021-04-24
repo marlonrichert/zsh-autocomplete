@@ -2,7 +2,7 @@
 setopt NO_singlelinezle
 () {
   emulate -L zsh
-  zmodload -F zsh/parameter p:functions
+  zmodload -Fa zsh/parameter p:functions
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-off] ]] &&

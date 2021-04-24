@@ -1,9 +1,9 @@
 #!/bin/zsh
-zmodload -F zsh/zpty b:zpty
-zmodload -F zsh/parameter p:funcstack p:functions p:parameters
-zmodload -F zsh/system p:sysparams
-zmodload -F zsh/zselect b:zselect
-zmodload -F zsh/zutil b:zparseopts
+zmodload -Fa zsh/zpty b:zpty
+zmodload -Fa zsh/parameter p:funcstack p:functions p:parameters
+zmodload -Fa zsh/system p:sysparams
+zmodload -Fa zsh/zselect b:zselect
+zmodload -Fa zsh/zutil b:zparseopts
 builtin autoload -Uz add-zle-hook-widget
 
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
