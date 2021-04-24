@@ -3,9 +3,11 @@ zmodload -Fa zsh/zpty b:zpty
 zmodload -Fa zsh/parameter p:funcstack p:functions p:parameters
 zmodload -Fa zsh/system p:sysparams
 zmodload -Fa zsh/zselect b:zselect
+zmodload -Fa zsh/terminfo b:echoti
 zmodload -Fa zsh/zutil b:zparseopts
 builtin autoload -Uz add-zle-hook-widget
 
+typeset -gHi _autocomplete__buffer_start_line=1
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
@@ -45,13 +47,37 @@ bindkey -s -M menuselect '^S' '^G^S'
     }
   fi
 
+  add-zsh-hook precmd .autocomplete.async.update-location
+
   add-zle-hook-widget line-init .autocomplete.async.reset-context
   add-zle-hook-widget line-init .autocomplete.async.complete
   add-zle-hook-widget line-pre-redraw .autocomplete.async.complete
   add-zle-hook-widget line-finish .autocomplete.async.clear
   add-zle-hook-widget isearch-update .autocomplete.async.isearch-update
   add-zle-hook-widget isearch-exit .autocomplete.async.isearch-exit
+
   add-zsh-hook zshexit .autocomplete.async.stop
+}
+
+.autocomplete.async.max-lines() {
+  local -i min_lines max_lines lines_below_buffer
+  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines || min_lines=16
+  (( max_lines = LINES - BUFFERLINES ))
+  (( lines_below_buffer = max_lines - _autocomplete__buffer_start_line ))
+  return $(( max( min( min_lines, max_lines ), lines_below_buffer ) ))
+}
+
+.autocomplete.async.update-location() {
+  emulate -L zsh; setopt $_autocomplete__options
+
+  # Ask the terminal which line the cursor is on.
+  local -a reply=()
+  print -nr $'\e[6n'
+  IFS=$'\e[;' read -Asd R
+
+  # Add the number of newlines the prompt will print.
+  local -i pslines=${#${(%%)PS1}//[^$'\n']}
+  _autocomplete__buffer_start_line=$(( reply[-2] + pslines ))
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -327,7 +353,8 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.list-choices.complete() {
-  local -i _autocomplete__max_lines=$(( _autocomplete__max_lines() ))
+  .autocomplete.async.max-lines
+  local -i _async_max_lines=$?
   {
     () {
       emulate -L zsh; setopt $_autocomplete__options
@@ -362,7 +389,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   local -a _matches_=()
   local -i header=$+_opts_[-X] footer=1 allinsert=2
   local -i lines_available=$((
-    max(0, _autocomplete__max_lines - header - footer - allinsert - compstate[list_lines])
+    max(0, _async_max_lines - header - footer - allinsert - compstate[list_lines])
   ))
   local -i ret number_of_new_matches lines_of_new_matches
 
@@ -393,7 +420,7 @@ bindkey -s -M menuselect '^S' '^G^S'
           .autocomplete.compadd -O _matches_ "$@"
 
           # Pre-emptively trim all matches that will definitely not fit on screen.
-          local -i surplus=$(( $#_matches_ - COLUMNS * _autocomplete__max_lines / 3 ))
+          local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
           (( surplus > 0 )) &&
             shift -p $surplus _matches_
 

@@ -15,10 +15,8 @@ unset MENUSELECT
 if [[ $WIDGET == *menu-* ]]; then
   compstate[insert]='menu:'
   if [[ $WIDGET == *-select ]]; then
-    local -i pslines=${#${(%%)PS1}//[^$'\n']}
-    _autocomplete__screen_space=$((
-      max( _autocomplete__screen_space, min( LINES - pslines, compstate[list_lines] ) )
-    ))
+    # Determine which terminal line we're on (for async completion).
+    (( _autocomplete__buffer_start_line = max( BUFFERLINES, LINES - compstate[list_lines] ) ))
     MENUSELECT=0
   fi
 fi
