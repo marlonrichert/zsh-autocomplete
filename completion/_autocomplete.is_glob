@@ -1,5 +1,5 @@
 #autoload
-zmodload -F zsh/parameter p:patchars
+zmodload -Fa zsh/parameter p:patchars
 
 _autocomplete.is_glob() {
   local word=$PREFIX$SUFFIX

@@ -1,5 +1,5 @@
 #autoload
-zmodload -F zsh/parameter p:functions
+zmodload -Fa zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
   (( _matcher_num > 1 )) &&

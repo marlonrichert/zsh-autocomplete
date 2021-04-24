@@ -1,6 +1,6 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
-zmodload -F zsh/parameter p:funcstack p:functions
+zmodload -Fa zsh/parameter p:funcstack p:functions
 
 typeset -gHa _autocomplete_compdef=()
 compdef() {

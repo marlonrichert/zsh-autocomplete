@@ -1,5 +1,5 @@
 #!/bin/zsh
-zmodload -F zsh/parameter p:functions
+zmodload -Fa zsh/parameter p:functions
 
 .autocomplete.patch() {
   builtin autoload +X -Uz $1
