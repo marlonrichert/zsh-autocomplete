@@ -2,7 +2,6 @@ Setup:
 ```zsh
 % autoload -Uz zmathfunc && zmathfunc
 % autoload -Uz .autocomplete.complete-word.post
-% #functions -T .autocomplete.complete-word.post
 % typeset -gA key=( Backtab BACKTAB ) compstate=() _lastcomp=()
 % zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
 %
