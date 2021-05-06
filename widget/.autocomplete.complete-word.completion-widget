@@ -6,7 +6,10 @@ local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]"
 if  [[ $WIDGET == *-select ]] ||
     ( ( [[ "$KEYS" == "$key[Backtab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
-      ) && [[ $_lastcomp[tags] == *unambiguous* ]] ); then
+      ) && [[
+          $_lastcomp[iprefix]$_lastcomp[prefix]$_lastcomp[suffix]$_lastcomp[isuffix] !=
+              *${_lastcomp[unambiguous]:#?}*
+      ]] ); then
   compstate[old_list]=
   _main_complete
 elif [[ -n $compstate[old_list] ]]; then

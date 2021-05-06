@@ -2,7 +2,7 @@
 
 (( compstate[nmatches] > 1 )) ||
   return 1
-[[ -z $BUFFER || $curcontext == history-*:* ||
+[[ $curcontext == history-*:* ||
     $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
   return 1
 
