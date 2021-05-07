@@ -356,28 +356,24 @@ bindkey -s -M menuselect '^S' '^G^S'
   .autocomplete.async.max-lines
   local -i _async_max_lines=$?
   {
-    () {
-      emulate -L zsh; setopt $_autocomplete__options
-    functions[compadd]=$functions[.autocomplete.async.compadd]
-    } "$@"
+    [[ $curcontext == list-choices:* ]] &&
+        () {
+          emulate -L zsh; setopt $_autocomplete__options
+          functions[compadd]=$functions[.autocomplete.async.compadd]
+        } "$@"
     _main_complete
   } always {
     () {
       emulate -L zsh; setopt $_autocomplete__options
-    [[ -v functions[compadd] ]] &&
-      unfunction compadd
-    [[ -v functions[comptags] ]] &&
-      unfunction comptags
+      [[ -v functions[compadd] ]] &&
+          unfunction compadd
+      [[ -v functions[comptags] ]] &&
+          unfunction comptags
     }
   }
 }
 
 .autocomplete.async.compadd() {
-  if [[ $funcstack[2] == _autocomplete.history_lines ]]; then
-    .autocomplete.compadd "$@"
-    return
-  fi
-
   local -a _opts_=()
   zparseopts -E -A _opts_ - D: E: x: X:
 

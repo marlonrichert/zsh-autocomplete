@@ -1,7 +1,10 @@
 #autoload
+
 reply=()
+
 (( # )) ||
   return
-local -a items=( "$@" ) len=( "${(N@)@:#*}" )
-print -v reply -f '%s\0%s' "${(@)len[@]:^items}"
-reply=( ${${(n@)reply}[@]#<->$'\0'} )
+
+local -a tmp=( {1..$#} )
+print -v tmp -f '%d\0%d' "${(@)${(@N)@:#*}:^tmp}"
+reply=( ${(@)${(@n)tmp}:/(#m)*/$@[${MATCH##<->$'\0'}]} )
