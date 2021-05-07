@@ -1,7 +1,7 @@
 #!/bin/zsh
 setopt NO_singlelinezle
 () {
-  emulate -L zsh
+  emulate -L zsh -o NO_aliases
   zmodload -Fa zsh/parameter p:functions
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
@@ -10,7 +10,7 @@ setopt NO_singlelinezle
 
   typeset -gHa _autocomplete__options=(
     clobber localoptions localtraps extendedglob rcquotes
-    NO_aliases NO_banghist NO_listbeep NO_shortloops NO_warncreateglobal
+    NO_banghist NO_listbeep NO_shortloops NO_warncreateglobal
   )
   setopt $_autocomplete__options
 
