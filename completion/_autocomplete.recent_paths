@@ -2,48 +2,59 @@
 zmodload -Fa zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
-  (( _matcher_num > 1 )) &&
-    return 1
+  (( compstate[nmatches] )) &&
+      return 1
 
-  local -aU reply=()
+  local -aU dirs
   local tag
   _tags recent-directories recent-files
   while _tags; do
 
     tag=recent-directories
-    _requested $tag &&
-      [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *( | local-)directories* ]] &&
-      _autocomplete.recent_dirs "$PREFIX$SUFFIX" &&
-      .autocomplete.recent_paths.add $tag 'recent directory' $reply[@]
+    if _requested $tag &&
+        [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *( | local-)directories* ]] &&
+        _autocomplete.recent_dirs "$PREFIX$SUFFIX"; then
+      dirs=( "$reply[@]" )
+      while _next_label -V $tag expl 'recent directory'; do
+        .autocomplete.recent_paths.add $dirs[@]
+      done
+    fi
 
     tag=recent-files
-    _requested $tag &&
-      [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *( | all-)'files '* ]] &&
-      _autocomplete.recent_files "$PREFIX$SUFFIX" &&
-      .autocomplete.recent_paths.add $tag 'recent file' $reply[@]
+    if _requested $tag &&
+        [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *( | all-)'files '* ]] &&
+        _autocomplete.recent_files "$PREFIX$SUFFIX"; then
+      dirs=( "$reply[@]" )
+      while _next_label -v $tag expl 'recent file'; do
+        .autocomplete.recent_paths.add $dirs[@]
+      done
+    fi
   done
 
   return 1  # Always continue to next completer.
 }
 
 .autocomplete.recent_paths.add() {
-  local -a displ expl line
-  _description -V $1 expl $2
-  shift 2
+  local -a displ matches=( "$@" ) opts
 
-  # Work around `setopt autonamedirs` by not assigning absolute path to scalar.
-  while (( # )); do
-    displ=( "${(D)1}" )
-    if [[ $displ == ??* ]]; then
+  compadd "$expl[@]" -D matches - "$@:t"
+  displ=( "${(@D)matches}" )
+  zformat -a displ '' $^displ':'
 
-      # Workaround to prevent the prompt from jumping
-      line+=( "$displ/" )
-      [[ "$( print -ac $line[@] '' )" == *$'\n'* ]] &&
-        break
+  # Workaround to prevent the prompt from jumping
+  () {
+    local total="${(j:/  :)displ}/  "
+    while (( $#total > COLUMNS )); do
+      shift -p -- displ matches
+      local total="${(j:/  :)displ}/  "
+    done
+  }
 
-      compadd "$expl[@]" -d displ -P "${${(D)1:h}%/}/" -fW "${${1:h}%/}/" - "$1:t"
-    fi
-    shift
+  # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
+  while (( $#matches )); do
+    compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
+        - "$matches[1]:t"
+    shift -- displ matches
   done
 }
 

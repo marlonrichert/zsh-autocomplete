@@ -56,16 +56,17 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       local old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
       local new=$XDG_DATA_HOME/zsh/chpwd-recent-dirs
       zstyle ':chpwd:*' recent-dirs-file $new
-      if [[ -e $old && ! -e $new ]]; then
-        zf_mv "$old" "$new"
-      fi
+      [[ -e $old && ! -e $new ]] &&
+          zf_mv "$old" "$new"
     fi
     zstyle -s :chpwd: recent-dirs-max _ ||
-      zstyle ':chpwd:*' recent-dirs-max 0
+        zstyle ':chpwd:*' recent-dirs-max 0
 
-    local -aU reply=()
-    chpwd_recent_filehandler
-    dirstack=( (#i)${^reply[@]:#$PWD}(N-/) )
+    if ! (( $#dirstack[@] )); then
+      local -aU reply=()
+      chpwd_recent_filehandler
+      dirstack=( ${^reply[@]:#$PWD}(N-/) )
+    fi
 
     _autocomplete.recent_dirs.save() {
       chpwd_recent_filehandler $PWD $dirstack[@]
@@ -82,15 +83,6 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       done
       reply=( ${reply[@]:#$PWD(|/[^/]#)} )
 
-      local -a max=()
-      zstyle -a ":completion:${curcontext}:" max-errors max ||
-        max=( 2 )
-
-      reply=(
-        ${(M)reply[@]:#*/${PREFIX}${SUFFIX}}
-        ${(M)reply[@]:#*(#ia$max[1])${PREFIX}${SUFFIX}[^/]#}
-      )
-      reply=( ${(@)reply[1,10]} )
       (( $#reply[@] ))
     }
   fi

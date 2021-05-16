@@ -1,26 +1,35 @@
 #autoload
+(( compstate[nmatches] )) &&
+    return 1
+
 [[ $_comp_tags == *( | local-)'directories '* ]] ||
-  return
+    return
 
 local tag=ancestor-directories
 _tags $tag
-( _tags && _requested $tag ) ||
-  return
+_tags ||
+    return
+_requested $tag ||
+    return
 
-local -a displ expl dirs=()
-local pref dir=$PWD:h
-_description -V $tag expl "ancestor directory"
+local -a displ expl ancestors dirs
+local -i ret=1
+local dir=$PWD:h
 while (( $#dir > 1 )); do
-  dirs=( $dir $dirs[@] )
+  ancestors=( $dir $ancestors[@] )
   dir=$dir:h
 done
-unset dir
 
-# Work around `setopt autonamedirs` by not assigning absolute path to scalar.
-while (( $#dirs[@] )); do
-  displ=( "${${(D)dirs[1]}:t}" )
-  compadd "$expl[@]" -d displ -P "${${(D)dirs[1]:h}%/}/" -fW "${${dirs[1]:h}%/}/" - "$dirs[1]:t"
-  shift dirs
+# Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
+unset dir
+while _next_label -V $tag expl "ancestor directory"; do
+  dirs=( $ancestors[@] )
+  while (( $#dirs[@] )); do
+    displ=( "$dirs[1]" ); [[ -z $PREFIX$SUFFIX ]] && displ=( "$dirs[1]:t" )
+    compadd "$expl[@]" -d displ -P "${${(D)dirs[1]:h}%/}/" -fW "${${dirs[1]:h}%/}/" \
+        - "$dirs[1]:t"
+    shift dirs
+  done
 done
 
 return 1  # Always continue to next completer.
