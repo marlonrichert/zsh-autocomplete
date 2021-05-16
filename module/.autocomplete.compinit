@@ -127,15 +127,7 @@ EOF
   _autocomplete._main_complete.post() {
     compstate[list_max]=0
     MENUSCROLL=0
-    if (( CURRENT > 1 && compstate[nmatches] > 1 )) && (
-          ( [[ $_completer == expand ]] && _autocomplete.is_glob ) ||
-          [[ $words[1] != cd &&
-            $_comp_tags == *( (|-local)directories | (|(all|globbed)-)files ) ]]
-        ); then
-      _description all-matches expl 'all matches'
-      compadd "$expl[@]" -C &&
-        _comp_tags+=' all-matches'
-    fi
+    _autocomplete.all_matches
     _autocomplete.unambiguous
   }
 

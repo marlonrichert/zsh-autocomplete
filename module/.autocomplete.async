@@ -383,14 +383,21 @@ bindkey -s -M menuselect '^S' '^G^S'
   fi
 
   local -a _matches_=()
-  local -i header=$+_opts_[-X] footer=1 allinsert=2
+  local -i header=$+_opts_[-X] footer=0
+  [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
+      (( footer += 1 ))
+  ( ( [[ $_completer == expand ]] && _autocomplete.is_glob ) ||
+          [[ $words[1] != cd &&
+              -z ${${=_comp_tags}[@]:#((local-|)directories|((all|globbed)-|)files)} ]] ) &&
+      (( footer += 2 ))
   local -i lines_available=$((
-    max(0, _async_max_lines - header - footer - allinsert - compstate[list_lines])
+    max( 0, _async_max_lines - header - footer - compstate[list_lines] )
   ))
   local -i ret number_of_new_matches lines_of_new_matches
 
   if [[ -v _opts_[-D] ]]; then
-    .autocomplete.compadd "$@"; ret=$?
+    .autocomplete.compadd "$@"
+    ret=$?
 
     [[ $funcstack[2] == _describe ]] ||
       return ret
