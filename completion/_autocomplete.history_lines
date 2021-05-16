@@ -9,7 +9,10 @@ _autocomplete.history_lines() {
       return 1
 
   local -A events=()
-  local -i max_lines=$(( min( 16, HISTNO - 1, LINES - BUFFERLINES ) ))
+  local -i min_lines max_lines
+  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
+      min_lines=16
+  (( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
 
   if [[ -z $BUFFER ]]; then
     if [[ $curcontext == *-forward:* ]]; then
