@@ -71,13 +71,13 @@ bindkey -s -M menuselect '^S' '^G^S'
   emulate -L zsh; setopt $_autocomplete__options
 
   # Ask the terminal which line the cursor is on.
-  local -a reply=()
+  local -a __reply__=()
   print -nr $'\e[6n'
-  IFS=$'\e[;' read -Asd R
+  IFS=$'\e[;' read -Asd R -- __reply__
 
   # Add the number of newlines the prompt will print.
   local -i pslines=${#${(%%)PS1}//[^$'\n']}
-  _autocomplete__buffer_start_line=$(( reply[-2] + pslines ))
+  _autocomplete__buffer_start_line=$(( __reply__[-2] + pslines ))
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -348,6 +348,10 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.list-choices.post() {
+  if [[ -v _autocomplete__partial_list ]]; then
+    compadd -J -last- -x $'%{\e[7m%}(MORE)%{\e[27;0m%}'
+    unset _autocomplete__partial_list
+  fi
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }
@@ -422,7 +426,7 @@ bindkey -s -M menuselect '^S' '^G^S'
           zparseopts -D -E -A _opts_ - A: D: O: X:
           .autocomplete.compadd -O _matches_ "$@"
 
-          # Pre-emptively trim all matches that will definitely not fit on screen.
+          # Pre-emptively trim the matches that will definitely not fit on screen.
           local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
           (( surplus > 0 )) &&
             shift -p $surplus _matches_
@@ -457,13 +461,9 @@ bindkey -s -M menuselect '^S' '^G^S'
     return
   fi
 
-  local info hint=$'%{\e[02;39m%}' kbd=$'%{\e[22;39m%}' end=$'%{\e[0m%}'
-  zstyle -s ":autocomplete:${curcontext}:too-many-matches" message info ||
-    info="${hint}(partial list; press ${kbd}Down$hint to expand)$end"
-
   if [[ -v _opts_[-D] ]]; then
     if (( $#uniques > lines_available )); then
-      builtin compadd -x $info
+      typeset -gH _autocomplete__partial_list
       shift -p $(( $#uniques - max(0, lines_available - 1) )) uniques
       set -A $array_name ${(M@)${(PA)array_name}:#*:(${(~j:|:)uniques})}
     fi
@@ -497,7 +497,8 @@ bindkey -s -M menuselect '^S' '^G^S'
       matches_per_line=1
     fi
     if (( $#_matches_ > matches_per_line * lines_available )); then
-      builtin compadd -x $info
+      [[ -z $_autocomplete__partial_list ]] &&
+          typeset -gH _autocomplete__partial_list=$curtag
 
       # Round this down, before subtracting.
       local -i fit=$(( matches_per_line * max(0, lines_available - 1) ))

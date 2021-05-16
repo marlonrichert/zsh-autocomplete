@@ -1,5 +1,8 @@
 #autoload
 
+[[ -v _autocomplete__partial_list ]] &&
+    return 1
+
 (( compstate[nmatches] > 1 )) ||
   return 1
 [[ $curcontext == history-*:* ||
