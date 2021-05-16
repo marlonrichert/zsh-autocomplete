@@ -4,7 +4,7 @@ builtin autoload -Uz .autocomplete.complete-word.post
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
 if  [[ $WIDGET == *-select ]] ||
-    ( ( [[ "$KEYS" == "$key[Backtab]" ]] ||
+    ( ( [[ "$KEYS" == "$key[Shift-Tab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[
           $_lastcomp[iprefix]$_lastcomp[prefix]$_lastcomp[suffix]$_lastcomp[isuffix] !=
@@ -14,7 +14,7 @@ if  [[ $WIDGET == *-select ]] ||
   _main_complete
 elif [[ -n $compstate[old_list] ]]; then
   compstate[old_list]=keep
-  [[ "$KEYS" == "$key[Backtab]" && $_lastcomp[tags] == *all-matches ]] &&
+  [[ "$KEYS" == "$key[Shift-Tab]" && $_lastcomp[tags] == *all-matches ]] &&
     compstate[insert]=all
   _main_complete -
 fi

@@ -2,7 +2,7 @@
 unset curcontext
 compstate[list]=
 
-if  ( [[ $KEYS == $key[Backtab] ]] ||
+if  ( [[ $KEYS == $key[Shift-Tab] ]] ||
       zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
     ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
   compstate[insert]=${${(M)WIDGET:#*menu-*}:+automenu-}unambiguous
@@ -18,7 +18,7 @@ if [[ $WIDGET == *menu-select ]]; then
   MENUSELECT=0
 fi
 
-if [[ $KEYS == $key[Backtab] ]]; then
+if [[ $KEYS == $key[Shift-Tab] ]]; then
   compstate[insert]+=0
 else
   compstate[insert]+=1
