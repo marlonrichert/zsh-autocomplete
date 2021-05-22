@@ -12,13 +12,10 @@ fi
 compstate[insert]=
 unset MENUSELECT
 
-if [[ $WIDGET == *menu-* ]]; then
-  compstate[insert]='menu:'
-  if [[ $WIDGET == *-select ]]; then
-    # Determine which terminal line we're on (for async completion).
-    (( _autocomplete__buffer_start_line = max( BUFFERLINES, LINES - compstate[list_lines] ) ))
-    MENUSELECT=0
-  fi
+if [[ $WIDGET == *menu-select ]]; then
+  # Determine which terminal line we're on (for async completion).
+  (( _autocomplete__buffer_start_line = max( BUFFERLINES, LINES - compstate[list_lines] ) ))
+  MENUSELECT=0
 fi
 
 if [[ $KEYS == $key[Backtab] ]]; then
@@ -29,5 +26,8 @@ fi
 
 local -a tags; zstyle -a :autocomplete: add-space tags ||
   tags=( executables aliases functions builtins reserved-words commands )
-[[ $RBUFFER != [[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]] &&
+if [[ $RBUFFER != [[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]]; then
+  [[ $WIDGET == *menu-* ]] &&
+      compstate[insert]="menu:$compstate[insert]"
   compstate[insert]+=' '
+fi
