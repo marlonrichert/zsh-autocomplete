@@ -47,7 +47,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
 
     if ! zstyle -s :chpwd: recent-dirs-file _; then
       local old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
-      local new=$XDG_DATA_HOME/zsh/chpwd-recent-dirs
+      local new=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/chpwd-recent-dirs
       zstyle ':chpwd:*' recent-dirs-file $new
       [[ -e $old && ! -e $new ]] &&
           zf_mv "$old" "$new"
