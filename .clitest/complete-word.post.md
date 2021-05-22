@@ -2,16 +2,8 @@ Setup:
 ```zsh
 % autoload -Uz zmathfunc && zmathfunc
 % autoload -Uz .autocomplete.complete-word.post
-% typeset -gA key=( Backtab BACKTAB ) compstate=() _lastcomp=()
+% typeset -gA key=( Shift-Tab BACKTAB ) compstate=() _lastcomp=()
 % zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
-%
-```
-
-`menu-*` widgets set `$compstate[insert]` to `menu:*`:
-```zsh
-% WIDGET=menu-TEST .autocomplete.complete-word.post
-% print -r - ${(q+)compstate[insert]} $+MENUSELECT
-menu:1 0
 %
 ```
 
@@ -19,11 +11,11 @@ Only `menu-select` widget sets `$MENUSELECT`:
 ```zsh
 % WIDGET=menu-select .autocomplete.complete-word.post
 % print -r - ${(q+)compstate[insert]} $+MENUSELECT
-menu:1 1
+1 1
 %
 ```
 
-Only `Backtab` key sets `$compstate[insert]` to `*:0`:
+Only `Shift-Tab` key sets `$compstate[insert]` to `*:0`:
 ```zsh
 % KEYS='BACKTAB' .autocomplete.complete-word.post
 % print -r - ${(q+)compstate[insert]} $+MENUSELECT
@@ -52,5 +44,13 @@ Only `Backtab` key sets `$compstate[insert]` to `*:0`:
 % _comp_tags='OTHER' _lastcomp[tags]='TAG' .autocomplete.complete-word.post
 % print -r - ${(q+)compstate[insert]} $+MENUSELECT
 1 0
+%
+```
+
+`menu-*` widgets set `$compstate[insert]` to `menu:*` when adding space:
+```zsh
+% WIDGET=menu-TEST _comp_tags='LOREM TAG IPSUM' _lastcomp[tags]='OTHER' .autocomplete.complete-word.post
+% print -r - ${(q+)compstate[insert]} $+MENUSELECT
+'menu:1 ' 0
 %
 ```
