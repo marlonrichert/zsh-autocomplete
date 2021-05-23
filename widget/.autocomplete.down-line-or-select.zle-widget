@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 if [[ $RBUFFER == *$'\n'* ]]; then
   zle .down-line

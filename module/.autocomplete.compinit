@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload -Fa zsh/files b:zf_rm
 zmodload -Fa zsh/parameter p:funcstack p:functions
 builtin autoload -Uz is-at-least

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 if [[ $LBUFFER == *$'\n'* ]]; then
   zle .up-line

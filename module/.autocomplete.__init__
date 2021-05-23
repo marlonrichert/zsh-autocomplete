@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
 zmodload -Fa zsh/parameter p:functions
 zmodload -Fa zsh/zutil b:zstyle

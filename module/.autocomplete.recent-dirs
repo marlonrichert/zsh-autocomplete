@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload -Fa zsh/files b:zf_mv
 zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
 

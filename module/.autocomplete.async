@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload -Fa zsh/zpty b:zpty
 zmodload -Fa zsh/parameter p:funcstack p:functions p:parameters
 zmodload -Fa zsh/system p:sysparams

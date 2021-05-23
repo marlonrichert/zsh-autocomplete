@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 setopt NO_singlelinezle
 () {
   emulate -L zsh -o NO_aliases

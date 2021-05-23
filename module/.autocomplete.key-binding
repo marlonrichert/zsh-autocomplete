@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload zsh/complist
 zmodload -Fa zsh/parameter p:funcstack p:functions
 

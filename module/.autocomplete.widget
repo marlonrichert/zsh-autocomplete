@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
 

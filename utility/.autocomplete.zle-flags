@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 emulate -L zsh; setopt $_autocomplete__options
 
 # If no arg, assume same widget as last time.

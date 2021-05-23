@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 zmodload -Fa zsh/parameter p:functions
 
 .autocomplete.patch() {

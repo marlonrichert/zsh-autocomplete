@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 local 0=${(%):-%N}
 
 $0() {
