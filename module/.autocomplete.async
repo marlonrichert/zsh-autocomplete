@@ -110,9 +110,6 @@ bindkey -s -M menuselect '^S' '^G^S'
   (( KEYS_QUEUED_COUNT || PENDING )) &&
     return 0
 
-  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
-    return 0
-
   region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
     _zsh_highlight
@@ -120,17 +117,19 @@ bindkey -s -M menuselect '^S' '^G^S'
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
     _zsh_autosuggest_highlight_apply
 
+  [[ -v MENUSELECT && $( bindkey "$KEYS" ) != *'" '$LASTWIDGET ]] &&
+      return
+
+  unset MENUSELECT
+
   if (( REGION_ACTIVE )) ||
       [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
     zle -Rc
     return 0
   fi
 
-  if [[ $LASTWIDGET == ('list-expand'|'_complete_help') ||
-      -n $MENUSELECT && $LASTWIDGET == .autocomplete.async.timeout.fd-widget ]]; then
-    .autocomplete.async.stop
-    return 0
-  fi
+  [[ $LASTWIDGET == (list-expand|_complete_help) ]] &&
+      return
 
   [[ $_lastcomp[insert] == *unambiguous ]] &&
     zle .auto-suffix-retain  # Makes the cursor stay in the right place.
