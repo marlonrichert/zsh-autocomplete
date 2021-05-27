@@ -113,14 +113,14 @@ bindkey -s -M menuselect '^S' '^G^S'
   unset MENUSELECT
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
-    return 0
+      return 0
 
   region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
-    _zsh_highlight
+      _zsh_highlight
   typeset -gH _autocomplete__highlight=( "$region_highlight[@]" )
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-    _zsh_autosuggest_highlight_apply
+      _zsh_autosuggest_highlight_apply
 
   if (( REGION_ACTIVE )) ||
       [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
@@ -132,7 +132,7 @@ bindkey -s -M menuselect '^S' '^G^S'
       return
 
   [[ $_lastcomp[insert] == *unambiguous ]] &&
-    zle .auto-suffix-retain  # Makes the cursor stay in the right place.
+      zle .auto-suffix-retain  # Makes the cursor stay in the right place.
 
   .autocomplete.async.start
   return 0
@@ -348,7 +348,7 @@ bindkey -s -M menuselect '^S' '^G^S'
 
 .autocomplete.async.list-choices.post() {
   if [[ -v _autocomplete__partial_list ]]; then
-    compadd -J -last- -x $'%{\e[7m%}(MORE)%{\e[27;0m%}'
+    compadd -J -last- -x '%F{black}%K{14}(MORE)%f%k'
     unset _autocomplete__partial_list
   fi
   compstate[insert]=
