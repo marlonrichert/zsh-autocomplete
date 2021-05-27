@@ -15,12 +15,13 @@ assignees: ''
 <!-- ⚠️ DO NOT DELETE the template below. Instead, use it to put together a minimal test case with
 which I can reproduce the bug. If I cannot reproduce the bug, then I cannot fix it! -->
 ```zsh
-$ git -C ~zsh-autocomplete switch main  # Make sure you test with the `main` branch.
-$ git -C ~zsh-autocomplete pull         # Update to the latest commit.
-$ cd $(mktemp -d)                       # Create a temp dir and enter it.
-$ unset _comp_dumpfile ZDOTDIR XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME
-$ HOME=$PWD exec zsh -f       # Restart Zsh without config files in this dir.
+$ cd ~zsh-autocomplete
+$ git switch main       # Make sure you test with the `main` branch.
+$ git pull              # Update to the latest commit.
+$ cd $(mktemp -d)       # Create a temp dir and enter it.
+$ # Restart Zsh without config files or environment variables in this dir:
+$ exec env -i HOME=$PWD PS1='%# ' TERM=$TERM zsh -f
 % source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-% 👉YOUR STEPS TO REPRODUCE👈 # Test and document the steps to reproduce the problem.
+% ⚠️INSERT YOUR STEPS THAT REPRODUCE THE PROBLEM⚠️
 ```
 <!-- ⚠️ Don't forget to add your steps to reproduce at the end of the template above. -->
