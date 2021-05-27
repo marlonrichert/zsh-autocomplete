@@ -8,7 +8,9 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
     .autocomplete.key
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
-    tab_style='complete-word'
+      tab_style='complete-word'
+  local backtab_style; zstyle -s :autocomplete:shift-tab: widget-style backtab_style ||
+      backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
 
   if zstyle -t :autocomplete:tab: fzf || zstyle -t :autocomplete:tab: fzf-completion; then
     typeset -gH fzf_default_completion=$tab_style
@@ -28,15 +30,17 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
     bindkey -M emacs $key[Tab] $tab_style
     bindkey -M viins $key[Tab] $tab_style
   fi
-  local backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
   bindkey -M emacs $key[Shift-Tab] $backtab_style
   bindkey -M viins $key[Shift-Tab] $backtab_style
 
-  if [[ $tab_style == menu-* ]]; then
+  if [[ $tab_style == *menu-* ]]; then
     bindkey -M menuselect $key[Tab] menu-complete
-    bindkey -M menuselect $key[Shift-Tab] reverse-menu-complete
   else
     bindkey -M menuselect $key[Tab] accept-line
+  fi
+  if [[ $backtab_style == *menu-* ]]; then
+    bindkey -M menuselect $key[Shift-Tab] reverse-menu-complete
+  else
     bindkey -M menuselect $key[Shift-Tab] send-break
   fi
 }
