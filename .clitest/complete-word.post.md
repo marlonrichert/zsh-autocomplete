@@ -46,11 +46,3 @@ Only `Shift-Tab` key sets `$compstate[insert]` to `*:0`:
 1 0
 %
 ```
-
-`menu-*` widgets set `$compstate[insert]` to `menu:*` when adding space:
-```zsh
-% WIDGET=menu-TEST _comp_tags='LOREM TAG IPSUM' _lastcomp[tags]='OTHER' .autocomplete.complete-word.post
-% print -r - ${(q+)compstate[insert]} $+MENUSELECT
-'menu:1 ' 0
-%
-```
