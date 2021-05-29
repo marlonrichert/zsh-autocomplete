@@ -18,6 +18,6 @@ else
       return
 fi
 
-local -a expl disp=( '' )
+local -a expl
 _description all-matches expl 'all matches'
-compadd "$expl[@]" -d disp -C
+compadd "$expl[@]" -C
