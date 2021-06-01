@@ -164,10 +164,10 @@ EOF
     .autocomplete._complete "$@"
     local -i ret=$?
     (( ret )) &&
-      _comp_mesg='' # Otherwise, the next completer won't get tried.
+        _comp_mesg='' # Otherwise, the next completer won't get tried.
 
     [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
-      return ret
+        return ret
 
     _autocomplete.ancestor_dirs "$@"
     _autocomplete.recent_paths "$@"
