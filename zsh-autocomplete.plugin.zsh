@@ -1,10 +1,5 @@
 #!/bin/zsh
 
-# Don't run if we're in the subshell started by Midnight Commander.
-# See https://github.com/marlonrichert/zsh-autocomplete/issues/269
-[[ -v MC_SID ]] &&
-    return
-
 setopt NO_singlelinezle
 () {
   emulate -L zsh -o NO_aliases

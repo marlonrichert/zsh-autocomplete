@@ -3,7 +3,7 @@ zmodload -Fa zsh/zpty b:zpty
 zmodload -Fa zsh/parameter p:funcstack p:functions p:parameters
 zmodload -Fa zsh/system p:sysparams
 zmodload -Fa zsh/zselect b:zselect
-zmodload -Fa zsh/terminfo b:echoti
+zmodload -Fa zsh/terminfo b:echoti p:terminfo
 zmodload -Fa zsh/zutil b:zparseopts
 builtin autoload -Uz add-zle-hook-widget
 
@@ -23,7 +23,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   zle -N .autocomplete.async.complete.fd-widget
   zle -N .autocomplete.async.timeout.fd-widget
 
-  # Name starting with `.` avoids getting wrapped by syntax highlighting.
+  # Start name with `.` to avoid getting wrapped by syntax highlighting.
   zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
 
   if [[ -v functions[_zsh_highlight_call_widget] ]]; then
@@ -47,11 +47,12 @@ bindkey -s -M menuselect '^S' '^G^S'
     }
   fi
 
-  add-zsh-hook precmd .autocomplete.async.update-location
-
+  add-zle-hook-widget line-init .autocomplete.async.read-cursor-position
   add-zle-hook-widget line-init .autocomplete.async.reset-context
+
   add-zle-hook-widget line-init .autocomplete.async.complete
   add-zle-hook-widget line-pre-redraw .autocomplete.async.complete
+
   add-zle-hook-widget line-finish .autocomplete.async.clear
   add-zle-hook-widget isearch-update .autocomplete.async.isearch-update
   add-zle-hook-widget isearch-exit .autocomplete.async.isearch-exit
@@ -59,25 +60,49 @@ bindkey -s -M menuselect '^S' '^G^S'
   add-zsh-hook zshexit .autocomplete.async.stop
 }
 
-.autocomplete.async.max-lines() {
-  local -i min_lines max_lines lines_below_buffer
-  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines || min_lines=16
-  (( max_lines = LINES - BUFFERLINES ))
-  (( lines_below_buffer = max_lines - _autocomplete__buffer_start_line ))
-  return $(( max( min( min_lines, max_lines ), lines_below_buffer ) ))
-}
+.autocomplete.async.read-cursor-position() {
+  [[ -v terminfo[u6] && -v terminfo[u7] ]] ||
+      return 0
 
-.autocomplete.async.update-location() {
+  # Don't run if we're in the subshell started by Midnight Commander.
+  # See https://github.com/marlonrichert/zsh-autocomplete/issues/269
+  [[ -v MC_SID ]] &&
+      return
+
   emulate -L zsh; setopt $_autocomplete__options
 
-  # Ask the terminal which line the cursor is on.
-  local -a __reply__=()
-  print -nr $'\e[6n'
-  IFS=$'\e[;' read -Asd R -- __reply__
+  # Flush any pending input to the buffer.
+  if (( PENDING )); then
+    read -sk $PENDING -- LBUFFER
+    local nl=$'\n'
+    LBUFFER="${LBUFFER//$'\r'/$nl}"
+  fi
 
-  # Add the number of newlines the prompt will print.
-  local -i pslines=${#${(%%)PS1}//[^$'\n']}
-  _autocomplete__buffer_start_line=$(( __reply__[-2] + pslines ))
+  # Cursor position report (u6) always contains two %d markers.
+  local -a cpr=( "${(s:%d:)$( echoti u6 )}" )
+
+  # If there is a %i before the first %d, then decrement both %d values by 1.
+  local -i i=${${${(M)cpr[1]%'%i'}:+1}:-0}
+  cpr[1]=${cpr[1]%'%i'}
+
+  # Send cursor position request (u7).
+  local REPLY Y X
+  echoti u7
+
+  # Parse the cursor position report.
+  read -rsk $#cpr[1]
+  while [[ $REPLY != $cpr[2] ]]; do
+    read -rsk
+    Y+=$REPLY
+  done
+  Y="${Y%$cpr[2]}"
+  while [[ $REPLY != $cpr[3] ]]; do
+    read -rsk
+    X+=$REPLY
+  done
+  X="${X%$cpr[3]}"
+
+  _autocomplete__buffer_start_line=$(( Y - i ))
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -158,7 +183,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   local -i fd=${(P)1} pid=${(P)2}
   if (( pid )); then
     [[ -o MONITOR ]] &&
-      (( pid *= -1 ))
+        (( pid *= -1 ))
     kill -KILL $pid 2>/dev/null
   fi
   if (( fd )) && { : <&$fd } 2>/dev/null; then
@@ -176,7 +201,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   .autocomplete.async.stop
 
   local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
-    min_delay=0
+      min_delay=0
 
   exec {_autocomplete__async_complete_fd}< <(
     print $sysparams[pid]
@@ -192,11 +217,11 @@ bindkey -s -M menuselect '^S' '^G^S'
       # `zselect -t` w/out other args wants an int > 0
       local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
       (( timeout > 0 )) &&
-        zselect -t $timeout
+          zselect -t $timeout
     } always {
       zpty -d _autocomplete__zpty
       (( TRY_BLOCK_INTERRUPT > 0 )) ||
-        print -rNC1 - "$SECONDS" "$line"
+          print -rNC1 - "$SECONDS" "$line"
     }
   )
   read -u $_autocomplete__async_complete_fd _autocomplete__async_complete_pid
@@ -209,7 +234,7 @@ bindkey -s -M menuselect '^S' '^G^S'
         100.0 * (min_delay - SECONDS + 10.0 * _autocomplete__async_avg_duration)
       ))
       (( timeout > 0 )) &&
-        zselect -t $timeout
+          zselect -t $timeout
     } always {
       (( TRY_BLOCK_INTERRUPT ))
       print $?
@@ -229,7 +254,7 @@ bindkey -s -M menuselect '^S' '^G^S'
 .autocomplete.async.complete.inner() {
   setopt $_autocomplete__options
   setopt NO_completeinword; [[ -z $curcontext ]] ||
-    setopt completeinword
+      setopt completeinword
 
   setopt promptsubst
   PS1=''
@@ -261,7 +286,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     unset 'compstate[vared]'
     local +h -a comppostfuncs=( message )
     {
-      .autocomplete.async.list-choices.complete 2>&$_autocomplete__log_fd
+      .autocomplete.async.list-choices.main-complete 2>&$_autocomplete__log_fd
     } always {
       print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
     }
@@ -279,11 +304,11 @@ bindkey -s -M menuselect '^S' '^G^S'
 
 .autocomplete.async.complete.fd-widget() {
   .autocomplete.zle-flags ||
-    return 0
+      return 0
 
   setopt $_autocomplete__options
   setopt NO_completeinword; [[ -z $curcontext ]] ||
-    setopt completeinword
+      setopt completeinword
 
   .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
 
@@ -292,7 +317,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   local message rest
   {
     [[ $2 == (|hup) ]] &&
-      IFS=$'\0' read -ru $1 seconds nmatches message rest
+        IFS=$'\0' read -ru $1 seconds nmatches message rest
   } always {
     .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   }
@@ -306,7 +331,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>&$_autocomplete__log_fd; then
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-      _zsh_autosuggest_highlight_apply
+        _zsh_autosuggest_highlight_apply
 
     # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
     zle -R
@@ -321,7 +346,7 @@ bindkey -s -M menuselect '^S' '^G^S'
   local message=$2
 
   local min_input; zstyle -s :autocomplete: min-input min_input ||
-    min_input=0
+      min_input=0
   local ignored; zstyle -s :autocomplete: ignored-input ignored
 
   local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
@@ -340,7 +365,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     fi
   else
     local curcontext=list-choices:::
-    .autocomplete.async.list-choices.complete
+    .autocomplete.async.list-choices.main-complete
   fi
 
   return 2
@@ -355,9 +380,14 @@ bindkey -s -M menuselect '^S' '^G^S'
   unset MENUSELECT MENUMODE
 }
 
-.autocomplete.async.list-choices.complete() {
-  .autocomplete.async.max-lines
-  local -i _async_max_lines=$?
+.autocomplete.async.list-choices.main-complete() {
+  local -i min_lines max_lines lines_below_buffer
+  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
+      min_lines=16
+  (( max_lines = LINES - BUFFERLINES ))
+  (( lines_below_buffer = max_lines - _autocomplete__buffer_start_line ))
+  local -i _async_max_lines=$(( max( min( min_lines, max_lines ), lines_below_buffer ) ))
+
   {
     [[ $curcontext == list-choices:* ]] &&
         () {
@@ -403,13 +433,13 @@ bindkey -s -M menuselect '^S' '^G^S'
     ret=$?
 
     [[ $funcstack[2] == _describe ]] ||
-      return ret
+        return ret
 
     local array_name=$_opts_[-D]
     local -a _matches_=( ${(PA)array_name} )
 
     (( ${_matches_[(I)*:*]} > 0 )) ||
-      return ret
+        return ret
 
     local -aU uniques=( ${_matches_[@]#*:} )
     number_of_new_matches=$#_matches_
@@ -428,7 +458,7 @@ bindkey -s -M menuselect '^S' '^G^S'
           # Pre-emptively trim the matches that will definitely not fit on screen.
           local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
           (( surplus > 0 )) &&
-            shift -p $surplus _matches_
+              shift -p $surplus _matches_
 
           setopt localoptions listtypes
           zparseopts -D -E -A _opts_ - a
@@ -506,7 +536,7 @@ bindkey -s -M menuselect '^S' '^G^S'
       (( $#_matches_ > 0 )) ||
         comptags() {
           [[ $funcstack[3] == _autocomplete.history_lines ]] ||
-            return 1
+              return 1
           builtin comptags "$@"
         }
     fi
@@ -517,18 +547,18 @@ bindkey -s -M menuselect '^S' '^G^S'
 
 .autocomplete.async.timeout.fd-widget() {
   .autocomplete.zle-flags ||
-    return 0
+      return 0
 
   local -i timedout=0
   {
     [[ $2 == (|hup) ]] &&
-      read -ru $1 timedout
+        read -ru $1 timedout
   } always {
     .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   }
 
   (( timedout )) ||
-    return 0
+      return 0
 
   (( _autocomplete__async_avg_duration *= 1.1 ))
   .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
