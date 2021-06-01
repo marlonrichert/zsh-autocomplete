@@ -2,8 +2,8 @@
 zmodload -Fa zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
-  (( compstate[nmatches] )) &&
-      return 1
+  (( compstate[nmatches] < 2 )) ||
+      return
 
   local -aU dirs
   local tag
