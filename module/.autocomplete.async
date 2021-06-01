@@ -61,6 +61,9 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.read-cursor-position() {
+  (( KEYS_QUEUED_COUNT || PENDING )) &&
+      return
+
   [[ -v terminfo[u6] && -v terminfo[u7] ]] ||
       return 0
 
@@ -70,13 +73,6 @@ bindkey -s -M menuselect '^S' '^G^S'
       return
 
   emulate -L zsh; setopt $_autocomplete__options
-
-  # Flush any pending input to the buffer.
-  if (( PENDING )); then
-    read -sk $PENDING -- LBUFFER
-    local nl=$'\n'
-    LBUFFER="${LBUFFER//$'\r'/$nl}"
-  fi
 
   # Cursor position report (u6) always contains two %d markers.
   local -a cpr=( "${(s:%d:)$( echoti u6 )}" )
