@@ -41,9 +41,9 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       reply=( ${(f)"$( fasd -dlR $1 2>/dev/null )"} )
     }
 
-  else
+  elif builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler &&
+      zstyle -T ':autocomplete:' recent-dirs 'cdr'; then
     setopt autopushd pushdignoredups
-    builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
 
     if ! zstyle -s :chpwd: recent-dirs-file _; then
       local old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs

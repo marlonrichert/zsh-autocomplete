@@ -31,6 +31,14 @@ zstyle ':completion:*:' group-order \
     executables local-directories directories suffix-aliases
 # 💡 NOTE: This is NOT the order in which they are generated.
 
+# Show recent directories as completions.
+zstyle ':autocomplete:*' recent-dirs cdr
+# cdr:  Use Zsh's `cdr` function.
+# no:   Don't show them.
+# zsh-z|zoxide|z.lua|z.sh|autojump|fasd:
+#       Use that instead (if installed).
+# ⚠️ NOTE: This can NOT be changed at runtime.
+
 zstyle ':autocomplete:*' insert-unambiguous no
 # no:  Tab inserts the top completion.
 # yes: Tab first inserts substring common to all listed completions, if any.
