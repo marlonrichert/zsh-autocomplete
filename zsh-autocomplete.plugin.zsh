@@ -29,7 +29,7 @@ setopt NO_singlelinezle
     return 66
   fi
 
-  local -a funcs=( $^subdirs/.autocomplete.*~*.zwc(N-.) )
+  local -a funcs=( $^subdirs/.autocomplete.*~*.zwc(N-.:a) )
   if ! (( $#funcs )); then
     print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
     return 66

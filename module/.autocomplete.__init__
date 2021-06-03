@@ -61,7 +61,7 @@ local mod; for mod in compinit config widget key key-binding recent-dirs async; 
     mod=.autocomplete.$mod
     $mod
     unfunction $mod
-    builtin autoload -Uz $mod
+    builtin autoload -Uz ${${(%):-%x/$mod}:a}
   fi
 done
 
