@@ -23,10 +23,10 @@ zmathfunc
   [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
     typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
-  typeset -gH _autocomplete__p=$'\0' _autocomplete__c=$'\n%e %N %x\n'
-  typeset -gH _autocomplete__x=$'%(?,,\t→ %?\n)'
-  _autocomplete__x+='${${${(%)_autocomplete__p}:#${(%)_autocomplete__c}}:+${_autocomplete__p::=${(%)_autocomplete__c}}}'
-  _autocomplete__x+=$'%I\t%(1_,%_ ,)'
+  typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N\t%x\n'
+  typeset -gH _autocomplete__ps4=$'%(?,,\t-> %?\n)'
+  _autocomplete__ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+${_autocomplete__prev::=${(%)_autocomplete__next}}}'
+  _autocomplete__ps4+=$'%I\t%(1_,%_ ,)'
 
   local mod; for mod in compinit config widget key key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd
@@ -46,10 +46,10 @@ local zsh_data_dir=$xdg_data_home/zsh
 local logdir=$xdg_data_home/zsh-autocomplete/log
 [[ -d $logdir ]] ||
     zf_mkdir -p $logdir
-local -a older_than_1_day=( $logdir/*(N-.m+1) )
-[[ -n $older_than_1_day ]] &&
-    zf_rm -f $older_than_1_day[@]
-exec {_autocomplete__log_fd}>$(mktemp $logdir/XXXXXXXXXXXX)
+local -a older_than_a_day=( $logdir/*(c+1N) )
+(( $#older_than_a_day[@] )) &&
+    zf_rm -f $older_than_a_day[@]
+exec {_autocomplete__log_fd}>$(mktemp -u $logdir/${(%):-%D{%FT%T.%.}}-XXX).log
 
 local zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
