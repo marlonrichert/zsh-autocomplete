@@ -77,10 +77,10 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 
 ## Requirements
 Recommended:
-* **[Zsh](http://zsh.sourceforge.net) 5.8** or later.
+* Tested to work with [Zsh](http://zsh.sourceforge.net) 5.7 or newer.
 
 Minimum:
-* Zsh 5.3 or later.
+* Should theoretically work with Zsh 5.3 or newer, but I don't test with anything older than 5.7.
 
 ## Installing & Updating
 If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the following to your
