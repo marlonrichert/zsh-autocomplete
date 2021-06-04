@@ -7,10 +7,11 @@ assignees: ''
 
 ---
 
-* `zsh-autocomplete` version: <!-- git -C ~zsh-autocomplete rev-parse @ -->
+* Operating system: <!-- print $OSTYPE -->
 * Zsh version: <!-- print $ZSH_PATCHLEVEL -->
 * Framework: <!-- Oh My Zsh, Prezto, Zimfw, etc. or just "none" -->
 * Plugin manager: <!-- Znap, Zinit, Antigen, etc. or just "none" -->
+* `zsh-autocomplete` version: <!-- git -C ~zsh-autocomplete rev-parse @ -->
 
 <!-- ⚠️ DO NOT DELETE the template below. Instead, use it to put together a minimal test case with
 which I can reproduce the bug. If I cannot reproduce the bug, then I cannot fix it! -->
