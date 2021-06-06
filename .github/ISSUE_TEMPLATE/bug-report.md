@@ -7,22 +7,24 @@ assignees: ''
 
 ---
 
-* Operating system: <!-- print $OSTYPE -->
+* `zsh-autocomplete` version: <!-- git -C ~zsh-autocomplete rev-parse @ -->
 * Zsh version: <!-- print $ZSH_PATCHLEVEL -->
 * Framework: <!-- Oh My Zsh, Prezto, Zimfw, etc. or just "none" -->
 * Plugin manager: <!-- Znap, Zinit, Antigen, etc. or just "none" -->
-* `zsh-autocomplete` version: <!-- git -C ~zsh-autocomplete rev-parse @ -->
+* Operating system: <!-- print $OSTYPE -->
 
-<!-- ⚠️ DO NOT DELETE the template below. Instead, use it to put together a minimal test case with
-which I can reproduce the bug. If I cannot reproduce the bug, then I cannot fix it! -->
-```zsh
-$ cd ~zsh-autocomplete
-$ git switch main       # Make sure you test with the `main` branch.
-$ git pull              # Update to the latest commit.
-$ cd $(mktemp -d)       # Create a temp dir and enter it.
-$ # Restart Zsh without config files or environment variables in this dir:
-$ exec env -i HOME=$PWD PS1='%# ' TERM=$TERM zsh -f
-% source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-% ⚠️INSERT YOUR STEPS THAT REPRODUCE THE PROBLEM⚠️
-```
-<!-- ⚠️ Don't forget to add your steps to reproduce at the end of the template above. -->
+ 1. Paste the following into your terminal and <kbd>Enter</kbd>:
+    ```zsh
+    cd $(mktemp -d)
+    git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+    print '
+    PS1="%# " PS2="  " RPS2="< %^"; setopt transientrprompt
+    source zsh-autocomplete/zsh-autocomplete.plugin.zsh
+    ' > .zshrc
+    exec env -i HOME=$PWD TERM=$TERM SHELL=$SHELL $SHELL -d
+    ```
+ 1. In the shell session created above, try to reproduce your problem and
+    record all of it here:
+    ```zsh
+    % # Copy-paste your shell session here.
+    ```
