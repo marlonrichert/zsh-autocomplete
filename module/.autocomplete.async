@@ -22,7 +22,8 @@ bindkey -s -M menuselect '^S' '^G^S'
 
   # Start names with `.` to avoid getting wrapped by syntax highlighting.
   zle -N .autocomplete.async.pty.zle-widget
-  zle -C .autocomplete.async.pty.completion-widget list-choices .autocomplete.async.pty.completion-widget
+  zle -C .autocomplete.async.pty.completion-widget list-choices \
+      .autocomplete.async.pty.completion-widget
   zle -N .autocomplete.async.complete.fd-widget
   zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
   zle -N .autocomplete.async.timeout.fd-widget
@@ -249,27 +250,33 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.pty() {
-  setopt $_autocomplete__options
-  setopt NO_completeinword; [[ -z $curcontext ]] ||
-      setopt completeinword
-
-  setopt promptsubst
+  builtin setopt promptsubst
   PS1= RPS1=
   PS4=$_autocomplete__ps4
 
-  local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
-  unset ${^hooks}_functions &>/dev/null
-  $hooks[@] () { : }
-  local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
-      history-line-set keymap-select; do
-    zle -N zle-$hook .autocomplete.async.pty.no-op
-  done
+  () {
+    builtin setopt $_autocomplete__options
+    builtin setopt NO_completeinword; [[ -z $curcontext ]] ||
+        builtin setopt completeinword
 
-  typeset -gH lbuffer=$1 rbuffer=$2
+    local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
+    builtin unset ${^hooks}_functions &>/dev/null
 
-  bindkey $'\t' .autocomplete.async.pty.zle-widget
-  local __tmp__
-  vared __tmp__
+    $hooks[@] () {
+      :
+    }
+
+    local hook; for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
+        history-line-set keymap-select; do
+      builtin zle -N zle-$hook .autocomplete.async.pty.no-op
+    done
+
+    typeset -gH lbuffer=$1 rbuffer=$2
+
+    builtin bindkey $'\t' .autocomplete.async.pty.zle-widget
+    local __tmp__
+    builtin vared __tmp__
+  } "$@" 2>&$_autocomplete__log_fd
 }
 
 .autocomplete.async.pty.no-op() {
@@ -277,26 +284,33 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.pty.zle-widget() {
-  LBUFFER=$lbuffer
-  RBUFFER=$rbuffer
-  zle .autocomplete.async.pty.completion-widget -w 2>&$_autocomplete__log_fd
+  () {
+    LBUFFER=$lbuffer
+    RBUFFER=$rbuffer
+    builtin zle .autocomplete.async.pty.completion-widget -w
+  } "$@" 2>&$_autocomplete__log_fd
 }
 
 .autocomplete.async.pty.completion-widget() {
-  local curcontext=${curcontext:-${WIDGET}:::}
-  unset 'compstate[vared]'
-  local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-  {    .autocomplete.async.list-choices.main-complete
-  } always {
-    print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
-  }
-  compstate[insert]=''
-  compstate[list]=''
-  compstate[list_max]=0
+  () {
+    local curcontext=${curcontext:-${WIDGET}:::}
+    unset 'compstate[vared]'
+    local +h -a comppostfuncs=( .autocomplete.async.pty.message )
+    {
+      .autocomplete.async.list-choices.main-complete
+    } always {
+      builtin print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
+    }
+    compstate[insert]=''
+    compstate[list]=''
+    compstate[list_max]=0
+  } "$@" 2>&$_autocomplete__log_fd
 }
 
 .autocomplete.async.pty.message() {
-  typeset -gH _message_=$mesg
+  () {
+    typeset -gH _message_=$mesg
+  } "$@" 2>&$_autocomplete__log_fd
 }
 
 .autocomplete.async.complete.fd-widget() {
