@@ -13,7 +13,7 @@ Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplet
 while providing a manageable list of [settings](#settings) for changing the defaults.
 
 ### Live history search
-Press <kbd>Control</kbd><kbd>R</kbd> or <kbd>Control</kbd><kbd>S</kbd> to do an interactive,
+Press <kbd>Ctrl</kbd><kbd>R</kbd> or <kbd>Ctrl</kbd><kbd>S</kbd> to do an interactive,
 multi-line, fuzzy history search.
 
 [![history-search](.img/history-search.gif)](https://asciinema.org/a/379844)
@@ -25,7 +25,7 @@ not empty, then it will instead list the 16 most recent fuzzy matches.
 ![history menu](.img/history-menu.png)
 
 ### Multi-selection
-Press <kbd>Control</kbd><kbd>Space</kbd> in the completion menu or the history menu to insert more
+Press <kbd>Ctrl</kbd><kbd>Space</kbd> in the completion menu or the history menu to insert more
 than one item.
 
 ![multi-select](.img/multi-select.png)
@@ -38,28 +38,28 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 
 ## Key Bindings
 | Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
-| --- | --- | --- |
+| ------ | ------ | --- |
 | <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`complete-word`</sub> |
-| <kbd>Control</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Cursor up (always) | <sub>`up-line`</sub> |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Cursor down (always) | <sub>`down-line`</sub> |
 | <kbd>PgUp</kbd> | History menu (always) | <sub>`history-search`</sub> |
 | <kbd>PgDn</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
-| <kbd>Control</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
-| <kbd>Control</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
 ### Completion Menu
 | Key(s) | Action |
-| --- | --- |
+| ------ | ------ |
 | <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
 | <kbd>PgUp</kbd>/<kbd>PgDn</kbd> | Page up/down |
 | <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
-| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>Tab</kbd> | Accept selection |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Reject selection |
 | <kbd>Enter</kbd> | Accept command line |
@@ -69,7 +69,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
 | <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
-| <kbd>Control</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>←</kbd>/<kbd>→</kbd> | Accept selection & move cursor |
 | <kbd>Tab</kbd> | Accept selection |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Reject selection |
@@ -80,7 +80,7 @@ Recommended:
 * Tested to work with [Zsh](http://zsh.sourceforge.net) 5.7 or newer.
 
 Minimum:
-* Should theoretically work with Zsh 5.3 or newer, but I don't test with anything older than 5.7.
+* Should theoretically work with Zsh 5.4 or newer, but I'm unable to test that.
 
 ## Installing & Updating
 If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the following to your
