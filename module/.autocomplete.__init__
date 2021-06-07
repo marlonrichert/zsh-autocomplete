@@ -18,12 +18,14 @@ zmathfunc
   add-zsh-hook -d precmd $0
   unfunction $0
 
-  # Workaround for https://github.com/zsh-users/zsh-syntax-highlighting/issues/816
+  # Workaround for
+  #  https://github.com/zsh-users/zsh-syntax-highlighting/issues/816 and
+  #  https://github.com/zdharma/fast-syntax-highlighting/issues/224
   if zstyle -L zle-hook types > /dev/null; then
     local hook
     for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
     do
-      [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s<->.<->-r<->-zle-$hook ]] &&
+      [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
           zle -N zle-$hook azhw:zle-$hook
     done
   fi
