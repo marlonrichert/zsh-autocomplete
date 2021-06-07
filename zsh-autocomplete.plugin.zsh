@@ -23,20 +23,14 @@ setopt NO_singlelinezle
   hash -d zsh-autocomplete=$basedir
   typeset -gU FPATH fpath=( ~zsh-autocomplete/completion $fpath[@] )
 
-  local -a subdirs=( ~zsh-autocomplete/*(N-/) )
-  if ! (( $#subdirs )); then
-    print -u2 -- 'zsh-autocomplete: Failed to find sub dirs. Aborting.'
-    return 66
-  fi
-
-  local -a funcs=( $^subdirs/.autocomplete.*~*.zwc(N-.:a) )
+  local -a funcs=( ~zsh-autocomplete/{utility,widget}/.autocomplete.*~*.zwc(N-.:a) )
   if ! (( $#funcs )); then
     print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
     return 66
   fi
   builtin autoload -Uz $funcs[@]
 
-  .autocomplete.__init__
+  source ~zsh-autocomplete/module/.autocomplete.__init__
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] &&

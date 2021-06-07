@@ -68,13 +68,9 @@ local zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 
 
 local mod; for mod in compinit config widget key key-binding recent-dirs async; do
-  if ! zstyle -t ':autocomplete:' $mod false no off 0; then
-    mod=.autocomplete.$mod
-    $mod
-    unfunction $mod
-    builtin autoload -Uz ${${(%):-%x/$mod}:a}
+  if zstyle -T ':autocomplete:' $mod; then
+    source ~zsh-autocomplete/module/.autocomplete.$mod
   fi
 done
 
 add-zsh-hook precmd .autocomplete.__init__.precmd
-unfunction .autocomplete.__init__

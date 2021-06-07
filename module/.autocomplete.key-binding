@@ -5,7 +5,7 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
 .autocomplete.key-binding.precmd() {
   # Work around plugin managers making `key` local.
   [[ -z $key[Tab] || -z $key[Shift-Tab] ]] &&
-    .autocomplete.key
+      source ~zsh-autocomplete/module/.autocomplete.key
 
   local tab_style; zstyle -s :autocomplete:tab: widget-style tab_style ||
       tab_style='complete-word'
