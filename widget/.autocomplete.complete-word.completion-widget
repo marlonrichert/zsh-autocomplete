@@ -3,7 +3,7 @@ builtin autoload -Uz .autocomplete.complete-word.post
 
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
-if  [[ $WIDGET == *-select ]] ||
+if  [[ $WIDGET == *menu-* ]] ||
     ( ( [[ "$KEYS" == "$key[Shift-Tab]" ]] ||
         zstyle -t ":autocomplete:${(kL)key[(Re)$KEYS]}:" insert-unambiguous
       ) && [[
@@ -15,7 +15,9 @@ if  [[ $WIDGET == *-select ]] ||
 elif [[ -n $compstate[old_list] ]]; then
   compstate[old_list]=keep
   [[ "$KEYS" == "$key[Shift-Tab]" && $_lastcomp[tags] == *all-matches ]] &&
-    compstate[insert]=all
+      compstate[insert]=all
   _main_complete -
+else
+  _main_complete
 fi
 return 0  # Prevent beeping.
