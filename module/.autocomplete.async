@@ -179,66 +179,68 @@ bindkey -s -M menuselect '^S' '^G^S'
   emulate -L zsh; setopt $_autocomplete__options
 
   local -i fd=${(P)1} pid=${(P)2}
-  if (( pid )); then
-    [[ -o MONITOR ]] &&
-        (( pid *= -1 ))
-    kill -KILL $pid 2>/dev/null
-  fi
-  if (( fd )) && { : <&$fd } 2>/dev/null; then
+  if (( fd )); then
     zle -F $fd 2>/dev/null
     exec {fd}<&-
+  fi
+  if (( pid )); then
+    [[ -o monitor ]] &&
+        (( pid *= -1 ))
+    kill -KILL $pid 2>/dev/null
   fi
   unset $1 $2
 }
 
 .autocomplete.async.start() {
   setopt $_autocomplete__options
-
   local +h -F SECONDS=0
-
-  .autocomplete.async.stop
-
   local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
       min_delay=0
 
+  .autocomplete.async.stop
+
+  typeset -gH _autocomplete__async_complete_fd=
   exec {_autocomplete__async_complete_fd}< <(
-    print $sysparams[pid]
-    {
-      local REPLY
-      zpty _autocomplete__zpty .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
-      zpty -w _autocomplete__zpty $'\t'
+    () {
+      {
+        local REPLY
+        zpty _autocomplete__zpty .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
+        zpty -w _autocomplete__zpty $'\t'
 
-      local line
-      zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-      zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        local line
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
 
-      # `zselect -t` w/out other args wants an int > 0
-      local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
-      (( timeout > 0 )) &&
-          zselect -t $timeout
-    } always {
-      zpty -d _autocomplete__zpty
-      (( TRY_BLOCK_INTERRUPT > 0 )) ||
-          print -rNC1 - "$SECONDS" "$line"
-    }
+        # `zselect -t` w/out other args wants an int > 0
+        local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
+        (( timeout > 0 )) &&
+            zselect -t $timeout
+      } always {
+        zpty -d _autocomplete__zpty
+        (( TRY_BLOCK_INTERRUPT > 0 )) ||
+            print -rNC1 - "$SECONDS" "$line"
+      }
+    } "$@" 2>>| $_autocomplete__log_file
   )
-  read -u $_autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  typeset -gHi _autocomplete__async_complete_pid=$sysparams[procsubstpid]
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
+  typeset -gH _autocomplete__async_timeout_fd=
   exec {_autocomplete__async_timeout_fd}< <(
-    print $sysparams[pid]
-    {
-      local -i timeout=$((
-        100.0 * (min_delay - SECONDS + 10.0 * _autocomplete__async_avg_duration)
-      ))
-      (( timeout > 0 )) &&
-          zselect -t $timeout
-    } always {
-      (( TRY_BLOCK_INTERRUPT ))
-      print $?
-    }
+    () {
+      {
+        local -i timeout=$((
+          100.0 * (min_delay - SECONDS + 10.0 * _autocomplete__async_avg_duration)
+        ))
+        (( timeout > 0 )) &&
+            zselect -t $timeout
+      } always {
+        (( TRY_BLOCK_INTERRUPT ))
+        print $?
+      }
+    } "$@" 2>>| $_autocomplete__log_file
   )
-  read -u $_autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  typeset -gHi _autocomplete__async_timeout_pid=$sysparams[procsubstpid]
   zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
 
   [[ -v functions[_zsh_autosuggest_highlight_apply] && -n $MENUSELECT ]] &&
@@ -276,7 +278,7 @@ bindkey -s -M menuselect '^S' '^G^S'
     builtin bindkey $'\t' .autocomplete.async.pty.zle-widget
     local __tmp__
     builtin vared __tmp__
-  } "$@" 2>&$_autocomplete__log_fd
+  } "$@" 2>>| $_autocomplete__log_file
 }
 
 .autocomplete.async.pty.no-op() {
@@ -284,52 +286,50 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.pty.zle-widget() {
-  () {
-    LBUFFER=$lbuffer
-    RBUFFER=$rbuffer
-    builtin zle .autocomplete.async.pty.completion-widget -w
-  } "$@" 2>&$_autocomplete__log_fd
+  LBUFFER=$lbuffer
+  RBUFFER=$rbuffer
+  builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
 }
 
 .autocomplete.async.pty.completion-widget() {
   () {
-    local curcontext=${curcontext:-${WIDGET}:::}
-    unset 'compstate[vared]'
-    local +h -a comppostfuncs=( .autocomplete.async.pty.message )
     {
+      local curcontext=${curcontext:-${WIDGET}:::}
+      unset 'compstate[vared]'
+      local +h -a comppostfuncs=( .autocomplete.async.pty.message )
       .autocomplete.async.list-choices.main-complete
     } always {
       builtin print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
+      compstate[insert]=''
+      compstate[list]=''
+      compstate[list_max]=0
     }
-    compstate[insert]=''
-    compstate[list]=''
-    compstate[list_max]=0
-  } "$@" 2>&$_autocomplete__log_fd
+  } "$@" 2>>| $_autocomplete__log_file
 }
 
 .autocomplete.async.pty.message() {
-  () {
-    typeset -gH _message_=$mesg
-  } "$@" 2>&$_autocomplete__log_fd
+  typeset -gH _message_=$mesg
 }
 
 .autocomplete.async.complete.fd-widget() {
-  .autocomplete.zle-flags ||
-      return 0
-
   setopt $_autocomplete__options
-  setopt NO_completeinword; [[ -z $curcontext ]] ||
-      setopt completeinword
 
-  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  .autocomplete.zle-flags
+  local -i flags=$?
+
+  [[ $1 != $_autocomplete__async_complete_fd ]] &&
+      return 0
 
   local -F seconds
   local -i nmatches
   local message rest
   {
-    [[ $2 == (|hup) ]] &&
+    (( flags )) &&
+        return 0
+    [[ -z $2 ]] &&
         IFS=$'\0' read -ru $1 seconds nmatches message rest
   } always {
+    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
     .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   }
 
@@ -338,8 +338,9 @@ bindkey -s -M menuselect '^S' '^G^S'
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
   setopt promptsubst
+  setopt NO_completeinword; [[ -z $curcontext ]] || setopt completeinword
   local +h PS4=$_autocomplete__ps4
-  if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2>&$_autocomplete__log_fd; then
+  if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2> /dev/null; then
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
         _zsh_autosuggest_highlight_apply
@@ -353,32 +354,33 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.list-choices.completion-widget() {
-  local -i nmatches=$1
-  local message=$2
+  () {
+    local -i nmatches=$1
+    local message=$2
 
-  local min_input; zstyle -s :autocomplete: min-input min_input ||
-      min_input=0
-  local ignored; zstyle -s :autocomplete: ignored-input ignored
+    local min_input; zstyle -s :autocomplete: min-input min_input ||
+        min_input=0
+    local ignored; zstyle -s :autocomplete: ignored-input ignored
 
-  local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
-  if [[ -n $curcontext ]]; then
-    _main_complete
-  elif (( $#words[@] == 1 && $#words[CURRENT] < min_input )) ||
-      [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
-    zle -Rc
-  elif (( nmatches == 0 )); then
-    if [[ -n $message ]]; then
-      local msg
-      zformat -f msg "$message"
-      compadd -x "$msg"
-    else
+    local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
+    if [[ -n $curcontext ]]; then
+      _main_complete
+    elif (( $#words[@] == 1 && $#words[CURRENT] < min_input )) ||
+        [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
       zle -Rc
+    elif (( nmatches == 0 )); then
+      if [[ -n $message ]]; then
+        local msg
+        zformat -f msg "$message"
+        compadd -x "$msg"
+      else
+        zle -Rc
+      fi
+    else
+      local curcontext=list-choices:::
+      .autocomplete.async.list-choices.main-complete
     fi
-  else
-    local curcontext=list-choices:::
-    .autocomplete.async.list-choices.main-complete
-  fi
-
+  } "$@" 2>>| $_autocomplete__log_file
   return 2
 }
 

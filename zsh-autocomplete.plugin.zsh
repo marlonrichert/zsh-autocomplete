@@ -10,7 +10,7 @@ setopt NO_singlelinezle
     .zinit-shade-off "${___mode:-load}"
 
   typeset -gHa _autocomplete__options=(
-    clobber localoptions localtraps extendedglob rcquotes
+    localoptions extendedglob clobber
     NO_banghist NO_listbeep NO_shortloops NO_warncreateglobal
   )
   setopt $_autocomplete__options
