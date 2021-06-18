@@ -69,30 +69,17 @@ bindkey -M viins $key[PageDown] menu-select
 
 bindkey -M menuselect $key[Return]        .accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold
-case $( bindkey -lL main ) in
-  ( *emacs* )
-    bindkey -M menuselect '^[f' .forward-word
-    bindkey -M menuselect '^[F' .forward-word
-    bindkey -M menuselect '^[b' .backward-word
-    bindkey -M menuselect '^[B' .backward-word
-    bindkey -M menuselect '^A'  .beginning-of-line
-    bindkey -M menuselect '^E'  .end-of-line
-  ;;
-  ( *vi* )
-    bindkey -M menuselect 'b'  .vi-backward-word
-    bindkey -M menuselect 'B'  .vi-backward-blank-word
-    bindkey -M menuselect 'ge' .vi-backward-word-end
-    bindkey -M menuselect 'gE' .vi-backward-blank-word-end
-    bindkey -M menuselect 'w'  .vi-forward-word
-    bindkey -M menuselect 'W'  .vi-forward-blank-word
-    bindkey -M menuselect 'e'  .vi-forward-word-end
-    bindkey -M menuselect 'E'  .vi-forward-blank-word-end
-    bindkey -M menuselect '$'  .vi-end-of-line
-  ;;
-esac
 bindkey -M menuselect $key[Escape]$key[Up]   vi-backward-blank-word
 bindkey -M menuselect $key[Escape]$key[Down] vi-forward-blank-word
 bindkey -M menuselect $key[PageUp]           backward-word
 bindkey -M menuselect $key[PageDown]         forward-word
 bindkey -M menuselect $key[Home]             beginning-of-history
 bindkey -M menuselect $key[End]              end-of-history
+bindkey -M menuselect '^?' .backward-delete-char
+bindkey -M menuselect '^H' .backward-delete-char
+bindkey -M menuselect '^[f' .forward-word
+bindkey -M menuselect '^[F' .forward-word
+bindkey -M menuselect '^[b' .backward-word
+bindkey -M menuselect '^[B' .backward-word
+bindkey -M menuselect '^A'  .beginning-of-line
+bindkey -M menuselect '^E'  .end-of-line

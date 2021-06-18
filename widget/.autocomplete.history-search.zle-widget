@@ -1,5 +1,6 @@
 #!/bin/zsh
 local 0=${(%):-%N}
+zle -C ${0}.context list-choices ${0}.context
 
 ${0}.context() {
   lcontext=${LBUFFER%${(~j:*:)words[1,CURRENT-1]}*$QIPREFIX$IPREFIX$PREFIX}
@@ -7,27 +8,18 @@ ${0}.context() {
   rcontext=${RBUFFER#$SUFFIX$ISUFFIX$QISUFFIX*${(~j:*:)words[CURRENT+1,-1]}}
 }
 
-zle -C ${0}.context list-choices ${0}.context
-
 ${0}() {
   local 0=${(%):-%N}
   setopt localoptions completeinword
 
-  local -i ret=1
+  local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+  local keymap_menuselect="$( bindkey -M menuselect -L )"
   {
-    local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-    local keymap_menuselect="$(bindkey -M menuselect -L)"
 
-    case $( bindkey -lL main ) in
-      *emacs* )
-        bindkey -M menuselect $key[Left] .backward-char
-        bindkey -M menuselect $key[Right] .forward-char
-        ;;
-      *vi* )
-        bindkey -M menuselect $key[Left] .vi-backward-char
-        bindkey -M menuselect $key[Right] .vi-forward-char
-        ;;
-    esac
+    bindkey -M menuselect -s '^R' '^_^_^R'
+    bindkey -M menuselect -s '^S' '^_^_^S'
+    bindkey -M menuselect $key[Left] .backward-char
+    bindkey -M menuselect $key[Right] .forward-char
 
     local lcontext rcontext
     zle ${0}.context
@@ -43,9 +35,12 @@ ${0}() {
       LBUFFER="$lbuffer"
       RBUFFER="$rbuffer"
     fi
+    bindkey -M menuselect -r '^R'
+    bindkey -M menuselect -r '^S'
+    bindkey -M menuselect -r $key[Left]
+    bindkey -M menuselect -r $key[Right]
     eval "$keymap_menuselect"
   }
-  return ret
 }
 
 $0 "$@"
