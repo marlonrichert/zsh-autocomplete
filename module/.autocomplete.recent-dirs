@@ -7,19 +7,19 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
   if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
     _autocomplete.recent_dirs() {
-      reply=( ${(f)"$( zshz --complete -l $1 2>/dev/null )"} )
+      reply=( ${(f)"$( zshz --complete -l $1 2> /dev/null )"} )
     }
 
   elif [[ -v commands[zoxide] && -v functions[__zoxide_hook] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
     _autocomplete.recent_dirs() {
-      reply=( ${(f)"$( zoxide query --list $1 2>/dev/null )"} )
+      reply=( ${(f)"$( zoxide query --list $1 2> /dev/null )"} )
     }
 
   elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
     _autocomplete.recent_dirs() {
-      reply=( ${${(f)"$( _zlua --complete $1 2>/dev/null )"}##<->[[:space:]]##} )
+      reply=( ${${(f)"$( _zlua --complete $1 2> /dev/null )"}##<->[[:space:]]##} )
     }
 
   elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
@@ -31,14 +31,14 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
   elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
     _autocomplete.recent_dirs() {
-      reply=( ${${(f)"$( autojump --complete $1 2>/dev/null )"}##${1}__<->__} )
+      reply=( ${${(f)"$( autojump --complete $1 2> /dev/null )"}##${1}__<->__} )
     }
 
   elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
       zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
 
     _autocomplete.recent_dirs() {
-      reply=( ${(f)"$( fasd -dlR $1 2>/dev/null )"} )
+      reply=( ${(f)"$( fasd -dlR $1 2> /dev/null )"} )
     }
 
   elif builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler &&
@@ -70,11 +70,12 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       reply=( $dirstack[@] )
 
       local ancestor=$PWD:h
-      while [[ $ancestor != '/' ]]; do
+      while [[ $ancestor != / ]]; do
         reply=( ${reply[@]:#$ancestor} )
         ancestor=$ancestor:h
       done
-      reply=( ${reply[@]:#$PWD(|/[^/]#)} )
+      _autocomplete.sort_by_length ${(D)reply[@]:#$PWD(|/[^/]#)}
+      reply=( $~reply[@] )
 
       (( $#reply[@] ))
     }
@@ -84,7 +85,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
 
     _autocomplete.recent_files() {
-      reply=( $( fasd -flR $1 2>/dev/null ) )
+      reply=( $( fasd -flR $1 2> /dev/null ) )
     }
   fi
 }

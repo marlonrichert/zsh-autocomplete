@@ -46,7 +46,7 @@ _autocomplete.recent_paths() {
     local total="${(j:/  :)displ}/  "
     while (( $#total > COLUMNS )); do
       shift -p -- displ matches
-      local total="${(j:/  :)displ}/  "
+      total="${(j:/  :)displ}/  "
     done
   }
 
