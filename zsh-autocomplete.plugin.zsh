@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-setopt NO_singlelinezle
+setopt NO_flowcontrol NO_singlelinezle
 () {
   emulate -L zsh -o NO_aliases
   zmodload -Fa zsh/parameter p:functions

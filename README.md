@@ -65,6 +65,8 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>Enter</kbd> | Accept command line |
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search / Previous search match |
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search / Next search match |
 
 ### History Menu
 | Key(s) | Action |

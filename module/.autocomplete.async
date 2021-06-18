@@ -12,8 +12,6 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
 zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
-bindkey -s -M menuselect '^R' '^G^R'
-bindkey -s -M menuselect '^S' '^G^S'
 
 .autocomplete.async.precmd() {
   typeset -gHF _autocomplete__async_avg_duration
