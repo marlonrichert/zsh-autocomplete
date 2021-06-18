@@ -38,8 +38,8 @@ _autocomplete.history_lines() {
     local -aU queries results reply
     if [[ $curcontext == *-incremental-*:* ]]; then
       local word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
-      local lbuffer="${words[1,CURRENT-1]}[[:space:]]#"
-      local rbuffer="[[:space:]]#${words[CURRENT+1,-1]}"
+      local lbuffer="${words[1,CURRENT-1]}[[:blank:]]#"
+      local rbuffer="[[:blank:]]#${words[CURRENT+1,-1]}"
       queries=( "$lbuffer*((#ia"{0..$(( min(7, $#word / 3) ))}")${(b)word})*$rbuffer" )
     else
       queries=( '(#ia'{0..$(( min(7, $#words / 3) ))}')*'${words[CURRENT]//$'\0'/*}'*' )
@@ -96,7 +96,7 @@ _autocomplete.history_lines() {
     sopt=( -S ';' -r '^ ' )
   fi
 
-  local -a matches=( "${displays[@]##[[:space:]]#<->:}" )
+  local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
   [[ $curcontext == *-incremental-* ]] &&
       matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
 
