@@ -109,6 +109,8 @@ bindkey -s -M menuselect '^S' '^G^S'
   else
     typeset -gH curcontext=${WIDGET}:::
   fi
+  [[ -o sharehistory ]] &&
+      fc -RI  # Get new history events from file.
   .autocomplete.async.start
 }
 

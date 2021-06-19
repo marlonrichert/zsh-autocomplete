@@ -34,7 +34,9 @@ ${0}() {
     LBUFFER="$lcontext"
     RBUFFER="$rcontext"
 
-    zle _history_search; ret=$?
+    [[ -o sharehistory ]] &&
+        fc -RI  # Get new history events from file.
+    zle _history_search
 
   } always {
     if [[ $BUFFER == $lcontext$rcontext ]] then
