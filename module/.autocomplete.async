@@ -164,8 +164,12 @@ bindkey -s -M menuselect '^S' '^G^S'
 }
 
 .autocomplete.async.stop() {
-  .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-  .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+  .autocomplete.async.close $_autocomplete__async_complete_fd
+  .autocomplete.async.close $_autocomplete__async_timeout_fd
+  .autocomplete.async.kill $_autocomplete__async_complete_pid
+  .autocomplete.async.kill $_autocomplete__async_timeout_pid
+  unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid \
+    _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
   return 0
 }
 
@@ -177,25 +181,9 @@ bindkey -s -M menuselect '^S' '^G^S'
   return 0
 }
 
-.autocomplete.async.kill() {
-  emulate -L zsh; setopt $_autocomplete__options
-
-  local -i fd=${(P)1} pid=${(P)2}
-  if (( fd )); then
-    zle -F $fd 2>/dev/null
-    exec {fd}<&-
-  fi
-  if (( pid )); then
-    [[ -o monitor ]] &&
-        (( pid *= -1 ))
-    kill -KILL $pid 2>/dev/null
-  fi
-  unset $1 $2
-}
-
 .autocomplete.async.start() {
   setopt $_autocomplete__options
-  local +h -F SECONDS=0
+  local +h -F SECONDS=0.0
   local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
       min_delay=0
 
@@ -220,7 +208,7 @@ bindkey -s -M menuselect '^S' '^G^S'
       } always {
         zpty -d _autocomplete__zpty
         (( TRY_BLOCK_INTERRUPT > 0 )) ||
-            print -rNC1 - "$SECONDS" "$line"
+            print -rNC1 -- "$sysparams[pid]" "$SECONDS" "$line"
       }
     } "$@" 2>>| $_autocomplete__log_file
   )
@@ -238,7 +226,7 @@ bindkey -s -M menuselect '^S' '^G^S'
             zselect -t $timeout
       } always {
         (( TRY_BLOCK_INTERRUPT ))
-        print $?
+        print -rNC1 -- "$sysparams[pid]" "$?"
       }
     } "$@" 2>>| $_autocomplete__log_file
   )
@@ -264,7 +252,7 @@ bindkey -s -M menuselect '^S' '^G^S'
         builtin setopt completeinword
 
     local hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
-    builtin unset ${^hooks}_functions &>/dev/null
+    builtin unset ${^hooks}_functions &> /dev/null
 
     $hooks[@] () {
       :
@@ -313,27 +301,78 @@ bindkey -s -M menuselect '^S' '^G^S'
   typeset -gH _message_=$mesg
 }
 
-.autocomplete.async.complete.fd-widget() {
-  setopt $_autocomplete__options
+.autocomplete.async.close() {
+  [[ $1 == <-> ]] ||
+      return
 
-  .autocomplete.zle-flags
-  local -i flags=$?
+  local fd=$1
+  zle -F $fd 2> /dev/null
+  exec {fd}<&-
+}
 
-  [[ $1 != $_autocomplete__async_complete_fd ]] &&
+.autocomplete.async.kill() {
+  [[ $1 == <-> ]] ||
+      return
+
+  local pid=$1
+  [[ -o monitor ]] &&
+      (( pid *= -1 ))
+  kill -TERM $pid 2> /dev/null
+}
+
+.autocomplete.async.timeout.fd-widget() {
+  local -i fd=$1
+  {
+    zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
+    unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
+    .autocomplete.zle-flags
+
+    setopt $_autocomplete__options
+    local pid timedout
+    [[ -z $2 ]] &&
+        IFS=$'\0' read -ru $fd pid timedout
+  } always {
+    exec {fd}<&-
+    .autocomplete.async.kill $pid
+  }
+
+  [[ $timedout == 1 ]] ||
       return 0
 
-  local -F seconds
-  local -i nmatches
-  local message rest
+  .autocomplete.async.close $_autocomplete__async_complete_fd
+  .autocomplete.async.kill $_autocomplete__async_complete_pid
+  unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+  (( _autocomplete__async_avg_duration *= 1.1 ))
+  return 0
+}
+
+.autocomplete.async.complete.fd-widget() {
   {
-    (( flags )) &&
-        return 0
-    [[ -z $2 ]] &&
-        IFS=$'\0' read -ru $1 seconds nmatches message rest
+    local -i fd=$1
+    zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
+
+    # Stop the timeout process immediately, so it doesn't interrupt us.
+    .autocomplete.async.close $_autocomplete__async_timeout_fd
+    .autocomplete.async.kill $_autocomplete__async_timeout_pid
+    unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid \
+        _autocomplete__async_complete_fd _autocomplete__async_complete_pid
   } always {
-    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
-    .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+    {
+      .autocomplete.zle-flags ||
+          return 0
+
+      setopt $_autocomplete__options
+      local pid seconds nmatches message rest
+      [[ -z $2 ]] &&
+          IFS=$'\0' read -ru $1 pid seconds nmatches message rest
+    } always {
+      exec {fd}<&-
+      .autocomplete.async.kill $pid
+    }
   }
+
+  [[ $seconds == <->.<-> ]] ||
+      return 0
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
 
@@ -558,24 +597,4 @@ bindkey -s -M menuselect '^S' '^G^S'
   fi
   _autocomplete.compadd_opts_len "$@"
   .autocomplete.compadd "${(@)@[1,?]}" $dopt -a _matches_
-}
-
-.autocomplete.async.timeout.fd-widget() {
-  .autocomplete.zle-flags ||
-      return 0
-
-  local -i timedout=0
-  {
-    [[ $2 == (|hup) ]] &&
-        read -ru $1 timedout
-  } always {
-    .autocomplete.async.kill _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid
-  }
-
-  (( timedout )) ||
-      return 0
-
-  (( _autocomplete__async_avg_duration *= 1.1 ))
-  .autocomplete.async.kill _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-  return 0
 }
