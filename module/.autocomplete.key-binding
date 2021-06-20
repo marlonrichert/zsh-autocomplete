@@ -55,11 +55,11 @@ bindkey -M viins $key[Up] up-line-or-search
 bindkey -M emacs $key[Down] down-line-or-select
 bindkey -M viins $key[Down] down-line-or-select
 
-bindkey -M emacs $key[Escape]$key[Up] up-line
-bindkey -M vicmd $key[Up]             up-line
+bindkey -M emacs $key[Alt-Up] up-line
+bindkey -M vicmd $key[Up]     up-line
 
-bindkey -M emacs $key[Escape]$key[Down] down-line
-bindkey -M vicmd $key[Down]             down-line
+bindkey -M emacs $key[Alt-Down] down-line
+bindkey -M vicmd $key[Down]     down-line
 
 bindkey -M emacs $key[PageUp] history-search
 bindkey -M viins $key[PageUp] history-search
@@ -69,14 +69,14 @@ bindkey -M viins $key[PageDown] menu-select
 
 bindkey -M menuselect $key[Return]        .accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold
-bindkey -M menuselect $key[Escape]$key[Up]   vi-backward-blank-word
-bindkey -M menuselect $key[Escape]$key[Down] vi-forward-blank-word
-bindkey -M menuselect $key[PageUp]           backward-word
-bindkey -M menuselect $key[PageDown]         forward-word
-bindkey -M menuselect $key[Home]             beginning-of-history
-bindkey -M menuselect $key[End]              end-of-history
-bindkey -M menuselect '^?' .backward-delete-char
-bindkey -M menuselect '^H' .backward-delete-char
+bindkey -M menuselect $key[Alt-Up]        vi-backward-blank-word
+bindkey -M menuselect $key[Alt-Down]      vi-forward-blank-word
+bindkey -M menuselect $key[PageUp]        backward-word
+bindkey -M menuselect $key[PageDown]      forward-word
+bindkey -M menuselect $key[Home]          beginning-of-history
+bindkey -M menuselect $key[End]           end-of-history
+bindkey -M menuselect '^?'  .backward-delete-char
+bindkey -M menuselect '^H'  .backward-delete-char
 bindkey -M menuselect '^[f' .forward-word
 bindkey -M menuselect '^[F' .forward-word
 bindkey -M menuselect '^[b' .backward-word
