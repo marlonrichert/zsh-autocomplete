@@ -54,25 +54,27 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 ### Completion Menu
 | Key(s) | Action |
 | ------ | ------ |
-| <kbd>↑</kbd>/<kbd>↓</kbd>/<kbd>←</kbd>/<kbd>→</kbd> | Change selection |
+| <kbd>↑</kbd> / <kbd>↓</kbd> / <kbd>←</kbd> / <kbd>→</kbd> | Change selection |
 | <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
-| <kbd>PgUp</kbd>/<kbd>PgDn</kbd> | Page up/down |
-| <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
+| <kbd>PgUp</kbd> / <kbd>PgDn</kbd> | Page up/down |
+| <kbd>Home</kbd> / <kbd>End</kbd> | Beginning/End of menu |
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search or previous search match |
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search or next search match |
+| <kbd>Tab</kbd> | Accept selected completion |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
-| <kbd>Tab</kbd> | Accept selection |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Reject selection |
 | <kbd>Enter</kbd> | Accept command line |
 
 ### History Menu
 | Key(s) | Action |
 | --- | --- |
+| <kbd>←</kbd>/<kbd>→</kbd> | Accept selection & move cursor |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
 | <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
+| <kbd>Tab</kbd> | Accept selected completion |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
-| <kbd>←</kbd>/<kbd>→</kbd> | Accept selection & move cursor |
-| <kbd>Tab</kbd> | Accept selection |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Reject selection |
 | <kbd>Enter</kbd> | Accept command line |
 
 ## Requirements
