@@ -52,20 +52,18 @@ bindkey -M viins $key[Control-Space] list-expand
 bindkey -M emacs $key[Up] up-line-or-search
 bindkey -M viins $key[Up] up-line-or-search
 
+bindkey -M emacs $key[Alt-Up] history-search
+bindkey -M emacs $key[PageUp] history-search
+bindkey -M viins $key[PageUp] history-search
+bindkey -M vicmd $key[Up]     history-search
+
 bindkey -M emacs $key[Down] down-line-or-select
 bindkey -M viins $key[Down] down-line-or-select
 
-bindkey -M emacs $key[Alt-Up] up-line
-bindkey -M vicmd $key[Up]     up-line
-
-bindkey -M emacs $key[Alt-Down] down-line
-bindkey -M vicmd $key[Down]     down-line
-
-bindkey -M emacs $key[PageUp] history-search
-bindkey -M viins $key[PageUp] history-search
-
+bindkey -M emacs $key[Alt-Down] menu-select
 bindkey -M emacs $key[PageDown] menu-select
 bindkey -M viins $key[PageDown] menu-select
+bindkey -M vicmd $key[Down]     menu-select
 
 bindkey -M menuselect $key[Return]        .accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold

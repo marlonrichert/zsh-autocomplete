@@ -37,17 +37,15 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 ![recent dirs](.img/recent-dirs.png)
 
 ## Key Bindings
-| Key(s) | Action | <sub>[Widget](#change-other-key-bindings)</sub> |
+| Key(s) | Action | <sub>[Widget](.zshrc)</sub> |
 | ------ | ------ | --- |
 | <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`complete-word`</sub> |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or history menu | <sub>`up-line-or-search`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
-| <kbd>Alt</kbd><kbd>↑</kbd> | Cursor up (always) | <sub>`up-line`</sub> |
-| <kbd>Alt</kbd><kbd>↓</kbd> | Cursor down (always) | <sub>`down-line`</sub> |
-| <kbd>PgUp</kbd> | History menu (always) | <sub>`history-search`</sub> |
-| <kbd>PgDn</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
+| <kbd>PgUp</kbd> / <kbd>Alt</kbd><kbd>↑</kbd> | History menu (always) | <sub>`history-search`</sub> |
+| <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>Ctrl</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
