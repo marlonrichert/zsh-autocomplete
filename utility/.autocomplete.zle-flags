@@ -3,23 +3,23 @@ emulate -L zsh; setopt $_autocomplete__options
 
 # If no arg, assume same widget as last time.
 [[ -n $1 ]] &&
-  typeset -gH _autocomplete__last_widget="$1"
+    typeset -gH _autocomplete__last_widget="$1"
 
 # Return 0 to continue, 1 to abort.
 case $_autocomplete__last_widget in
-  *kill* )
+  ( *kill-*~vi-* )
     zle -f kill
     return 0
-    ;;
-  *yank* | bracketed-paste | put-after )
+  ;;
+  ( *yank*~vi-* | vi-*put-*after | bracketed-paste )
     zle -f yank
     return 1
-    ;;
-  put-before )
+  ;;
+  ( vi-*put-*before )
     zle -f yankbefore
     return 1
-    ;;
-  * )
+  ;;
+  ( * )
     return 0
-    ;;
+  ;;
 esac

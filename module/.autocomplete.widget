@@ -24,7 +24,7 @@ zmodload zsh/complist
   done
   .autocomplete.widget.c reverse-menu-complete reverse-menu-complete complete-word
 
-  # Declare these again, because compinit overrides them. See below.
+  # Declare these again (see below), because compinit overrides some of them.
   .autocomplete.widget.non-tab
 
   unfunction .autocomplete.widget.c .autocomplete.widget.z

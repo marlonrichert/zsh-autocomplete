@@ -19,7 +19,7 @@ compdef() {
 
 .autocomplete.compinit.precmd() {
   [[ -z $CDPATH ]] &&
-    unset cdpath CDPATH
+      unset CDPATH cdpath
 
   # Decrease Oh My Zsh start-up time. See below.
   [[ -v ZSH_COMPDUMP ]] &&
@@ -48,13 +48,13 @@ compdef() {
   fi
 
   if ! [[ -v _comp_setup && -f $_comp_dumpfile ]]; then
-    unfunction compdef compinit 2>/dev/null
+    unfunction compdef compinit 2> /dev/null
     builtin autoload -Uz compinit
     compinit -C -d $_comp_dumpfile
 
     # Prevent Oh My Zsh from deleting comp dump file.
     (( $#omzdump > 0 )) &&
-      tee -a "$ZSH_COMPDUMP" &>/dev/null <<EOF
+      tee -a "$ZSH_COMPDUMP" &> /dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
 EOF
@@ -82,7 +82,7 @@ EOF
   )
   .autocomplete.compinit.zle-f() {
     exec {1}<&-
-    zle -F $1 2>/dev/null
+    zle -F $1 2> /dev/null
     unfunction ${(%):-%N}
   }
   zle -F "$fd" .autocomplete.compinit.zle-f
