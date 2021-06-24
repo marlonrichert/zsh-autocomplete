@@ -75,28 +75,27 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   emulate -L zsh; setopt $_autocomplete__options
 
   # Cursor position report (u6) always contains two %d markers.
-  local -a cpr=( "${(s:%d:)$( echoti u6 )}" )
+  local -a CPR=( "${(s:%d:)$( echoti u6 )}" )
 
   # If there is a %i before the first %d, then decrement both %d values by 1.
-  local -i i=${${${(M)cpr[1]%'%i'}:+1}:-0}
-  cpr[1]=${cpr[1]%'%i'}
+  local -i i=${${${(M)CPR[1]%'%i'}:+1}:-0}
+  CPR[1]=${CPR[1]%'%i'}
 
-  # Send cursor position request (u7).
-  local REPLY Y X
-  echoti u7
+  local REPLY Y
+  echoti u7 # Send cursor position request.
 
   # Parse the cursor position report.
-  read -rsk $#cpr[1]
-  while [[ $REPLY != $cpr[2] ]]; do
+  read -rsk $#CPR[1]  # Discard the preamble.
+  while [[ $REPLY != $CPR[2] ]]; do
     read -rsk
     Y+=$REPLY
   done
-  Y="${Y%$cpr[2]}"
-  while [[ $REPLY != $cpr[3] ]]; do
+  Y="${Y%$CPR[2]}"  # Discard the separator.
+
+  # Flush the rest.
+  while [[ $REPLY != $CPR[3] ]]; do
     read -rsk
-    X+=$REPLY
   done
-  X="${X%$cpr[3]}"
 
   _autocomplete__buffer_start_line=$(( Y - i ))
 }
