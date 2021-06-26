@@ -24,7 +24,6 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       .autocomplete.async.pty.completion-widget
   zle -N .autocomplete.async.complete.fd-widget
   zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
-  zle -N .autocomplete.async.timeout.fd-widget
 
   if [[ -v functions[_zsh_highlight_call_widget] ]]; then
     _zsh_highlight_call_widget() {
@@ -162,9 +161,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 
 .autocomplete.async.stop() {
   .autocomplete.async.close _autocomplete__async_complete_fd
-  .autocomplete.async.close _autocomplete__async_timeout_fd
   .autocomplete.async.kill _autocomplete__async_complete_pid
-  .autocomplete.async.kill _autocomplete__async_timeout_pid
   return 0
 }
 
@@ -176,57 +173,64 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   return 0
 }
 
+.autocomplete.async.close() {
+  local fd=${(P)1}
+  unset $1
+
+  [[ $fd == <-> ]] ||
+      return
+
+  zle -F $fd 2> /dev/null
+  exec {fd}<&-
+}
+
+.autocomplete.async.kill() {
+  local pid=${(P)1}
+  unset $1
+
+  [[ $pid == <-> ]] ||
+      return
+
+  [[ -o monitor ]] &&
+      (( pid *= -1 ))
+  kill -TERM $pid 2> /dev/null
+}
+
 .autocomplete.async.start() {
   setopt $_autocomplete__options
-  local +h -F SECONDS=0.0
-  local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
-      min_delay=0
 
   .autocomplete.async.stop
 
   typeset -gH _autocomplete__async_complete_fd=
   exec {_autocomplete__async_complete_fd}< <(
+    PS4=$_autocomplete__ps4
     () {
       {
-        local REPLY
-        zpty _autocomplete__zpty .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
-        zpty -w _autocomplete__zpty $'\t'
+        typeset -F SECONDS=0.0
+        local REPLY output
+        zpty autocomplete .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
+        zpty -w autocomplete $'\t'
+        zpty -r autocomplete output $'*\C-B'
 
-        local line
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
-        zpty -r _autocomplete__zpty line '*'$'\0'$'\0'
+        local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
+            min_delay=0
+        local -i wait
+        (( wait = 100.0 * ( min_delay - SECONDS ) ))
+        (( wait > 0 )) &&
+            zselect -t $wait
 
-        # `zselect -t` w/out other args wants an int > 0
-        local -i timeout=$(( 100.0 * (min_delay - SECONDS) ))
-        (( timeout > 0 )) &&
-            zselect -t $timeout
+        (( wait = 100.0 * ( min_delay - SECONDS + ( 10.0 * _autocomplete__async_avg_duration ) ) ))
+        if zselect -rt $wait $REPLY; then
+          zpty -r autocomplete output $'*\C-C'
+          print -rNC1 -- "$SECONDS" "$output"
+        fi
       } always {
-        zpty -d _autocomplete__zpty
-        (( TRY_BLOCK_INTERRUPT > 0 )) ||
-            print -rNC1 -- "$sysparams[pid]" "$SECONDS" "$line"
+        zpty -d autocomplete
       }
     } "$@" 2>>| $_autocomplete__log_file
   )
   typeset -gHi _autocomplete__async_complete_pid=$sysparams[procsubstpid]
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
-
-  typeset -gH _autocomplete__async_timeout_fd=
-  exec {_autocomplete__async_timeout_fd}< <(
-    () {
-      {
-        local -i timeout=$((
-          100.0 * (min_delay - SECONDS + 10.0 * _autocomplete__async_avg_duration)
-        ))
-        (( timeout > 0 )) &&
-            zselect -t $timeout
-      } always {
-        (( TRY_BLOCK_INTERRUPT ))
-        print -rNC1 -- "$sysparams[pid]" "$?"
-      }
-    } "$@" 2>>| $_autocomplete__log_file
-  )
-  typeset -gHi _autocomplete__async_timeout_pid=$sysparams[procsubstpid]
-  zle -Fw "$_autocomplete__async_timeout_fd" .autocomplete.async.timeout.fd-widget
 
   [[ -v functions[_zsh_autosuggest_highlight_apply] && -n $MENUSELECT ]] &&
       unset POSTDISPLAY
@@ -240,7 +244,6 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   builtin setopt promptsubst
   PS1= RPS1=
   PS4=$_autocomplete__ps4
-
   () {
     builtin setopt $_autocomplete__options
     builtin setopt NO_completeinword; [[ -z $curcontext ]] ||
@@ -277,105 +280,39 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty.completion-widget() {
-  () {
-    {
-      local curcontext=${curcontext:-${WIDGET}:::}
-      unset 'compstate[vared]'
-      local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-      .autocomplete.async.list-choices.main-complete
-    } always {
-      builtin print -rNC1 - '' '' "$compstate[nmatches]" "${(q+)_message_}" ''
-      compstate[insert]=''
-      compstate[list]=''
-      compstate[list_max]=0
-    }
-  } "$@" 2>>| $_autocomplete__log_file
-}
+  {
+    local curcontext=${curcontext:-${WIDGET}:::}
+    unset 'compstate[vared]'
+    local +h -a comppostfuncs=( .autocomplete.async.pty.message )
+    builtin print -n '\C-B'
+    .autocomplete.async.list-choices.main-complete
+    builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
+  } always {
+    exit
+  }
+} 2>>| $_autocomplete__log_file
 
 .autocomplete.async.pty.message() {
   typeset -gH _message_=$mesg
 }
 
-.autocomplete.async.close() {
-  local fd=${(P)1}
-  unset $1
-
-  [[ $fd == <-> ]] ||
-      return
-
-  zle -F $fd 2> /dev/null
-  exec {fd}<&-
-}
-
-.autocomplete.async.kill() {
-  local pid=${(P)1}
-  unset $1
-
-  [[ $pid == <-> ]] ||
-      return
-
-  [[ -o monitor ]] &&
-      (( pid *= -1 ))
-  kill -TERM $pid 2> /dev/null
-}
-
-.autocomplete.async.timeout.fd-widget() {
+.autocomplete.async.complete.fd-widget() {
   local -i fd=$1
   {
     zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
-    # Save these, so we can stop them later, if there was a timeout.
-    local complete_fd=$_autocomplete__async_complete_fd
-    local complete_pid=$_autocomplete__async_complete_pid
+    # Ensure our input will not be stopped.
+    unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
 
-    # Unset these, so no one tries to stop them anymore.
-    unset _autocomplete__async_timeout_fd _autocomplete__async_timeout_pid \
-        _autocomplete__async_complete_fd _autocomplete__async_complete_pid
-
-    .autocomplete.zle-flags
+    .autocomplete.zle-flags ||
+        return 0
 
     setopt $_autocomplete__options
-    local pid timedout
+    local seconds nmatches message rest
     [[ -z $2 ]] &&
-        IFS=$'\0' read -ru $fd pid timedout
+        IFS=$'\0' read -ru $fd seconds nmatches message rest
   } always {
     exec {fd}<&-
-    .autocomplete.async.kill pid
-  }
-
-  [[ $timedout != 1 ]] &&
-      return  # We got stopped before any timeout happened.
-
-  .autocomplete.async.close complete_fd
-  .autocomplete.async.kill complete_pid
-  (( _autocomplete__async_avg_duration *= 1.1 ))
-  return 0
-}
-
-.autocomplete.async.complete.fd-widget() {
-  {
-    local -i fd=$1
-    zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
-
-    # Stop the timeout process immediately, so it doesn't interrupt us.
-    .autocomplete.async.close _autocomplete__async_timeout_fd
-    .autocomplete.async.kill _autocomplete__async_timeout_pid
-  } always {
-    {
-      # Unset these, so no one tries to stop us anymore.
-      unset _autocomplete__async_complete_pid _autocomplete__async_complete_fd
-
-      .autocomplete.zle-flags ||
-          return 0
-
-      setopt $_autocomplete__options
-      local pid seconds nmatches message rest
-      [[ -z $2 ]] &&
-          IFS=$'\0' read -ru $1 pid seconds nmatches message rest
-    } always {
-      exec {fd}<&-
-      .autocomplete.async.kill pid
-    }
   }
 
   [[ $seconds == <->.<-> ]] ||
