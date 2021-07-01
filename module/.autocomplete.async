@@ -220,11 +220,12 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
             zselect -t $wait
 
         (( wait = 100.0 * ( min_delay - SECONDS + ( 10.0 * _autocomplete__async_avg_duration ) ) ))
-        if zselect -rt $wait $REPLY; then
-          zpty -r autocomplete output $'*\C-C'
-          print -rNC1 -- "$SECONDS" "$output"
-        fi
+        zselect -rt $wait $REPLY &&
+            zpty -r autocomplete output $'*\C-C'
       } always {
+        # Always produce output, so we always reach the callback, so we can close the fd and unset
+        # $_autocomplete__async_complete_fd (if necessary).
+        print -rNC1 -- "$SECONDS" "$output"
         zpty -d autocomplete
       }
     } "$@" 2>>| $_autocomplete__log_file
