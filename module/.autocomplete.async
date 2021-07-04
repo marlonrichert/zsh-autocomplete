@@ -133,8 +133,13 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 
   unset MENUSELECT
 
+  if [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]]; then
+    zle -R
+    return 0
+  fi
+
   (( KEYS_QUEUED_COUNT || PENDING )) &&
-      return 0
+      return
 
   region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
