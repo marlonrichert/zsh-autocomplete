@@ -9,18 +9,20 @@ bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 Besides live autocompletion, `zsh-autocomplete` comes with many other useful completion features.
 
 ### Optimized completion config
-Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplete` does it for you,
-while providing a manageable list of [settings](#settings) for changing the defaults.
+Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplete` [does it for
+you](module/.autocomplete.config), while providing a manageable list of [configuration
+settings](.zshrc) for changing the defaults.
 
 ### Live history search
-Press <kbd>Ctrl</kbd><kbd>R</kbd> or <kbd>Ctrl</kbd><kbd>S</kbd> to do an interactive,
-multi-line, fuzzy history search.
+Press <kbd>Ctrl</kbd><kbd>R</kbd> or <kbd>Ctrl</kbd><kbd>S</kbd> to do live, multi-line history
+search.
 
 [![history-search](.img/history-search.gif)](https://asciinema.org/a/379844)
 
 ### History menu
-Press <kbd>↑</kbd> or <kbd>PgUp</kbd> to browse the last 16 history items. If the command line is
-not empty, then it will instead list the 16 most recent fuzzy matches.
+Press <kbd>↑</kbd> (or <kbd>Alt</kbd><kbd>↑</kbd> or <kbd>PgUp</kbd>) to open a menu with the last
+16 history items. If the command line is not empty, then the contents of the command line are used
+to perform a fuzzy history search.
 
 ![history menu](.img/history-menu.png)
 
@@ -37,6 +39,8 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 ![recent dirs](.img/recent-dirs.png)
 
 ## Key Bindings
+
+On the command line:
 | Key(s) | Action | <sub>[Widget](.zshrc)</sub> |
 | ------ | ------ | --- |
 | <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
@@ -49,7 +53,7 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | <kbd>Ctrl</kbd><kbd>R</kbd> | Live history search, from newest to oldest | <sub>`history-incremental-search-backward`</sub> |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Live history search, from oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
-### Completion Menu
+In the completion menu:
 | Key(s) | Action |
 | ------ | ------ |
 | <kbd>↑</kbd> / <kbd>↓</kbd> / <kbd>←</kbd> / <kbd>→</kbd> | Change selection |
@@ -59,23 +63,21 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 | <kbd>Home</kbd> / <kbd>End</kbd> | Beginning/End of menu |
 | <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search or previous search match |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search or next search match |
-| <kbd>Tab</kbd> | Accept selected completion |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Tab</kbd> | Accept selection |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Enter</kbd> | Accept command line |
-| <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search / Previous search match |
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search / Next search match |
+| most other keys | Accept selection, then perform usual action |
 
-### History Menu
+In the history menu:
 | Key(s) | Action |
 | --- | --- |
-| <kbd>←</kbd>/<kbd>→</kbd> | Accept selection & move cursor |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
 | <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
-| <kbd>Tab</kbd> | Accept selected completion |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
+| <kbd>Tab</kbd> | Accept selection |
 | <kbd>Enter</kbd> | Accept command line |
+| most other keys | Accept selection, then perform usual action |
 
 ## Requirements
 Recommended:
@@ -95,7 +97,9 @@ To update, do
 % znap pull
 ```
 
-### Manually
+For configuration options, see the included [`.zshrc` file](.zshrc).
+
+### Manual installation
  1. Clone the repo:
     ```zsh
     % cd ~/Git  # or wherever you keep your Git repos/Zsh plugins
@@ -116,31 +120,11 @@ Then, to update, do:
 To install with another Zsh framework or plugin manager, please refer to your
 framework's/plugin manager's documentation for instructions.
 
-## Configuration
-See the included [`.zshrc` file](.zshrc).
-
 ## Troubleshooting
-Check out the latest development version:
-```zsh
-cd ~zsh-autocomplete; git switch main; git pull
-```
-Then restart your shell.
-
-If that doesn't help, try deleting completion cache files:
-```zsh
-rm -rf $_comp_dumpfile $XDG_CACHE_HOME/zsh
-```
-Then restart your shell.
-
-If that fails, try restarting Zsh without global config files:
-```zsh
-exec zsh -d
-```
-
-Failing that, try the steps in the [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
+Try the steps in the [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
 
 ## Author
-© 2020 [Marlon Richert](https://github.com/marlonrichert)
+© 2020-2021 [Marlon Richert](https://github.com/marlonrichert)
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
