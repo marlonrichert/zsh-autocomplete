@@ -224,6 +224,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
         # Always produce output, so we always reach the callback, so we can close the fd and unset
         # $_autocomplete__async_complete_fd (if necessary).
         print -rNC1 -- "$SECONDS" "$output"
+        zpty -w autocomplete $'\C-C\C-C\C-D'
         zpty -d autocomplete
       }
     } "$@" 2>>| $_autocomplete__log_file
@@ -270,22 +271,22 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty.zle-widget() {
-  LBUFFER=$lbuffer
-  RBUFFER=$rbuffer
-  builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
-}
-
-.autocomplete.async.pty.completion-widget() {
   {
-    local curcontext=${curcontext:-${WIDGET}:::}
-    unset 'compstate[vared]'
-    local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-    builtin print -n '\C-B'
-    .autocomplete.async.list-choices.main-complete
-    builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
+    LBUFFER=$lbuffer
+    RBUFFER=$rbuffer
+    builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
   } always {
     exit
   }
+}
+
+.autocomplete.async.pty.completion-widget() {
+  local curcontext=${curcontext:-${WIDGET}:::}
+  unset 'compstate[vared]'
+  local +h -a comppostfuncs=( .autocomplete.async.pty.message )
+  builtin print -n '\C-B'
+  .autocomplete.async.list-choices.main-complete
+  builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
 } 2>>| $_autocomplete__log_file
 
 .autocomplete.async.pty.message() {
