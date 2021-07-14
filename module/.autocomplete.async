@@ -128,15 +128,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 .autocomplete.async.complete() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  [[ -v MENUSELECT && ( -z $KEYS || $( bindkey "$KEYS" ) != *'" '$LASTWIDGET ) ]] &&
+  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
       return
-
-  unset MENUSELECT
-
-  if [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]]; then
-    zle -R
-    return 0
-  fi
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
@@ -238,10 +231,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   typeset -gHi _autocomplete__async_complete_pid=$sysparams[procsubstpid]
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
-  [[ -v functions[_zsh_autosuggest_highlight_apply] && -n $MENUSELECT ]] &&
-      unset POSTDISPLAY
-
-  # There's a weird bug in Zsh < 5.8, where where ^C stops working unless we force a fork.
+  # There's a weird bug in Zsh < 5.8, where ^C stops working unless we force a fork.
   # See https://github.com/zsh-users/zsh-autosuggestions/issues/364
   command true
 }
