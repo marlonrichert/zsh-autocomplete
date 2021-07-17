@@ -1,7 +1,7 @@
 #!/bin/zsh
 zmodload -Fa zsh/zpty b:zpty
 zmodload -Fa zsh/parameter p:funcstack p:functions p:parameters
-zmodload -Fa zsh/system p:sysparams
+zmodload -Fa zsh/system b:sysopen p:sysparams
 zmodload -Fa zsh/zselect b:zselect
 zmodload -Fa zsh/terminfo b:echoti p:terminfo
 zmodload -Fa zsh/zutil b:zparseopts
@@ -200,7 +200,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   .autocomplete.async.stop
 
   typeset -gH _autocomplete__async_complete_fd=
-  exec {_autocomplete__async_complete_fd}< <(
+  sysopen -r -o cloexec -u _autocomplete__async_complete_fd <(
     PS4=$_autocomplete__ps4
     () {
       {
@@ -368,7 +368,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 
 .autocomplete.async.list-choices.post() {
   [[ -v _autocomplete__partial_list ]] &&
-    compadd -J -last- -x '%F{black}%K{14}(MORE)%f%k'
+      compadd -J -last- -x '%F{black}%K{14}(MORE)%f%k'
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }
@@ -440,35 +440,29 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     (( lines_available -= _autocomplete__reserved_lines ))
   else
     _autocomplete__reserved_lines=0
-    local -i fd list_lines=0 nmatches=0
-    {
-      exec {fd}< <(
-        {
-          _opts_=()
-          zparseopts -D -E -A _opts_ - A: D: O: X:
-          .autocomplete.compadd -O _matches_ "$@"
+    local -i list_lines nmatches
+    _matches_=( "${(0)$(
+      {
+        _opts_=()
+        zparseopts -D -E -A _opts_ - A: D: O: X:
+        .autocomplete.compadd -O _matches_ "$@"
 
-          # Pre-emptively trim the matches that will definitely not fit on screen.
-          local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
-          (( surplus > 0 )) &&
-              shift -p $surplus _matches_
+        # Pre-emptively trim the matches that will definitely not fit on screen.
+        local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
+        (( surplus > 0 )) &&
+            shift -p $surplus _matches_
 
-          setopt localoptions listtypes
-          zparseopts -D -E -A _opts_ - a
-          _autocomplete.compadd_opts_len "$@"
-          .autocomplete.compadd "${(@)@[1,?]}" -a - _matches_
-        } always {
-          print $compstate[list_lines]
-          print $compstate[nmatches]
-          print -rNC1 - "$_matches_[@]"
-        }
-      )
-      IFS=$'\0' read -u $fd list_lines
-      IFS=$'\0' read -u $fd nmatches
-      IFS=$'\0' read -u $fd -A _matches_
-    } always {
-      exec {fd}<&-
-    }
+        setopt localoptions listtypes
+        zparseopts -D -E -A _opts_ - a
+        _autocomplete.compadd_opts_len "$@"
+        .autocomplete.compadd "${(@)@[1,?]}" -a - _matches_
+      } always {
+        print -rNC1 -- "$compstate[list_lines]" "$compstate[nmatches]" "$_matches_[@]"
+      }
+    )}" )
+    list_lines=$_matches_[1]
+    nmatches=$_matches_[2]
+    shift 2 _matches_
     _matches_=( ${_matches_[@]:#} )
     number_of_new_matches=$(( nmatches - compstate[nmatches] ))
     lines_of_new_matches=$(( list_lines - compstate[list_lines] ))

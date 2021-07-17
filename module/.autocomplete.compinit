@@ -67,8 +67,7 @@ EOF
   done
   unset _autocomplete_compdef
 
-  local -i fd
-  exec {fd}< <(
+  (
     local cache_dir
     zstyle -s ':completion:*' cache-path cache_dir && () {
       local src bin
@@ -79,13 +78,7 @@ EOF
         fi
       done
     }
-  )
-  .autocomplete.compinit.zle-f() {
-    exec {1}<&-
-    zle -F $1 2> /dev/null
-    unfunction ${(%):-%N}
-  }
-  zle -F "$fd" .autocomplete.compinit.zle-f
+  ) &|
 
   compinit() { : }
 
