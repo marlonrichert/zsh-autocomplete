@@ -92,6 +92,7 @@ EOF
   .autocomplete.patch _main_complete
   _main_complete() {
     local -i ret=1 _autocomplete__reserved_lines=0
+    unset _autocomplete__partial_list
 
     compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
     compstate[last_prompt]=yes  # Completion doesn't stay on the same command line without this.

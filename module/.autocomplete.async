@@ -367,10 +367,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.list-choices.post() {
-  if [[ -v _autocomplete__partial_list ]]; then
+  [[ -v _autocomplete__partial_list ]] &&
     compadd -J -last- -x '%F{black}%K{14}(MORE)%f%k'
-    unset _autocomplete__partial_list
-  fi
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }

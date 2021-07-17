@@ -22,7 +22,6 @@ fi
 
 local tag=unambiguous
 _tags $tag
-_tags && _requested $tag &&
-  _message -e unambiguous \
-      $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
-      # \e[2m = faint; 0 = black; 11 = bright yellow
+_tags && _requested $tag && _message -e unambiguous \
+    $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+    # \e[2m = faint; 0 = black; 11 = bright yellow
