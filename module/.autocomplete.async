@@ -281,13 +281,15 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty.completion-widget() {
+  () {
   local curcontext=${curcontext:-${WIDGET}:::}
   unset 'compstate[vared]'
   local +h -a comppostfuncs=( .autocomplete.async.pty.message )
   builtin print -n '\C-B'
   .autocomplete.async.list-choices.main-complete
   builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
-} 2>>| $_autocomplete__log_file
+  } "$@" 2>>| $_autocomplete__log_file
+}
 
 .autocomplete.async.pty.message() {
   typeset -gH _message_=$mesg
@@ -363,6 +365,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       .autocomplete.async.list-choices.main-complete
     fi
   } "$@" 2>>| $_autocomplete__log_file
+
   return 2
 }
 
