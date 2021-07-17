@@ -491,7 +491,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     return
   fi
 
-  zparseopts -D -E -A _opts_ - a d: k l U
+  local -A groupname
+  zparseopts -D -E -A _opts_ - a d: k l U J:=groupname V:=groupname
   local -a dopt=()
   if [[ -v _opts_[-d] ]]; then
     if [[ -v _opts_[-l] ]]; then
@@ -501,6 +502,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     fi
     dopt+=( "$_opts_[-d]" )
   fi
+  set -- "${(@kv)groupname}" "$@"
 
   if (( lines_of_new_matches > 0 )); then
     local -F matches_per_line=$(( 1.0 * number_of_new_matches / lines_of_new_matches ))
