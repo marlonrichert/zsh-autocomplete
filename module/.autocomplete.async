@@ -128,18 +128,18 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 .autocomplete.async.complete() {
   .autocomplete.zle-flags $LASTWIDGET
 
-  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
-      return
-
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
   region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
       _zsh_highlight
-  typeset -gH _autocomplete__highlight=( "$region_highlight[@]" )
+  typeset -gH _autocomplete__highlight=( $region_highlight[@] )
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
+
+  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
+      return
 
   if (( REGION_ACTIVE )) ||
       [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
