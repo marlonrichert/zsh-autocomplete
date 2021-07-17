@@ -201,7 +201,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 
   typeset -gH _autocomplete__async_complete_fd=
   sysopen -r -o cloexec -u _autocomplete__async_complete_fd <(
-    PS4=$_autocomplete__ps4
+    local +h PS4=$_autocomplete__ps4; builtin setopt localoptions promptsubst
     () {
       {
         typeset -F SECONDS=0.0
@@ -238,9 +238,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty() {
-  builtin setopt promptsubst
   PS1= RPS1=
-  PS4=$_autocomplete__ps4
+  local +h PS4=$_autocomplete__ps4; builtin setopt localoptions promptsubst
   () {
     builtin setopt $_autocomplete__options
     builtin setopt NO_completeinword; [[ -z $curcontext ]] ||
@@ -281,13 +280,14 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty.completion-widget() {
+  local +h PS4=$_autocomplete__ps4; builtin setopt localoptions promptsubst
   () {
-  local curcontext=${curcontext:-${WIDGET}:::}
-  unset 'compstate[vared]'
-  local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-  builtin print -n '\C-B'
-  .autocomplete.async.list-choices.main-complete
-  builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
+    local curcontext=${curcontext:-${WIDGET}:::}
+    unset 'compstate[vared]'
+    local +h -a comppostfuncs=( .autocomplete.async.pty.message )
+    builtin print -n '\C-B'
+    .autocomplete.async.list-choices.main-complete
+    builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
   } "$@" 2>>| $_autocomplete__log_file
 }
 
@@ -319,11 +319,10 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 
   (( _autocomplete__async_avg_duration = .1 * seconds + .9 * _autocomplete__async_avg_duration ))
 
+  setopt NO_completeinword; [[ -z $curcontext ]] || setopt completeinword
+
   # If a widget can't be called, ZLE always returns true.
   # Thus, we return false on purpose, so we can check if our widget got called.
-  setopt promptsubst
-  setopt NO_completeinword; [[ -z $curcontext ]] || setopt completeinword
-  local +h PS4=$_autocomplete__ps4
   if ! zle ._list_choices -w "$nmatches" "${(Q)message}" 2> /dev/null; then
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
@@ -338,6 +337,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.list-choices.completion-widget() {
+  local +h PS4=$_autocomplete__ps4; builtin setopt localoptions promptsubst
   () {
     local -i nmatches=$1
     local message=$2
