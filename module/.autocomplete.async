@@ -157,12 +157,6 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   return 0
 }
 
-.autocomplete.async.stop() {
-  .autocomplete.async.close _autocomplete__async_complete_fd
-  .autocomplete.async.kill _autocomplete__async_complete_pid
-  return 0
-}
-
 .autocomplete.async.clear() {
   zle -Rc
   unset _autocomplete__isearch
@@ -171,27 +165,13 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   return 0
 }
 
-.autocomplete.async.close() {
-  local fd=${(P)1}
-  unset $1
-
-  [[ $fd == <-> ]] ||
-      return
-
-  zle -F $fd 2> /dev/null
-  exec {fd}<&-
-}
-
-.autocomplete.async.kill() {
-  local pid=${(P)1}
-  unset $1
-
-  [[ $pid == <-> ]] ||
-      return
-
-  [[ -o monitor ]] &&
-      (( pid *= -1 ))
-  kill -TERM $pid 2> /dev/null
+.autocomplete.async.stop() {
+  local fd=$_autocomplete__async_complete_fd
+  unset _autocomplete__async_complete_fd
+  if [[ $fd == <-> ]]; then
+    zle -F $fd 2> /dev/null
+    exec {fd}<&-
+  fi
 }
 
 .autocomplete.async.start() {
@@ -204,32 +184,31 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     local +h PS4=$_autocomplete__ps4; builtin setopt localoptions promptsubst
     () {
       {
-        typeset -F SECONDS=0.0
-        local REPLY output
-        zpty autocomplete .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
-        zpty -w autocomplete $'\t'
-        zpty -r autocomplete output $'*\C-B'
+        typeset -F SECONDS=0.0 min_delay
+        local -i fd pid timeout
+        local REPLY header text
+        zstyle -s :autocomplete: min-delay min_delay ||
+          min_delay=0.0
+        zpty AUTOCOMPLETE .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
+        (( fd = REPLY ))
+        zpty -w AUTOCOMPLETE $'\t'
+        zpty -r AUTOCOMPLETE header $'*\C-B'
 
-        local -F min_delay; zstyle -s :autocomplete: min-delay min_delay ||
-            min_delay=0
-        local -i wait
-        (( wait = 100.0 * ( min_delay - SECONDS ) ))
-        (( wait > 0 )) &&
-            zselect -t $wait
+        (( timeout = ( min_delay + ( 10 * _autocomplete__async_avg_duration ) - SECONDS ) * 100 ))
+        zselect -rt "$timeout" "$fd" &&
+            zpty -r AUTOCOMPLETE text $'*\C-C'
 
-        (( wait = 100.0 * ( min_delay - SECONDS + ( 10.0 * _autocomplete__async_avg_duration ) ) ))
-        zselect -rt $wait $REPLY &&
-            zpty -r autocomplete output $'*\C-C'
+        (( timeout = ( min_delay - SECONDS ) * 100 ))
+        (( timeout > 0.0 )) &&
+            zselect -t "$timeout"
       } always {
         # Always produce output, so we always reach the callback, so we can close the fd and unset
         # $_autocomplete__async_complete_fd (if necessary).
-        print -rNC1 -- "$SECONDS" "$output"
-        zpty -w autocomplete $'\C-C\C-C\C-D'
-        zpty -d autocomplete
+        print -rNC1 -- "$SECONDS" "${text%$'\C-C'}"
+        zpty -d AUTOCOMPLETE
       }
     } "$@" 2>>| $_autocomplete__log_file
   )
-  typeset -gHi _autocomplete__async_complete_pid=$sysparams[procsubstpid]
   zle -Fw "$_autocomplete__async_complete_fd" .autocomplete.async.complete.fd-widget
 
   # There's a weird bug in Zsh < 5.8, where ^C stops working unless we force a fork.
@@ -270,12 +249,16 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.pty.zle-widget() {
+  # Completion widget can sometimes return 1 without calling its function. So, we need to print all
+  # our control characters here, to ensure we don't end up waiting endlessly to read them.
   {
+    builtin print -n -- '\C-B'
     LBUFFER=$lbuffer
     RBUFFER=$rbuffer
     builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
   } always {
-    exit
+    builtin print -n -- '\C-C'
+    builtin kill $sysparams[pid]
   }
 }
 
@@ -285,9 +268,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     local curcontext=${curcontext:-${WIDGET}:::}
     unset 'compstate[vared]'
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-    builtin print -n '\C-B'
     .autocomplete.async.list-choices.main-complete
-    builtin print -rNC1 - "$compstate[nmatches]" "${(q+)_message_}"$'\C-C'
+    builtin print -rNC1 -- "$compstate[nmatches]" "${(q+)_message_}"
   } "$@" 2>>| $_autocomplete__log_file
 }
 
@@ -301,7 +283,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
     # Ensure our input will not be stopped.
-    unset _autocomplete__async_complete_fd _autocomplete__async_complete_pid
+    unset _autocomplete__async_complete_fd
 
     .autocomplete.zle-flags ||
         return 0
