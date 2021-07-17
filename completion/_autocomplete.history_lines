@@ -93,7 +93,12 @@ _autocomplete.history_lines() {
     displays=( ${(@n)displays} )
     (( diff > 0 )) &&
         shift "$diff" displays
-    sopt=( -S ';' -r '^ ' )
+    sopt=( -S ';' -R _autocomplete.history_lines.suffix )
+    eval '
+      _autocomplete.history_lines.suffix() {
+        [[ $WIDGET != '$WIDGET' ]] &&
+            LBUFFER="$LBUFFER[1,-1-$1]"
+      }'
   fi
 
   local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
