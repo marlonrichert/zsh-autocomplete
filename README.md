@@ -5,6 +5,8 @@ bottom one, or <kbd>↓</kbd>/<kbd>PgDn</kbd> to select another completion.
 
 [![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
 
+> Enjoy using this software? [Become a sponsor!](https://github.com/sponsors/marlonrichert).
+
 ## Other Features
 Besides live autocompletion, `zsh-autocomplete` comes with many other useful completion features.
 
