@@ -35,8 +35,9 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
     local action
     for action in clear modify fetch accept partial_accept execute enable disable toggle; do
+      # Set flags according to widget name.
       eval "_zsh_autosuggest_widget_$action() {
-        .autocomplete.zle-flags \$WIDGET  # Set flags according to widget name.
+        .autocomplete.zle-flags \$WIDGET
         _zsh_autosuggest_$action \"\$@\"
       }"
     done
@@ -426,13 +427,15 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   else
     _autocomplete__reserved_lines=0
     local -i list_lines nmatches
+
+    # Pre-emptively trim the matches that will definitely not fit on screen.
+    # (Note: Can't put comments inside expansions, without setting INTERACTIVE_COMMENTS.)
     _matches_=( "${(0)$(
       {
         _opts_=()
         zparseopts -D -E -A _opts_ - A: D: O: X:
         .autocomplete.compadd -O _matches_ "$@"
 
-        # Pre-emptively trim the matches that will definitely not fit on screen.
         local -i surplus=$(( $#_matches_ - COLUMNS * _async_max_lines / 3 ))
         (( surplus > 0 )) &&
             shift -p $surplus _matches_
