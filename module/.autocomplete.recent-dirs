@@ -75,7 +75,7 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
         ancestor=$ancestor:h
       done
       _autocomplete.sort_by_length ${(D)reply[@]:#$PWD(|/[^/]#)}
-      reply=( $~reply[@] )
+      reply=( ${(Q)~reply[@]} )
 
       (( $#reply[@] ))
     }
