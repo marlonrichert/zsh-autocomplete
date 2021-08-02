@@ -75,3 +75,7 @@ local mod; for mod in compinit config widget key key-binding recent-dirs async; 
 done
 
 add-zsh-hook precmd .autocomplete.__init__.precmd
+
+# Ensure we run before zsh-autosuggestions.
+(( $precmd_functions[(I)_zsh_autosuggest_start] )) &&
+    precmd_functions=( ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start )
