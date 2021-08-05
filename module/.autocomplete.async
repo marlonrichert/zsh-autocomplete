@@ -68,7 +68,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     local -i max_lines
     zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
         (( max_lines = 16 ))
-    (( _autocomplete__buffer_start_line = LINES - max_lines ))
+    (( _autocomplete__buffer_start_line = min( max( LINES - max_lines, 1 ), LINES ) ))
     return 0
   fi
 
@@ -103,7 +103,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     read -rsk
   done
 
-  (( _autocomplete__buffer_start_line = Y - i ))
+  (( _autocomplete__buffer_start_line = min( max( Y - i, 1 ), LINES ) ))
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -370,12 +370,11 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 .autocomplete.async.list-choices.main-complete() {
   local -i _async_max_lines
   () {
-    local -i min_lines max_lines lines_below_buffer
-    (( max_lines = LINES - BUFFERLINES ))
+    local -i min_lines lines_below_buffer
     zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
         min_lines=16
-    (( min_lines = min( min_lines, max_lines ) ))
-    (( lines_below_buffer = max_lines - _autocomplete__buffer_start_line ))
+    (( lines_below_buffer = LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
+    (( min_lines = min( LINES - ( 1 + BUFFERLINES ), min_lines ) ))
     (( _async_max_lines = max( min_lines, lines_below_buffer ) ))
   }
 
@@ -494,7 +493,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   set -- "${(@kv)groupname}" "$@"
 
   if (( lines_of_new_matches > 0 )); then
-    local -F matches_per_line
+    local -i matches_per_line
     (( matches_per_line = 1.0 * number_of_new_matches / lines_of_new_matches ))
     if (( matches_per_line < 1 )); then
       dopt[1]=-ld
