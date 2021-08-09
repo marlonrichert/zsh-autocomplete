@@ -357,7 +357,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     fi
   } "$@" 2>>| $_autocomplete__log_file
 
-  return 2
+  return 2  # Don't return 1, to prevent beeping.
 }
 
 .autocomplete.async.list-choices.post() {

@@ -4,39 +4,38 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
 
 .autocomplete.recent-dirs.precmd() {
 
-  if [[ -v functions[zshz] && -v functions[_zshz_precmd] ]] &&
+  if (( precmd_functions[(I)_zshz_precmd] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( zshz --complete -l $1 2> /dev/null )"} )
     }
 
-  elif [[ -v commands[zoxide] && -v functions[__zoxide_hook] ]] &&
+  elif (( chpwd_functions[(I)__zoxide_hook] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( zoxide query --list $1 2> /dev/null )"} )
     }
 
-  elif [[ -v functions[_zlua] && -v functions[_zlua_precmd] ]] &&
+  elif (( precmd_functions[(I)_zlua_precmd] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(f)"$( _zlua --complete $1 2> /dev/null )"}##<->[[:space:]]##} )
     }
 
-  elif [[ -v functions[_z] && -v functions[_z_precmd] ]] &&
+  elif (( precmd_functions[(I)_z_precmd] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(fOa)"$( _z -l $1 2>&1 )"}##(common:|<->)[[:space:]]##} )
     }
 
-  elif [[ -v commands[autojump] && -v AUTOJUMP_SOURCED ]] &&
+  elif (( chpwd_functions[(I)autojump_chpwd] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(f)"$( autojump --complete $1 2> /dev/null )"}##${1}__<->__} )
     }
 
-  elif [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
+  elif (( preexec_functions[(I)_fasd_preexec] )) &&
       zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
-
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( fasd -dlR $1 2> /dev/null )"} )
     }
@@ -67,23 +66,27 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
     add-zsh-hook chpwd _autocomplete.recent_dirs.save
 
     _autocomplete.recent_dirs() {
-      reply=( $^dirstack[@](N) )
+      local -a dirs=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
       local ancestor=$PWD:h
       while [[ $ancestor != / ]]; do
-        reply=( ${reply[@]:#$ancestor} )
+        dirs=( ${dirs[@]:#$ancestor} )
         ancestor=$ancestor:h
       done
-      _autocomplete.sort_by_length ${(D)reply[@]:#$PWD(|/[^/]#)}
-      reply=( ${(Q)~reply[@]} )
+
+      local -a displ=( "${(@D)dirs}" )
+      local -A displ_to_dirs=( "${(@)displ:^dirs}" )
+      _autocomplete.sort_by_length "$displ[@]"
+
+      local MATCH MBEGIN MEND
+      reply=( ${reply[@]:/(#m)*/${displ_to_dirs[$MATCH]}} )
 
       (( $#reply[@] ))
     }
   fi
 
-  if [[ ( -v commands[fasd] || -v functions[fasd] ) && -v functions[_fasd_preexec] ]] &&
+  if (( preexec_functions[(I)_fasd_preexec] )) &&
       zstyle -T ':autocomplete:' recent-files 'fasd'; then
-
     _autocomplete.recent_files() {
       reply=( $( fasd -flR $1 2> /dev/null ) )
     }
