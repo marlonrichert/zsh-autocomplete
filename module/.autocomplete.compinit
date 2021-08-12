@@ -67,9 +67,6 @@ EOF
   done
   unset _autocomplete_compdef
 
-  # For commands without completions, default to generating option completions from --help output.
-  compdef _gnu_generic -default- -P "(${(@kj:|:)commands})"
-
   (
     local cache_dir
     zstyle -s ':completion:*' cache-path cache_dir && () {
