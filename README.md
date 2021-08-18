@@ -104,12 +104,11 @@ For configuration options, see the included [`.zshrc` file](.zshrc).
 ### Manual installation
  1. Clone the repo:
     ```zsh
-    % cd ~/Git  # or wherever you keep your Git repos/Zsh plugins
-    % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+    git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git ~/.oh-my-zsh/custom/plugins/zsh-autocomplete
     ```
  1. Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
     ```zsh
-    source ~/Git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+    source ~/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
     ```
  1. Remove any calls to `compinit` from your `~/.zshrc` file.
 
