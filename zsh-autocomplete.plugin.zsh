@@ -1,7 +1,6 @@
 #!/bin/zsh
-
 setopt NO_flowcontrol NO_singlelinezle
-() {
+zsh-autocomplete() {
   emulate -L zsh -o NO_aliases
   zmodload -Fa zsh/parameter p:functions
 
@@ -37,4 +36,10 @@ setopt NO_flowcontrol NO_singlelinezle
     .zinit-shade-on "${___mode:-load}"
 
   return 0
+}
+
+{
+  zsh-autocomplete "$@"
+} always {
+  unfunction zsh-autocomplete
 }

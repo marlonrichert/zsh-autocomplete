@@ -44,7 +44,7 @@ zmathfunc
   done
 }
 
-() {
+zsh-autocomplete.init() {
   local xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 
   local zsh_data_dir=$xdg_data_home/zsh
@@ -80,4 +80,10 @@ zmathfunc
   # Ensure we run before zsh-autosuggestions.
   (( $precmd_functions[(I)_zsh_autosuggest_start] )) &&
       precmd_functions=( ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start )
-} "$@"
+}
+
+{
+  zsh-autocomplete.init "$@"
+} always {
+  unfunction zsh-autocomplete.init
+}

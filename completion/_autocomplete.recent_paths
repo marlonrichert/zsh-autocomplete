@@ -41,20 +41,22 @@ _autocomplete.recent_paths() {
   displ=( "${(@D)matches}" )
   zformat -a displ '' $^displ':'
 
-  # Workaround to prevent the prompt from jumping
-  () {
-    local total="${(j:/  :)displ}/  "
-    while (( $#total > COLUMNS )); do
-      shift -p -- displ matches
-      total="${(j:/  :)displ}/  "
-    done
-  }
+  .autocomplete.recent_paths.trim
 
   # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
   while (( $#matches )); do
     compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
         - "$matches[1]:t"
     shift -- displ matches
+  done
+}
+
+# Workaround to prevent the prompt from jumping
+.autocomplete.recent_paths.trim() {
+  local total="${(j:/  :)displ}/  "
+  while (( $#total > COLUMNS )); do
+    shift -p -- displ matches
+    total="${(j:/  :)displ}/  "
   done
 }
 
