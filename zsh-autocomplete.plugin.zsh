@@ -15,7 +15,7 @@ setopt NO_flowcontrol NO_singlelinezle
   )
   setopt $_autocomplete__options
 
-  local basedir=${${(%):-%x}:h}
+  local basedir=${${(%):-%x}:P:h}
   if ! [[ -n $basedir && -d $basedir ]]; then
     print -u2 -- 'zsh-autocomplete: Failed to find base dir. Aborting.'
     return 66

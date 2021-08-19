@@ -44,38 +44,40 @@ zmathfunc
   done
 }
 
-local xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
+() {
+  local xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 
-local zsh_data_dir=$xdg_data_home/zsh
-[[ -d $zsh_data_dir ]] ||
-    zf_mkdir -pm 0700 $zsh_data_dir
+  local zsh_data_dir=$xdg_data_home/zsh
+  [[ -d $zsh_data_dir ]] ||
+      zf_mkdir -pm 0700 $zsh_data_dir
 
-local logdir=$xdg_data_home/zsh-autocomplete/log
-[[ -d $logdir ]] ||
-    zf_mkdir -p -- $logdir
-local -a older_than_a_week=( $logdir/*(Nmd+7) )
-(( $#older_than_a_week[@] )) &&
-    zf_rm -f -- $older_than_a_week[@]
-typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
+  local logdir=$xdg_data_home/zsh-autocomplete/log
+  [[ -d $logdir ]] ||
+      zf_mkdir -p -- $logdir
+  local -a older_than_a_week=( $logdir/*(Nmd+7) )
+  (( $#older_than_a_week[@] )) &&
+      zf_rm -f -- $older_than_a_week[@]
+  typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
 
-typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N'
-typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n' _autocomplete__ps4=$'%(?,,\t-> %?\n)'
-_autocomplete__ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
-_autocomplete__ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
-_autocomplete__ps4+=$'%I\t%(1_,%_ ,)'
+  typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N'
+  typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n' _autocomplete__ps4=$'%(?,,\t-> %?\n)'
+  _autocomplete__ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
+  _autocomplete__ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
+  _autocomplete__ps4+=$'%I\t%(1_,%_ ,)'
 
-local zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
-[[ -d $zsh_cache_dir ]] ||
-    zf_mkdir -pm 0700 $zsh_cache_dir
+  local zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
+  [[ -d $zsh_cache_dir ]] ||
+      zf_mkdir -pm 0700 $zsh_cache_dir
 
-local mod; for mod in compinit config widget key key-binding recent-dirs async; do
-  if zstyle -T ':autocomplete:' $mod; then
-    source ~zsh-autocomplete/module/.autocomplete.$mod
-  fi
-done
+  local mod; for mod in compinit config widget key key-binding recent-dirs async; do
+    if zstyle -T ':autocomplete:' $mod; then
+      source ~zsh-autocomplete/module/.autocomplete.$mod
+    fi
+  done
 
-add-zsh-hook precmd .autocomplete.__init__.precmd
+  add-zsh-hook precmd .autocomplete.__init__.precmd
 
-# Ensure we run before zsh-autosuggestions.
-(( $precmd_functions[(I)_zsh_autosuggest_start] )) &&
-    precmd_functions=( ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start )
+  # Ensure we run before zsh-autosuggestions.
+  (( $precmd_functions[(I)_zsh_autosuggest_start] )) &&
+      precmd_functions=( ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start )
+} "$@"
