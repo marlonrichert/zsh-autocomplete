@@ -27,6 +27,7 @@ zsh-autocomplete() {
     print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
     return 66
   fi
+  unfunction $funcs[@]:t 2> /dev/null
   builtin autoload -Uz $funcs[@]
 
   source ~zsh-autocomplete/module/.autocomplete.__init__

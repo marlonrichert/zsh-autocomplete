@@ -1,4 +1,5 @@
 #!/bin/zsh
+unfunction .autocomplete.complete-word.post 2> /dev/null
 builtin autoload -Uz .autocomplete.complete-word.post
 
 local +h curcontext=${curcontext:-${WIDGET}:::}

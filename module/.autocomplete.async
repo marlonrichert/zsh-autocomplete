@@ -14,7 +14,7 @@ zle -N history-incremental-search-backward .autocomplete.async.history-increment
 zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
 
 .autocomplete.async.precmd() {
-  typeset -gHF _autocomplete__async_avg_duration
+  typeset -gHF _autocomplete__async_avg_duration=
   zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
   (( _autocomplete__async_avg_duration += 0.1 ))
 
