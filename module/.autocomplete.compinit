@@ -50,7 +50,12 @@ compdef() {
   if ! [[ -v _comp_setup && -f $_comp_dumpfile ]]; then
     unfunction compdef compinit 2> /dev/null
     builtin autoload -Uz compinit
-    compinit -C -d $_comp_dumpfile
+    bindkey() { : }
+    {
+      compinit -C -d $_comp_dumpfile
+    } always {
+      unfunction bindkey
+    }
 
     # Prevent Oh My Zsh from deleting comp dump file.
     (( $#omzdump > 0 )) &&
