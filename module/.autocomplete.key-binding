@@ -65,6 +65,36 @@ bindkey -M emacs $key[PageDown] menu-select
 bindkey -M viins $key[PageDown] menu-select
 bindkey -M vicmd $key[Down]     menu-select
 
+.autocomplete.key-binding.bound() {
+  [[ $( bindkey -M "$1" "$2" ) == \"$2\"" $3" ]]
+}
+
+.autocomplete.key-binding.rebind() {
+  .autocomplete.key-binding.bound "$1" "$2" "$3" &&
+      bindkey -M "$1" "$2" "$4"
+}
+
+.autocomplete.key-binding.unbind() {
+  .autocomplete.key-binding.bound "$1" "$2" "$3" &&
+      bindkey -M "$1" -r "$2"
+}
+
+.autocomplete.key-binding.rebind emacs '^D' delete-char-or-list delete-char
+
+.autocomplete.key-binding.unbind emacs '^X*' expand-word
+
+.autocomplete.key-binding.unbind emacs '^[^D' list-choices
+.autocomplete.key-binding.unbind vicmd   '^D' list-choices
+.autocomplete.key-binding.unbind vicmd    '=' list-choices
+.autocomplete.key-binding.unbind viins   '^D' list-choices
+
+.autocomplete.key-binding.unbind emacs '^Xg' list-expand
+.autocomplete.key-binding.unbind emacs '^XG' list-expand
+.autocomplete.key-binding.unbind vicmd  '^G' list-expand
+.autocomplete.key-binding.unbind viins  '^G' list-expand
+
+unfunction .autocomplete.key-binding.{bound,{re,un}bind}
+
 bindkey -M menuselect $key[Return]        .accept-line
 bindkey -M menuselect $key[Control-Space] accept-and-hold
 bindkey -M menuselect $key[Alt-Up]        vi-backward-blank-word
@@ -73,11 +103,9 @@ bindkey -M menuselect $key[PageUp]        backward-word
 bindkey -M menuselect $key[PageDown]      forward-word
 bindkey -M menuselect $key[Home]          beginning-of-history
 bindkey -M menuselect $key[End]           end-of-history
-bindkey -M menuselect '^?'  .backward-delete-char
-bindkey -M menuselect '^H'  .backward-delete-char
 bindkey -M menuselect '^[f' .forward-word
 bindkey -M menuselect '^[F' .forward-word
 bindkey -M menuselect '^[b' .backward-word
 bindkey -M menuselect '^[B' .backward-word
-bindkey -M menuselect '^A'  .beginning-of-line
-bindkey -M menuselect '^E'  .end-of-line
+bindkey -M menuselect  '^A' .beginning-of-line
+bindkey -M menuselect  '^E' .end-of-line

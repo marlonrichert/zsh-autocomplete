@@ -35,7 +35,8 @@ zmathfunc
   [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
       typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
-  local mod; for mod in compinit config widget key key-binding recent-dirs async; do
+  local mod
+  for mod in compinit config widget key key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd
     if [[ -v functions[$mod] ]]; then
       $mod
