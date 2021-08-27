@@ -62,7 +62,6 @@ In the completion menu:
 | <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
 | <kbd>PgUp</kbd> / <kbd>PgDn</kbd> | Page up/down |
-| <kbd>Home</kbd> / <kbd>End</kbd> | Beginning/End of menu |
 | <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search or previous search match |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search or next search match |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
@@ -75,7 +74,6 @@ In the history menu:
 | Key(s) | Action |
 | --- | --- |
 | <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
-| <kbd>Home</kbd>/<kbd>End</kbd> | Beginning/End of menu |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
 | <kbd>Tab</kbd> | Accept selection |
 | <kbd>Enter</kbd> | Accept command line |

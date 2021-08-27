@@ -2,7 +2,9 @@ Setup:
 ```zsh
 % autoload -Uz zmathfunc && zmathfunc
 % autoload -Uz .autocomplete.complete-word.post
-% typeset -gA key=( Shift-Tab BACKTAB ) compstate=() _lastcomp=()
+% unset terminfo
+% typeset -gA terminfo=() compstate=() _lastcomp=()
+% terminfo[kcbt]=BACKSPACE
 % zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
 %
 ```
@@ -17,7 +19,7 @@ Only `menu-select` widget sets `$MENUSELECT`:
 
 Only `Shift-Tab` key sets `$compstate[insert]` to `*:0`:
 ```zsh
-% KEYS='BACKTAB' .autocomplete.complete-word.post
+% KEYS=BACKSPACE .autocomplete.complete-word.post
 % print -r - ${(q+)compstate[insert]} $+MENUSELECT
 0 0
 %

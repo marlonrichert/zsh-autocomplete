@@ -60,15 +60,20 @@ source /path/to/zsh-autocomplete.plugin.zsh
 # NOTE: All configuration below should come AFTER sourcing zsh-autocomplete!
 #
 
-bindkey $key[Up] up-line-or-search
+# Up arrow:
+bindkey '\e[A' up-line-or-search
+bindkey '\eOA' up-line-or-search
 # up-line-or-search:  Open history menu.
 # up-line-or-history: Cycle to previous history line.
 
-bindkey $key[Down] down-line-or-select
+# Down arrow:
+bindkey '\e[B' down-line-or-select
+bindkey '\eOB' down-line-or-select
 # down-line-or-select:  Open completion menu.
 # down-line-or-history: Cycle to next history line.
 
-bindkey $key[Control-Space] list-expand
+# Control-Space:
+bindkey '\0' list-expand
 # list-expand:      Reveal hidden completions.
 # set-mark-command: Activate text selection.
 
@@ -76,7 +81,7 @@ bindkey $key[Control-Space] list-expand
 # zle -A {.,}history-incremental-search-forward
 # zle -A {.,}history-incremental-search-backward
 
-# In completion menu & history menu:
-bindkey -M menuselect $key[Return] .accept-line
+# Return key in completion menu & history menu:
+bindkey -M menuselect '\r' .accept-line
 # .accept-line: Accept command line.
 # accept-line:  Accept selection and exit menu.

@@ -36,7 +36,7 @@ zmathfunc
       typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
   local mod
-  for mod in compinit config widget key key-binding recent-dirs async; do
+  for mod in compinit config widget key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd
     if [[ -v functions[$mod] ]]; then
       $mod
@@ -70,7 +70,7 @@ zsh-autocomplete.init() {
   [[ -d $zsh_cache_dir ]] ||
       zf_mkdir -pm 0700 $zsh_cache_dir
 
-  local mod; for mod in compinit config widget key key-binding recent-dirs async; do
+  local mod; for mod in compinit config widget key-binding recent-dirs async; do
     if zstyle -T ':autocomplete:' $mod; then
       source ~zsh-autocomplete/module/.autocomplete.$mod
     fi

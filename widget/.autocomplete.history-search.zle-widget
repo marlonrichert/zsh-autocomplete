@@ -15,11 +15,12 @@ ${0}() {
   local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
   local keymap_menuselect="$( bindkey -M menuselect -L )"
   {
-
     bindkey -M menuselect -s '^R' '^_^_^R'
     bindkey -M menuselect -s '^S' '^_^_^S'
-    bindkey -M menuselect $key[Left] .backward-char
-    bindkey -M menuselect $key[Right] .forward-char
+    bindkey -M menuselect '\e[D' .backward-char
+    bindkey -M menuselect '\eOD' .backward-char
+    bindkey -M menuselect '\e[C' .forward-char
+    bindkey -M menuselect '\eOC' .forward-char
 
     local lcontext rcontext
     zle ${0}.context
@@ -37,8 +38,10 @@ ${0}() {
     fi
     bindkey -M menuselect -r '^R'
     bindkey -M menuselect -r '^S'
-    bindkey -M menuselect -r $key[Left]
-    bindkey -M menuselect -r $key[Right]
+    bindkey -M menuselect -r '\e[D'
+    bindkey -M menuselect -r '\eOD'
+    bindkey -M menuselect -r '\e[C'
+    bindkey -M menuselect -r '\eOC'
     eval "$keymap_menuselect"
   }
 }

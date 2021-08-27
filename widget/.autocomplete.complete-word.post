@@ -7,12 +7,12 @@ compstate[list]=
 local key_name=${(kL)key[(Re)$KEYS]}
 local key_style; zstyle -s :autocomplete:${key_name}: widget-style key_style
 
-if  ( [[ $KEYS == $key[Shift-Tab] ]] ||
+if  ( [[ $KEYS == $terminfo[kcbt] ]] ||
       zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
     ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
   # Work around a crashing bug in Zsh.
   # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-  [[ $key_style == *menu-* && $KEYS == ($key[Tab]|$key[Shift-Tab]) ]] &&
+  [[ $key_style == *menu-* && $KEYS == ($'\t'|$terminfo[kcbt]) ]] &&
       compstate[insert]='automenu-'
 
   compstate[insert]+=unambiguous
@@ -27,10 +27,10 @@ fi
 
 # Work around a crashing bug in Zsh.
 # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-[[ $key_style == *menu-* && $KEYS == ($key[Tab]|$key[Shift-Tab]) ]] &&
+[[ $key_style == *menu-* && $KEYS == ($'\t'|$terminfo[kcbt]) ]] &&
     compstate[insert]='menu:'
 
-if [[ $KEYS == $key[Shift-Tab] ]]; then
+if [[ $KEYS == $terminfo[kcbt] ]]; then
   compstate[insert]+='0'
 else
   compstate[insert]+='1'
