@@ -1,7 +1,7 @@
 Setup:
 ```zsh
 % autoload -Uz zmathfunc && zmathfunc
-% autoload -Uz .autocomplete.complete-word.post
+% autoload -Uz $PWD/functions/widget/.autocomplete.complete-word.post
 % unset terminfo
 % typeset -gA terminfo=() compstate=() _lastcomp=()
 % terminfo[kcbt]=BACKSPACE

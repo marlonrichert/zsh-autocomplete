@@ -72,7 +72,7 @@ zsh-autocomplete.init() {
 
   local mod; for mod in compinit config widget key-binding recent-dirs async; do
     if zstyle -T ':autocomplete:' $mod; then
-      source ~zsh-autocomplete/module/.autocomplete.$mod
+      source ~zsh-autocomplete/scripts/.autocomplete.$mod
     fi
   done
 

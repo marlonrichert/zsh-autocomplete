@@ -20,9 +20,11 @@ zsh-autocomplete() {
     return 66
   fi
   hash -d zsh-autocomplete=$basedir
-  typeset -gU FPATH fpath=( ~zsh-autocomplete/completion $fpath[@] )
+  typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
 
-  local -a funcs=( ~zsh-autocomplete/{utility,widget}/.autocomplete.*~*.zwc(N-.:a) )
+  local -a funcs=(
+      ~zsh-autocomplete/functions{,/widget}/.autocomplete.*~*.zwc(N-.:a)
+  )
   if ! (( $#funcs )); then
     print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
     return 66
@@ -30,7 +32,7 @@ zsh-autocomplete() {
   unfunction $funcs[@]:t 2> /dev/null
   builtin autoload -Uz $funcs[@]
 
-  source ~zsh-autocomplete/module/.autocomplete.__init__
+  source ~zsh-autocomplete/scripts/.autocomplete.__init__
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] &&
