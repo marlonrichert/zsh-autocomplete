@@ -10,8 +10,9 @@
   return 1
 
 if zstyle -t :autocomplete:tab: insert-unambiguous; then
-  local subs cols
-  local -i prv=1 nxt; for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
+  private -i prv=1 nxt
+  private subs cols
+  for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
     subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
     cols+='=30;103'  # black foreground, bright yellow background
     (( prv = ++nxt ))
@@ -20,8 +21,9 @@ if zstyle -t :autocomplete:tab: insert-unambiguous; then
   return 1
 fi
 
-local tag=unambiguous
+private tag=unambiguous
 _tags $tag
-_tags && _requested $tag && _message -e unambiguous \
-    $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
-    # \e[2m = faint; 0 = black; 11 = bright yellow
+_tags && _requested $tag &&
+    _message -e unambiguous \
+        $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+        # \e[2m = faint; 0 = black; 11 = bright yellow

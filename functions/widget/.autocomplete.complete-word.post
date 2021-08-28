@@ -4,7 +4,7 @@ unset curcontext
 compstate[insert]=
 compstate[list]=
 
-local key_name=${(kL)key[(Re)$KEYS]}
+private key_name=${(kL)key[(Re)$KEYS]}
 local key_style; zstyle -s :autocomplete:${key_name}: widget-style key_style
 
 if  ( [[ $KEYS == $terminfo[kcbt] ]] ||

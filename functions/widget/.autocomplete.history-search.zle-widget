@@ -9,11 +9,10 @@ ${0}.context() {
 }
 
 ${0}() {
-  local 0=${(%):-%N}
   setopt localoptions completeinword
 
-  local lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-  local keymap_menuselect="$( bindkey -M menuselect -L )"
+  private lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+  private keymap_menuselect="$( bindkey -M menuselect -L )"
   {
     bindkey -M menuselect -s '^R' '^_^_^R'
     bindkey -M menuselect -s '^S' '^_^_^S'
@@ -23,7 +22,7 @@ ${0}() {
     bindkey -M menuselect '\eOC' .forward-char
 
     local lcontext rcontext
-    zle ${0}.context
+    zle ${(%):-%N}.context
     LBUFFER="$lcontext"
     RBUFFER="$rcontext"
 

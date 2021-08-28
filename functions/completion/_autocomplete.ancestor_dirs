@@ -5,30 +5,30 @@
 [[ $_comp_tags == *( | local-)'directories '* ]] ||
     return
 
-local tag=ancestor-directories
+private tag=ancestor-directories
 _tags $tag
 _tags ||
     return
 _requested $tag ||
     return
 
-local -a displ expl ancestors dirs
-local -i ret=1
-local dir=$PWD:h
+private -a ancestors
+private -i ret=1
+private dir=$PWD:h
 while (( $#dir > 1 )); do
   ancestors=( $dir $ancestors[@] )
   dir=$dir:h
 done
 
-# Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
-unset dir
+local displ expl
 while _next_label -V $tag expl "ancestor directory"; do
-  dirs=( $ancestors[@] )
-  while (( $#dirs[@] )); do
-    displ=( "$dirs[1]" ); [[ -z $PREFIX$SUFFIX ]] && displ=( "$dirs[1]:t" )
-    compadd "$expl[@]" -d displ -P "${${(D)dirs[1]:h}%/}/" -fW "${${dirs[1]:h}%/}/" \
-        - "$dirs[1]:t"
-    shift dirs
+  private dir
+  for dir in $ancestors[@]; do
+    displ=( "$dir" )
+    [[ -z $PREFIX$SUFFIX ]] &&
+        displ=( "$dir:t" )
+    compadd "$expl[@]" -d displ -P "${${(D)dir:h}%/}/" -fW "${${dir:h}%/}/" \
+        - "$dir:t"
   done
 done
 

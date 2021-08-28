@@ -1,23 +1,22 @@
 #autoload
 
-local tag=requoted
+private tag=requoted
 _tags $tag
 _tags && _requested $tag ||
-  return 1
+    return 1
 
 (( compstate[nmatches] > 1 )) &&
-  return 1
+    return 1
 _autocomplete.is_glob &&
-  return 1
+    return 1
 [[ $_completer == expand ]] ||
-  return 1
+    return 1
 
-local match=${(Q)compstate[unambiguous]}
+private match=${(Q)compstate[unambiguous]}
 
 [[ $match == ($words[CURRENT]|$compstate[unambiguous]) ]] &&
-  return 1
+    return 1
 
-local expl
+local -a expl display=( "$match" )
 _description $tag expl 'human-readable'
-local display=( "$match" )
 compadd "$expl[@]" -qS ' ' -QU -d display - ${(q+)match}

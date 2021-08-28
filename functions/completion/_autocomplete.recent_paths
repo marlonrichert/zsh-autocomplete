@@ -5,8 +5,8 @@ _autocomplete.recent_paths() {
   (( compstate[nmatches] < 2 )) ||
       return
 
-  local -aU dirs
-  local tag
+  private -aU dirs
+  private tag
   _tags recent-directories recent-files
   while _tags; do
 
@@ -35,8 +35,9 @@ _autocomplete.recent_paths() {
 }
 
 .autocomplete.recent_paths.add() {
-  local -a displ matches=( "$@" ) opts
+  private -a opts
 
+  local -a displ matches=( "$@" )
   compadd "$expl[@]" -D matches - "$@:t"
   displ=( "${(@D)matches}" )
   zformat -a displ '' $^displ':'
@@ -53,7 +54,7 @@ _autocomplete.recent_paths() {
 
 # Workaround to prevent the prompt from jumping
 .autocomplete.recent_paths.trim() {
-  local total="${(j:/  :)displ}/  "
+  private total="${(j:/  :)displ}/  "
   while (( $#total > COLUMNS )); do
     shift -p -- displ matches
     total="${(j:/  :)displ}/  "

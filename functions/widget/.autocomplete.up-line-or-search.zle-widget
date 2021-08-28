@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 if (( BUFFERLINES > 1 )); then
-  local -i cursor=$CURSOR
+  private -i cursor=$CURSOR
   zle .up-line
   (( cursor == CURSOR )) &&
       zle .beginning-of-line

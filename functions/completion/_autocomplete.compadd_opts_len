@@ -1,10 +1,10 @@
 #autoload
 
-local -i len=$(( ${@[(i)(-|--)]} - 1 ))
+private -i len=$(( ${@[(i)(-|--)]} - 1 ))
 (( len < $# )) &&
-  return len
+    return len
 
 len=${@[(I)-*]}
 [[ $@[len] == -*[PSpsiIdJVXxrRWFMOAD] ]] &&
-  (( len++ ))
+    (( len++ ))
 return len

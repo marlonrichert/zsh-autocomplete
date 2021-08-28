@@ -2,10 +2,9 @@
 local 0=${(%):-%N}
 
 $0() {
-  local 0=${(%):-%N}
   typeset -gH curcontext=${WIDGET}:::
 
-  local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
+  local +h -a comppostfuncs=( ${(%):-%N}.post "$comppostfuncs[@]" )
   compstate[old_list]=
   _main_complete _autocomplete.history_lines
 
