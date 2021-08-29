@@ -12,23 +12,21 @@ _tags ||
 _requested $tag ||
     return
 
-private -a ancestors
-private -i ret=1
-private dir=$PWD:h
-while (( $#dir > 1 )); do
-  ancestors=( $dir $ancestors[@] )
-  dir=$dir:h
+private -a ancestors=()
+private parent=$PWD:h
+while (( $#parent > 1 )); do
+  ancestors+=( $parent )
+  parent=$parent:h
 done
 
-local displ expl
-while _next_label -V $tag expl "ancestor directory"; do
-  private dir
-  for dir in $ancestors[@]; do
-    displ=( "$dir" )
+local displ= expl=
+private a=
+while _next_label -V $tag expl 'ancestor directory'; do
+  for a in ${(aO)ancestors[@]}; do
+    displ=( "$a" )
     [[ -z $PREFIX$SUFFIX ]] &&
-        displ=( "$dir:t" )
-    compadd "$expl[@]" -d displ -P "${${(D)dir:h}%/}/" -fW "${${dir:h}%/}/" \
-        - "$dir:t"
+        displ=( "$a:t" )
+    compadd "$expl[@]" -d displ -P "${${(D)a:h}%/}/" -fW "${${a:h}%/}/" - "$a:t"
   done
 done
 
