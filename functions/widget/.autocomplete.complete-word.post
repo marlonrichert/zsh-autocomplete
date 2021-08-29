@@ -5,7 +5,8 @@ compstate[insert]=
 compstate[list]=
 
 private key_name=${(kL)key[(Re)$KEYS]}
-local key_style; zstyle -s :autocomplete:${key_name}: widget-style key_style
+local key_style=
+zstyle -s :autocomplete:${key_name}: widget-style key_style
 
 if  ( [[ $KEYS == $terminfo[kcbt] ]] ||
       zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
@@ -36,7 +37,8 @@ else
   compstate[insert]+='1'
 fi
 
-local -a tags; zstyle -a :autocomplete: add-space tags ||
+local -a tags=()
+zstyle -a :autocomplete: add-space tags ||
     tags=( executables aliases functions builtins reserved-words commands )
 [[ $RBUFFER != [[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]] &&
     compstate[insert]+=' '

@@ -20,7 +20,7 @@ zmathfunc
 
   # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
   if zstyle -L zle-hook types > /dev/null; then
-    private hook
+    private hook=
     for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
     do
       [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
@@ -34,7 +34,7 @@ zmathfunc
   [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
       typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
 
-  private mod
+  private mod=
   for mod in compinit config widget key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd
     if [[ -v functions[$mod] ]]; then
@@ -68,7 +68,7 @@ private zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
     zf_mkdir -pm 0700 $zsh_cache_dir
 
-private mod
+private mod=
 for mod in compinit config widget key-binding recent-dirs async; do
   if zstyle -T ':autocomplete:' $mod; then
     autoload -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod

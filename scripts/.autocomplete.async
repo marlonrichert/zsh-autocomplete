@@ -33,7 +33,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   fi
 
   if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
-    private action
+    private action=
     for action in clear modify fetch accept partial_accept execute enable disable toggle; do
       # Set flags according to widget name.
       eval "_zsh_autosuggest_widget_$action() {
@@ -65,7 +65,8 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       return
 
   if ! [[ -v terminfo[u6] && -v terminfo[u7] ]]; then
-    local -i max_lines; zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
+    local -i max_lines=
+    zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
         (( max_lines = 16 ))
     (( _autocomplete__buffer_start_line = min( max( LINES - max_lines, 1 ), LINES ) ))
     return 0
@@ -82,12 +83,11 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   private -a CPR=( "${(s:%d:)$( echoti u6 )}" )
 
   # If there is a %i before the first %d, then decrement both %d values by 1.
-  private -i i
-  (( i = ${${${(M)CPR[1]%'%i'}:+1}:-0} ))
+  private -i i=${${${(M)CPR[1]%'%i'}:+1}:-0}
   CPR[1]=${CPR[1]%'%i'}
 
-  local REPLY
-  private Y
+  local REPLY=
+  private Y=
   echoti u7           # Send cursor position request.
 
   # Parse the cursor position report.
@@ -192,11 +192,11 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     () {
       {
         typeset -F SECONDS=0.0 min_delay
-        local -i fd
-        local REPLY header text
-        private -i timeout
+        local -i fd=
+        local REPLY= header= text=
+        private -i timeout=
         zstyle -s :autocomplete: min-delay min_delay ||
-          min_delay=0.0
+            min_delay=0.0
         zpty AUTOCOMPLETE .autocomplete.async.pty '$LBUFFER' '$RBUFFER'
         (( fd = REPLY ))
         zpty -w AUTOCOMPLETE $'\t'
@@ -239,7 +239,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       :
     }
 
-    private hook
+    private hook=
     for hook in isearch-exit isearch-update line-pre-redraw line-init line-finish \
         history-line-set keymap-select; do
       builtin zle -N zle-$hook .autocomplete.async.pty.no-op
@@ -248,7 +248,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     typeset -gH lbuffer=$1 rbuffer=$2
 
     builtin bindkey $'\t' .autocomplete.async.pty.zle-widget
-    local __tmp__
+    local __tmp__=
     builtin vared __tmp__
   } "$@" 2>>| $_autocomplete__log_file
 }
@@ -287,8 +287,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.complete.fd-widget() {
-  local -i fd
-  (( fd = $1 ))
+  local -i fd=$1
   {
     zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
@@ -332,13 +331,15 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   local +h PS4=$_autocomplete__ps4
   builtin setopt localoptions promptsubst
   () {
-    private -i nmatches
-    (( nmatches = $1 ))
+    private -i nmatches=$1
     private message=$2
 
-    local min_input; zstyle -s :autocomplete: min-input min_input ||
+    local min_input=
+    zstyle -s :autocomplete: min-input min_input ||
         min_input=0
-    local ignored; zstyle -s :autocomplete: ignored-input ignored
+
+    local ignored=
+    zstyle -s :autocomplete: ignored-input ignored
 
     local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
     if [[ -n $curcontext ]]; then
@@ -348,7 +349,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       zle -Rc
     elif (( nmatches == 0 )); then
       if [[ -n $message ]]; then
-        local msg
+        local msg=
         zformat -f msg "$message"
         compadd -x "$msg"
       else
@@ -371,12 +372,13 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
 }
 
 .autocomplete.async.list-choices.main-complete() {
-  local -i _async_max_lines
+  local -i _async_max_lines=
   () {
-    local -i min_lines
+    local -i min_lines=
     zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
         min_lines=16
-    private -i lines_below_buffer
+
+    private -i lines_below_buffer=
     (( lines_below_buffer = LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
     (( min_lines = min( LINES - ( 1 + BUFFERLINES ), min_lines ) ))
     (( _async_max_lines = max( min_lines, lines_below_buffer ) ))
@@ -441,7 +443,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
         zparseopts -D -E -A _opts_ - A: D: O: X:
         .autocomplete.compadd -O _matches_ "$@"
 
-        private -i surplus
+        private -i surplus=
         (( surplus = ${#_matches_} - ( ( COLUMNS * _async_max_lines ) / 3 ) ))
         (( surplus > 0 )) &&
             shift -p $surplus _matches_
@@ -455,13 +457,12 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
       }
     )}" )
 
-    private -i list_lines nmatches
-    (( list_lines = ${_matches_[1]} ))
-    (( nmatches = ${_matches_[2]} ))
+    private -i list_lines=${_matches_[1]} nmatches=${_matches_[2]}
+    shift 2 _matches_
+
     (( number_of_new_matches = nmatches - compstate[nmatches] ))
     (( lines_of_new_matches = list_lines - compstate[list_lines] ))
 
-    shift 2 _matches_
     _matches_=( ${_matches_[@]:#} )
   fi
 
@@ -485,7 +486,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     return
   fi
 
-  local -A groupname
+  local -A groupname=()
   zparseopts -D -E -A _opts_ - a d: k l U J:=groupname V:=groupname
   private -a dopt=()
   if [[ -v _opts_[-d] ]]; then
@@ -499,7 +500,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
   set -- "${(@kv)groupname}" "$@"
 
   if (( lines_of_new_matches > 0 )); then
-    private -i matches_per_line
+    private -i matches_per_line=
     (( matches_per_line = 1.0 * number_of_new_matches / lines_of_new_matches ))
     if (( matches_per_line < 1 )); then
       dopt[1]=-ld
@@ -517,7 +518,7 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
           typeset -gH _autocomplete__partial_list=$curtag
 
       # Round this down, before subtracting.
-      private -i fit
+      private -i fit=
       (( fit = matches_per_line * max( 0, lines_available - 1 ) ))
 
       shift -p $(( ${#_matches_} - fit )) _matches_

@@ -77,7 +77,8 @@ zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
       private -A displ_to_dirs=( "${(@)displ:^dirs}" )
       _autocomplete.sort_by_length "$displ[@]"
 
-      private MATCH MBEGIN MEND
+      private -i MBEGIN= MEND=
+      private MATCH=
       reply=( ${reply[@]:/(#m)*/${displ_to_dirs[$MATCH]}} )
 
       (( $#reply[@] ))

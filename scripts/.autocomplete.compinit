@@ -39,7 +39,7 @@ compdef() {
       return 66
     fi
 
-    private f
+    private f=
     for f in $comps[@]; do
       if ! [[ -v functions[$f:t] && $f -ot $_comp_dumpfile ]]; then
         zf_rm -f $_comp_dumpfile
@@ -68,16 +68,16 @@ EOF
 
   compinit() { : }
 
-  private args
+  private args=
   for args in "$_autocomplete_compdef[@]"; do
     eval "compdef $args"
   done
   unset _autocomplete_compdef
 
   (
-    local cache_dir
+    local cache_dir=
     if zstyle -s ':completion:*' cache-path cache_dir; then
-      private src bin
+      private src= bin=
       for src in $cache_dir/*~**.zwc~**/.*(N-.); do
         bin=$src.zwc
         if [[ ! -e $bin || $bin -ot $src ]]; then
@@ -152,7 +152,7 @@ EOF
     [[ $exp == ($word|$compstate[unambiguous]) ]] &&
       return 0
 
-    local expl
+    local -a expl=()
     _description -V expansions expl expansions "o:$word"
     compadd "$expl[@]" -UQ -qS '' - "${(q+)exp}"
 
@@ -226,9 +226,13 @@ EOF
         _description "$@[1,3]"
         builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
         local -a displays=()
-        local sep; zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+
+        local sep=
+        zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
             sep=--
-        private MATCH MBEGIN MEND
+
+        private -i MBEGIN= MEND=
+        private MATCH=
         zformat -a displays " $sep " \
             "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
         displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )

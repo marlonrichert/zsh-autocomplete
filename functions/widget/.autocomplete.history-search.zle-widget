@@ -21,7 +21,7 @@ ${0}() {
     bindkey -M menuselect '\e[C' .forward-char
     bindkey -M menuselect '\eOC' .forward-char
 
-    local lcontext rcontext
+    local lcontext= rcontext=
     zle ${(%):-%N}.context
     LBUFFER="$lcontext"
     RBUFFER="$rcontext"

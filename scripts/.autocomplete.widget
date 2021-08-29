@@ -3,7 +3,7 @@ typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
 
 .autocomplete.widget.precmd() {
-  private tab_style
+  private tab_style=
   for tab_style in complete-word menu-complete menu-select; do
     .autocomplete.widget.c "$tab_style" "$tab_style" complete-word
   done
@@ -13,11 +13,11 @@ zmodload zsh/complist
 }
 
 .autocomplete.widget.c() {
-  zle -C $1 $2 .autocomplete.$3.completion-widget
+  zle -C "$1" "$2" .autocomplete.$3.completion-widget
 }
 
 .autocomplete.widget.z() {
-  zle -N $1 .autocomplete.$2.zle-widget
+  zle -N "$1" .autocomplete.$2.zle-widget
 }
 
 .autocomplete.widget.c list-expand complete-word list-expand

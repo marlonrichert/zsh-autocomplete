@@ -7,7 +7,7 @@ _requested $tag ||
     return 1
 
 private -A events=()
-private -i min_lines max_lines
+private -i min_lines= max_lines=
 zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
     min_lines=16
 (( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
@@ -33,7 +33,7 @@ if [[ -z $BUFFER ]]; then
     done
   fi
 else
-  private -aU queries results
+  private -aU queries=() results=()
   if [[ $curcontext == *-incremental-*:* ]]; then
     private word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
     private lbuffer="${words[1,CURRENT-1]}[[:blank:]]#"
@@ -43,8 +43,8 @@ else
     queries=( '(#ia'{0..$(( min(7, $#words / 3) ))}')*'${words[CURRENT]//$'\0'/*}'*' )
   fi
   if [[ -o histfindnodups ]]; then
-    private -a numbers
-    private q
+    private -a numbers=()
+    private q=
     for q in $queries[@]; do
       numbers=( "${(@k)history[(R)$~q]}" )
       (( $#numbers[@] > 0 )) &&
@@ -58,7 +58,7 @@ else
     events=( "${(@)lines:^numbers}" )
     events=( "${(@Oa)${(@kv)events}}" )
   else
-    private q
+    private q=
     for q in $queries[@]; do
       events=( "${(@kv)history[(R)$~q]}" )
       (( $#events[@] > 0 )) &&
@@ -75,7 +75,7 @@ printf -v displays "%s:%s" "${(@kv)events}"
 displays=( "$displays[@]" )
 
 private -i diff=$(( $#displays[@] - max_lines ))
-private -a sopt
+private -a sopt=()
 if [[ $curcontext == *-incremental-* ]]; then
   if [[ $curcontext == *-forward:* ]]; then
       displays=( ${(@n)displays} )
@@ -85,7 +85,7 @@ if [[ $curcontext == *-incremental-* ]]; then
   (( diff > 0 )) &&
       shift -p "$diff" displays
   if [[ -n $BUFFER ]]; then
-    local reply
+    local reply=()
     _autocomplete.sort_by_length $displays[@]
     displays=( $reply[@] )
   fi
@@ -106,11 +106,12 @@ local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
 [[ $curcontext == *-incremental-* ]] &&
     matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
 
-private -a match mbegin mend
+private -a match=() mbegin=() mend=()
 displays=(
     "${(@r:COLUMNS-1:)displays[@]/%(#b)(<->):(*)/${(l:$#HISTNO:)match[1]} ${(V)${(Z+C+)match[2]}}}"
     )
 
-local _comp_no_ignore=1 expl
+local -a expl=()
+local _comp_no_ignore=1
 _description -2V "$tag" expl 'history line'
 compadd "$expl[@]" "$sopt[@]" -QU -ld displays -a matches
