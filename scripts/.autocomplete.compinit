@@ -133,6 +133,7 @@ EOF
 
   .autocomplete.patch _expand
   _expand() {
+
     if _autocomplete.is_glob; then
       [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
           local +h ISUFFIX="*"
@@ -177,11 +178,11 @@ EOF
   .autocomplete.patch _approximate
   _approximate() {
     [[ -z $words[CURRENT] || -v compstate[quote] ]] &&
-      return 1
+        return 1
     [[ -o banghist && $words[CURRENT] == [$histchars]* ]] &&
-      return 1
+        return 1
     _autocomplete.is_glob &&
-      return 1
+        return 1
 
     private -i ret=1
     {
