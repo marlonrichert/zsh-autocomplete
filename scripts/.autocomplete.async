@@ -154,11 +154,12 @@ zle -N history-incremental-search-forward .autocomplete.async.history-incrementa
     return 0
   fi
 
-  [[ $LASTWIDGET == (list-expand|_complete_help) ]] &&
+  [[ $LASTWIDGET ==
+        (_complete_help|list-expand|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
       return
 
   [[ $_lastcomp[insert] == *unambiguous ]] &&
-      zle .auto-suffix-retain  # Makes the cursor stay in the right place.
+      zle .auto-suffix-retain  # Make the cursor stay in the right place.
 
   .autocomplete.async.start
   return 0
