@@ -6,6 +6,7 @@ _autocomplete.recent_paths() {
       return
 
   private -aU dirs=()
+  private -i ret=1
   private tag=
   _tags recent-directories recent-files
   while _tags; do
@@ -16,7 +17,8 @@ _autocomplete.recent_paths() {
         _autocomplete.recent_dirs "$PREFIX$SUFFIX"; then
       dirs=( "$reply[@]" )
       while _next_label -V $tag expl 'recent directory'; do
-        .autocomplete.recent_paths.add $dirs[@]
+        .autocomplete.recent_paths.add $dirs[@] &&
+            ret=0
       done
     fi
 
@@ -26,28 +28,36 @@ _autocomplete.recent_paths() {
         _autocomplete.recent_files "$PREFIX$SUFFIX"; then
       dirs=( "$reply[@]" )
       while _next_label -v $tag expl 'recent file'; do
-        .autocomplete.recent_paths.add $dirs[@]
+        .autocomplete.recent_paths.add $dirs[@] &&
+            ret=0
       done
     fi
   done
 
-  return 1  # Always continue to next completer.
+  return ret
 }
 
 .autocomplete.recent_paths.add() {
-  local -a displ matches=( "$@" )
-  compadd "$expl[@]" -D matches - "$@:t"
+  local -a displ=() matches=( "$@" )
+  compadd "$expl[@]" -D matches -- "$@:t"
   displ=( "${(@D)matches}" )
   zformat -a displ '' $^displ':'
 
   .autocomplete.recent_paths.trim
 
+  private -i ret=1
+
   # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
   while (( $#matches )); do
     compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
-        - "$matches[1]:t"
+          -- "$matches[1]:t" &&
+        ret=0
+    displ=( "$displ[@]" )
+    matches=( "$matches[@]" )
     shift -- displ matches
   done
+
+  return ret
 }
 
 # Workaround to prevent the prompt from jumping

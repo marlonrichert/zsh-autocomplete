@@ -164,15 +164,23 @@ EOF
   _complete() {
     .autocomplete._complete "$@"
     private -i ret=$?
-    (( ret )) &&
-        _comp_mesg='' # Otherwise, the next completer won't get tried.
 
     [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
         return ret
 
-    _autocomplete.ancestor_dirs "$@"
-    _autocomplete.recent_paths "$@"
+    _autocomplete.ancestor_dirs "$@" &&
+        ret=0
+    _autocomplete.recent_paths "$@" &&
+        ret=0
+
     return ret
+  }
+
+  .autocomplete.patch _message
+  _message() {
+    .autocomplete._message "$@"
+    [[ "$1" = -e ]] &&
+        _comp_mesg=  # Otherwise, no further completers will be called.
   }
 
   .autocomplete.patch _approximate

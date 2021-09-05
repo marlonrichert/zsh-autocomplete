@@ -1,5 +1,6 @@
 #!/bin/zsh
-emulate -L zsh; setopt $_autocomplete__options
+emulate -L zsh
+setopt $_autocomplete__options
 
 # If no arg, assume same widget as last time.
 [[ -n $1 ]] &&
