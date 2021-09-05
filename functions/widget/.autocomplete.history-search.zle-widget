@@ -3,13 +3,15 @@ local 0=${(%):-%N}
 zle -C ${0}.context list-choices ${0}.context
 
 ${0}.context() {
-  lcontext=${LBUFFER%${(~j:*:)words[1,CURRENT-1]}*$QIPREFIX$IPREFIX$PREFIX}
-  lcontext+=${lcontext:+ }${(pj:\0:)words}
-  rcontext=${RBUFFER#$SUFFIX$ISUFFIX$QISUFFIX*${(~j:*:)words[CURRENT+1,-1]}}
+  # Inside a completion widget, the current quote level is removed. So, we should not include
+  # $QIPREFIX/$QISUFFIX in our pattern or it won't match.
+  lcontext=${LBUFFER%${(~j:*:)words[1,CURRENT-1]}*$IPREFIX$PREFIX}
+  lcontext+=${lcontext:+ }${(pj:\0:)${(@b)words}}
+  rcontext=${RBUFFER#$SUFFIX$ISUFFIX*${(~j:*:)words[CURRENT+1,-1]}}
 }
 
 ${0}() {
-  setopt localoptions completeinword
+  setopt localoptions completeinword NO_aliases
 
   private lbuffer="$LBUFFER" rbuffer="$RBUFFER"
   private keymap_menuselect="$( bindkey -M menuselect -L )"

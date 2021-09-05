@@ -2,7 +2,7 @@
 zmodload zsh/param/private
 setopt NO_flowcontrol NO_singlelinezle
 
-zsh-autocomplete() {
+() {
   emulate -L zsh -o NO_aliases
   zmodload -Fa zsh/parameter p:functions
 
@@ -12,9 +12,9 @@ zsh-autocomplete() {
 
   typeset -gHa _autocomplete__options=(
     localoptions extendedglob clobber
-    NO_banghist NO_listbeep NO_shortloops NO_warncreateglobal
+    NO_banghist NO_completeinword NO_listbeep NO_shortloops NO_warncreateglobal
   )
-  setopt $_autocomplete__options
+  builtin setopt $_autocomplete__options[@]
 
   private basedir=${${(%):-%x}:P:h}
   if ! [[ -n $basedir && -d $basedir ]]; then
@@ -43,13 +43,7 @@ zsh-autocomplete() {
 
   # Workaround for https://github.com/zdharma/zinit/issues/366
   [[ -v functions[.zinit-shade-on] ]] &&
-    .zinit-shade-on "${___mode:-load}"
+      .zinit-shade-on "${___mode:-load}"
 
   return 0
-}
-
-{
-  zsh-autocomplete "$@"
-} always {
-  unfunction zsh-autocomplete
-}
+} "$@"
