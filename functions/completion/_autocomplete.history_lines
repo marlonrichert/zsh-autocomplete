@@ -1,117 +1,146 @@
 #autoload
-private tag=history-lines
-_tags $tag
-_tags ||
-    return 1
-_requested $tag ||
-    return 1
 
-private -A events=()
-private -i min_lines= max_lines=
-zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
-    min_lines=16
-(( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
+_autocomplete.history_lines() {
+  private tag=history-lines
+  _tags $tag
+  _tags ||
+      return 1
+  _requested $tag ||
+      return 1
 
-if [[ -z $BUFFER ]]; then
-  if [[ $curcontext == *-forward:* ]]; then
-    private -i inc=1 histno=1
-  else
-    private -i inc=-1 histno=$(( HISTNO - 1 ))
-  fi
-  if [[ -o histfindnodups ]]; then
-    while (( $#events[@] < max_lines && 0 < histno && histno < HISTNO )); do
-      [[ -v history[$histno] && ! -v events[$history[$histno]] ]] &&
-          events[$history[$histno]]=$histno
-      (( histno += inc ))
-    done
-    events=( "${(@Oa)${(@kv)events}}" )
-  else
-    while (( $#events[@] < max_lines && 0 < histno && histno < HISTNO )); do
-      [[ -v history[$histno] ]] &&
-          events[$histno]="$history[$histno]"
-      (( histno += inc ))
-    done
-  fi
-else
-  private -aU queries=() results=()
-  if [[ $curcontext == *-incremental-*:* ]]; then
-    private word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
-    private lbuffer="${words[1,CURRENT-1]}[[:blank:]]#"
-    private rbuffer="[[:blank:]]#${words[CURRENT+1,-1]}"
-    queries=( "$lbuffer*((#ia"{0..$(( min(7, $#word / 3) ))}")${(b)word})*$rbuffer" )
-  else
-    queries=( '(#ia'{0..$(( min(7, $#words / 3) ))}')*'${words[CURRENT]//$'\0'/*}'*' )
-  fi
-  if [[ -o histfindnodups ]]; then
-    private -a numbers=()
-    private q=
-    for q in $queries[@]; do
-      numbers=( "${(@k)history[(R)$~q]}" )
-      (( $#numbers[@] > 0 )) &&
-          break
-    done
-    private -a lines=( "${(@v)history[(I)(${(~j:|:)numbers})]}" )
-    if [[ $curcontext != *-forward:* ]]; then
-      numbers=( "${(@Oa)numbers}" )
-      lines=( "${(@Oa)lines}" )
+  private -A events=()
+  private -i min_lines= max_lines=
+  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
+      min_lines=16
+  (( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
+
+  if [[ -z $BUFFER ]]; then
+    if [[ $curcontext == *-forward:* ]]; then
+      private -i inc=1 histno=1
+    else
+      private -i inc=-1 histno=$(( HISTNO - 1 ))
     fi
-    events=( "${(@)lines:^numbers}" )
-    events=( "${(@Oa)${(@kv)events}}" )
+    if [[ -o histfindnodups ]]; then
+      while (( $#events[@] < max_lines && 0 < histno && histno < HISTNO )); do
+        [[ -v history[$histno] && ! -v events[$history[$histno]] ]] &&
+            events[$history[$histno]]=$histno
+        (( histno += inc ))
+      done
+      events=( "${(@Oa)${(@kv)events}}" )
+    else
+      while (( $#events[@] < max_lines && 0 < histno && histno < HISTNO )); do
+        [[ -v history[$histno] ]] &&
+            events[$histno]="$history[$histno]"
+        (( histno += inc ))
+      done
+    fi
   else
-    private q=
-    for q in $queries[@]; do
-      events=( "${(@kv)history[(R)$~q]}" )
-      (( $#events[@] > 0 )) &&
-          break
-    done
+    private word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+    private -aU err=( '(#ia'{0..$(( $#words[CURRENT] / 3 ))}')' )
+    if [[ $WIDGET == *-search(|-*) && $WIDGET != *-incremental-search(|-*) ]]; then
+      private -aU queries=( \*$^err${(j:*:)${(0)words[CURRENT]}}\* )
+    else
+      private lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}"
+      private rbuffer="${(j.[[:blank:]]##.)${(@b)words[CURRENT+1,-1]}}"
+      [[ -n $lbuffer ]] &&
+          lbuffer="${lbuffer}[[:blank:]]##"
+      [[ -n $rbuffer ]] &&
+          rbuffer="[[:blank:]]##${rbuffer}"
+      lbuffer="$lbuffer${(b)QIPREFIX}"
+      rbuffer="${(b)QISUFFIX}$rbuffer"
+      private -aU queries=( $lbuffer\*\($^err${words[CURRENT]}\)\*$rbuffer )
+    fi
+    if [[ -o histfindnodups ]]; then
+      private -a numbers=()
+      private q=
+      for q in $queries[@]; do
+        numbers=( "${(@k)history[(R)$~q]}" )
+        (( $#numbers[@] )) &&
+            break
+      done
+      private -a lines=( "${(@v)history[(I)(${(~j:|:)numbers})]}" )
+      if [[ $curcontext != *-forward:* ]]; then
+        numbers=( "${(@Oa)numbers}" )
+        lines=( "${(@Oa)lines}" )
+      fi
+      events=( "${(@)lines:^numbers}" )
+      events=( "${(@Oa)${(@kv)events}}" )
+    else
+      private q=
+      for q in $queries[@]; do
+        events=( "${(@kv)history[(R)$~q]}" )
+        (( $#events[@] )) &&
+            break
+      done
+    fi
   fi
-fi
 
-(( $#events[@] )) ||
-    return
+  (( $#events[@] )) ||
+      return
 
-local -a displays=()
-printf -v displays "%s:%s" "${(@kv)events}"
-displays=( "$displays[@]" )
+  local -a displays=()
+  printf -v displays "%s:%s" "${(@kv)events}"
+  displays=( "$displays[@]" )
 
-private -i diff=$(( $#displays[@] - max_lines ))
-private -a sopt=()
-if [[ $curcontext == *-incremental-* ]]; then
-  if [[ $curcontext == *-forward:* ]]; then
-      displays=( ${(@n)displays} )
+  private -i diff=$(( $#displays[@] - max_lines ))
+  private -a sopt=()
+  if [[ $WIDGET == *-search(|-*) && $WIDGET != *-incremental-search(|-*) ]]; then
+    displays=( ${(@n)displays} )
+    (( diff > 0 )) &&
+        shift "$diff" displays
+    sopt=( -S ';' -R _autocomplete.history_lines.search-suffix )
+    typeset -gH _autocomplete__history_widget=$WIDGET
   else
-      displays=( ${(@On)displays} )
+    if [[ $curcontext == *-forward:* ]]; then
+        displays=( ${(@n)displays} )
+    else
+        displays=( ${(@On)displays} )
+    fi
+    (( diff > 0 )) &&
+        shift -p "$diff" displays
+    sopt=( -S '; ' -R _autocomplete.history_lines.incremental-suffix )
   fi
-  (( diff > 0 )) &&
-      shift -p "$diff" displays
-  if [[ -n $BUFFER ]]; then
-    local reply=()
-    _autocomplete.sort_by_length $displays[@]
-    displays=( $reply[@] )
+
+  local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
+  [[ $WIDGET != *-search(|-*) ]] &&
+      matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
+
+  private -a match=() mbegin=() mend=()
+  displays=(
+      "${(@r:COLUMNS-1:)displays[@]/%(#b)(<->):(*)/${(l:$#HISTNO:)match[1]} ${(V)${(Z+C+)match[2]}}}"
+  )
+
+  local -a expl=()
+  local _comp_no_ignore=1
+  _description -2V "$tag" expl 'history line'
+  compadd "$expl[@]" "$sopt[@]" -QU -ld displays -a matches
+}
+
+_autocomplete.history_lines.incremental-suffix() {
+  [[ LBUFFER != *'; ' ]] &&
+      return
+  if [[ $WIDGET == (|.)self-insert(|-unmeta) ]]; then
+    case $KEYS in
+      ( *[$';\n\r'] )
+        LBUFFER="$LBUFFER[1,-1-$1]"
+      ;;
+      ( ['|&<>'] )
+        LBUFFER="$LBUFFER[1,-1-$1] "
+      ;;
+    esac
+  else
+    LBUFFER="$LBUFFER[1,-2]"
   fi
-  sopt=( -S '' )
-else
-  displays=( ${(@n)displays} )
-  (( diff > 0 )) &&
-      shift "$diff" displays
-  sopt=( -S ';' -R _autocomplete.history_lines.suffix )
-  eval '
-    _autocomplete.history_lines.suffix() {
-      [[ $WIDGET != '$WIDGET' ]] &&
-          LBUFFER="$LBUFFER[1,-1-$1]"
-    }'
-fi
+}
 
-local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
-[[ $curcontext == *-incremental-* ]] &&
-    matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
+_autocomplete.history_lines.search-suffix() {
+  [[ LBUFFER != *';' ]] &&
+      return
+  [[ $WIDGET == $_autocomplete__history_widget ]] &&
+      return
+  LBUFFER="$LBUFFER[1,-1-$1]"
+  [[ $WIDGET == (|.)self-insert && $KEYS != [\;[:space:]] ]] &&
+      LBUFFER+=' '
+}
 
-private -a match=() mbegin=() mend=()
-displays=(
-    "${(@r:COLUMNS-1:)displays[@]/%(#b)(<->):(*)/${(l:$#HISTNO:)match[1]} ${(V)${(Z+C+)match[2]}}}"
-    )
-
-local -a expl=()
-local _comp_no_ignore=1
-_description -2V "$tag" expl 'history line'
-compadd "$expl[@]" "$sopt[@]" -QU -ld displays -a matches
+_autocomplete.history_lines "$@"

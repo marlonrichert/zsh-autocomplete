@@ -2,7 +2,6 @@
 unset MENUSELECT
 unset curcontext
 compstate[insert]=
-compstate[list]=
 
 private key_name=${(kL)key[(Re)$KEYS]}
 local key_style=
