@@ -28,12 +28,6 @@ zmathfunc
     done
   fi
 
-  # Don't let `&` and `|` remove suffixes.
-  [[ -v ZLE_REMOVE_SUFFIX_CHARS ]] ||
-      typeset -g ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;'
-  [[ -v ZLE_SPACE_SUFFIX_CHARS ]] ||
-      typeset -g ZLE_SPACE_SUFFIX_CHARS=$'&|'
-
   private mod=
   for mod in compinit config widget key-binding recent-dirs async; do
     mod=.autocomplete.$mod.precmd

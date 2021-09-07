@@ -37,7 +37,7 @@ _autocomplete.history_lines() {
   else
     private word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
     private -aU err=( '(#ia'{0..$(( $#words[CURRENT] / 3 ))}')' )
-    if [[ $WIDGET == *-search(|-*) && $WIDGET != *-incremental-search(|-*) ]]; then
+    if [[ $WIDGET == (|*-)search(|-*) ]]; then
       private -aU queries=( \*$^err${(j:*:)${(0)words[CURRENT]}}\* )
     else
       private lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}"
@@ -83,13 +83,12 @@ _autocomplete.history_lines() {
   displays=( "$displays[@]" )
 
   private -i diff=$(( $#displays[@] - max_lines ))
-  private -a sopt=()
-  if [[ $WIDGET == *-search(|-*) && $WIDGET != *-incremental-search(|-*) ]]; then
+  private suf=
+if [[ $WIDGET == (|*-)search(|-*) ]]; then
     displays=( ${(@n)displays} )
     (( diff > 0 )) &&
         shift "$diff" displays
-    sopt=( -S ';' -R _autocomplete.history_lines.search-suffix )
-    typeset -gH _autocomplete__history_widget=$WIDGET
+    suf=';'
   else
     if [[ $curcontext == *-forward:* ]]; then
         displays=( ${(@n)displays} )
@@ -98,11 +97,11 @@ _autocomplete.history_lines() {
     fi
     (( diff > 0 )) &&
         shift -p "$diff" displays
-    sopt=( -S '; ' -R _autocomplete.history_lines.incremental-suffix )
+    suf=' '
   fi
 
   local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
-  [[ $WIDGET != *-search(|-*) ]] &&
+  [[ $WIDGET != (|*-)search(|-*) ]] &&
       matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
 
   private -a match=() mbegin=() mend=()
@@ -113,34 +112,7 @@ _autocomplete.history_lines() {
   local -a expl=()
   local _comp_no_ignore=1
   _description -2V "$tag" expl 'history line'
-  compadd "$expl[@]" "$sopt[@]" -QU -ld displays -a matches
-}
-
-_autocomplete.history_lines.incremental-suffix() {
-  [[ LBUFFER != *'; ' ]] &&
-      return
-  if [[ $WIDGET == (|.)self-insert(|-unmeta) ]]; then
-    case $KEYS in
-      ( *[$';\n\r'] )
-        LBUFFER="$LBUFFER[1,-1-$1]"
-      ;;
-      ( ['|&<>'] )
-        LBUFFER="$LBUFFER[1,-1-$1] "
-      ;;
-    esac
-  else
-    LBUFFER="$LBUFFER[1,-2]"
-  fi
-}
-
-_autocomplete.history_lines.search-suffix() {
-  [[ LBUFFER != *';' ]] &&
-      return
-  [[ $WIDGET == $_autocomplete__history_widget ]] &&
-      return
-  LBUFFER="$LBUFFER[1,-1-$1]"
-  [[ $WIDGET == (|.)self-insert && $KEYS != [\;[:space:]] ]] &&
-      LBUFFER+=' '
+  compadd "$expl[@]" -qS "$suf" -QU -ld displays -a matches
 }
 
 _autocomplete.history_lines "$@"

@@ -11,10 +11,11 @@ ${0}.context() {
 }
 
 ${0}() {
-  setopt localoptions completeinword NO_aliases
+  setopt localoptions completeinword completealiases
 
   private lbuffer="$LBUFFER" rbuffer="$RBUFFER"
   private keymap_menuselect="$( bindkey -M menuselect -L )"
+  typeset -g ZLE_REMOVE_SUFFIX_CHARS=${ZLE_REMOVE_SUFFIX_CHARS/ }
   {
     bindkey -M menuselect -s '^R' '^_^_^R'
     bindkey -M menuselect -s '^S' '^_^_^S'
@@ -33,6 +34,7 @@ ${0}() {
     zle _history_search
 
   } always {
+    ZLE_REMOVE_SUFFIX_CHARS+=' '
     if [[ $BUFFER == $lcontext$rcontext ]] then
       LBUFFER="$lbuffer"
       RBUFFER="$rbuffer"
