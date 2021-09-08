@@ -10,7 +10,7 @@ _autocomplete.history_lines() {
 
   private -A events=()
   private -i min_lines= max_lines=
-  zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
+  builtin zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
       min_lines=16
   (( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
 

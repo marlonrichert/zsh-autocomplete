@@ -9,7 +9,7 @@
     $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
   return 1
 
-if zstyle -t :autocomplete:tab: insert-unambiguous; then
+if builtin zstyle -t :autocomplete:tab: insert-unambiguous; then
   private -i nxt= prv=1
   private subs= cols=
   for nxt in ${(s.:.)compstate[unambiguous_positions]}; do

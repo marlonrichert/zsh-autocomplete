@@ -2,10 +2,10 @@
 
 if (( BUFFERLINES > 1 )); then
   private -i cursor=$CURSOR
-  zle .down-line
+  builtin zle .down-line
   (( cursor == CURSOR )) &&
-      zle .end-of-line
+      builtin zle .end-of-line
   (( cursor != CURSOR ))
 else
-  zle menu-select -w
+  builtin zle menu-select -w
 fi

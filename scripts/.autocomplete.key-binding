@@ -4,10 +4,10 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
 
 .autocomplete.key-binding.precmd() {
   local tab_style=
-  zstyle -s :autocomplete:tab: widget-style tab_style ||
+  builtin zstyle -s :autocomplete:tab: widget-style tab_style ||
       tab_style='complete-word'
 
-  if zstyle -t :autocomplete:tab: fzf || zstyle -t :autocomplete:tab: fzf-completion; then
+  if builtin zstyle -t :autocomplete:tab: fzf || builtin zstyle -t :autocomplete:tab: fzf-completion; then
     typeset -gH fzf_default_completion=$tab_style
     functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
     fzf-completion() {
@@ -22,54 +22,52 @@ zmodload -Fa zsh/parameter p:funcstack p:functions
       }
     }
   else
-    bindkey -M emacs '\t' $tab_style
-    bindkey -M viins '\t' $tab_style
+    builtin bindkey -M emacs '\t' $tab_style
+    builtin bindkey -M viins '\t' $tab_style
   fi
 
   local backtab_style=
-  zstyle -s :autocomplete:shift-tab: widget-style backtab_style ||
+  builtin zstyle -s :autocomplete:shift-tab: widget-style backtab_style ||
       backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
 
-  bindkey -M emacs $terminfo[kcbt] $backtab_style
-  bindkey -M viins $terminfo[kcbt] $backtab_style
+  builtin bindkey -M emacs $terminfo[kcbt] $backtab_style
+  builtin bindkey -M viins $terminfo[kcbt] $backtab_style
 
   if [[ $tab_style == *menu-* ]]; then
-    bindkey -M menuselect '\t' menu-complete
+    builtin bindkey -M menuselect '\t' menu-complete
   else
-    bindkey -M menuselect '\t' accept-line
+    builtin bindkey -M menuselect '\t' accept-line
   fi
   if [[ $backtab_style == *menu-* ]]; then
-    bindkey -M menuselect $terminfo[kcbt] reverse-menu-complete
+    builtin bindkey -M menuselect $terminfo[kcbt] reverse-menu-complete
   else
-    bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
+    builtin bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
   fi
 }
 
 .autocomplete.key-binding.bind() {
-  private code map=$1 widget=$2
+  private map=$1 widget=$2
   shift 2
-  for code do
-    bindkey -M "$map" "$code" "$widget"
-  done
+  builtin bindkey -M "$map" "${@:^^widget}"
 }
 
 .autocomplete.key-binding.bound() {
-  [[ $( bindkey -M "$1" "$2" ) == \"$2\"" $3" ]]
+  [[ $( builtin bindkey -M "$1" "$2" ) == \"$2\"" $3" ]]
 }
 
 .autocomplete.key-binding.rebind() {
   .autocomplete.key-binding.bound "$1" "$2" "$3" &&
-      bindkey -M "$1" "$2" "$4"
+      builtin bindkey -M "$1" "$2" "$4"
 }
 
 .autocomplete.key-binding.unbind() {
   .autocomplete.key-binding.bound "$1" "$2" "$3" &&
-      bindkey -M "$1" -r "$2"
+      builtin bindkey -M "$1" -r "$2"
 }
 
-bindkey -M emacs '^@' list-expand
-bindkey -M vicmd '^@' list-expand
-bindkey -M viins '^@' list-expand
+builtin bindkey -M emacs '^@' list-expand
+builtin bindkey -M vicmd '^@' list-expand
+builtin bindkey -M viins '^@' list-expand
 
 private -a prefix=( '\e'{\[,O} )
 private -a up=( ${^prefix}A ) down=( ${^prefix}B )
@@ -79,16 +77,16 @@ private -a alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
 .autocomplete.key-binding.bind viins up-line-or-search $up[@]
 
 .autocomplete.key-binding.bind emacs history-search $alt_up[@]
-bindkey -M emacs "$terminfo[kpp]" history-search
-bindkey -M viins "$terminfo[kpp]" history-search
+builtin bindkey -M emacs "$terminfo[kpp]" history-search
+builtin bindkey -M viins "$terminfo[kpp]" history-search
 .autocomplete.key-binding.bind vicmd history-search $up[@]
 
 .autocomplete.key-binding.bind emacs down-line-or-select $down[@]
 .autocomplete.key-binding.bind viins down-line-or-select $down[@]
 
 .autocomplete.key-binding.bind emacs menu-select $alt_down[@]
-bindkey -M emacs "$terminfo[knp]" menu-select
-bindkey -M viins "$terminfo[knp]" menu-select
+builtin bindkey -M emacs "$terminfo[knp]" menu-select
+builtin bindkey -M viins "$terminfo[knp]" menu-select
 .autocomplete.key-binding.bind vicmd menu-select $down[@]
 
 .autocomplete.key-binding.rebind emacs '^D' delete-char-or-list delete-char
@@ -105,17 +103,18 @@ bindkey -M viins "$terminfo[knp]" menu-select
 .autocomplete.key-binding.unbind vicmd  '^G' list-expand
 .autocomplete.key-binding.unbind viins  '^G' list-expand
 
-bindkey -M menuselect '\r' .accept-line
-bindkey -M menuselect '^@' accept-and-hold
 .autocomplete.key-binding.bind menuselect vi-backward-blank-word $alt_up[@]
 .autocomplete.key-binding.bind menuselect vi-forward-blank-word $alt_down[@]
-bindkey -M menuselect "$terminfo[kpp]" backward-word
-bindkey -M menuselect "$terminfo[knp]" forward-word
-bindkey -M menuselect '\ef' .forward-word
-bindkey -M menuselect '\eF' .forward-word
-bindkey -M menuselect '\eb' .backward-word
-bindkey -M menuselect '\eB' .backward-word
-bindkey -M menuselect  '^A' .beginning-of-line
-bindkey -M menuselect  '^E' .end-of-line
+builtin bindkey -M menuselect \
+    '\r'  .accept-line \
+    '^@'  accept-and-hold \
+    "$terminfo[kpp]" backward-word \
+    "$terminfo[knp]" forward-word \
+    '\ef' .forward-word \
+    '\eF' .forward-word \
+    '\eb' .backward-word \
+    '\eB' .backward-word \
+    '^A'  .beginning-of-line \
+    '^E'  .end-of-line \
 
 unfunction .autocomplete.key-binding.{{,re,un}bind,bound}

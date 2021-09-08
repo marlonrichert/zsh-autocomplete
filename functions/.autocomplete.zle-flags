@@ -9,15 +9,15 @@ setopt $_autocomplete__options
 # Return 0 to continue, 1 to abort.
 case $_autocomplete__last_widget in
   ( *kill-*~vi-* )
-    zle -f kill
+    builtin zle -f kill
     return 0
   ;;
   ( *yank*~vi-* | vi-*put-*after | bracketed-paste )
-    zle -f yank
+    builtin zle -f yank
     return 1
   ;;
   ( vi-*put-*before )
-    zle -f yankbefore
+    builtin zle -f yankbefore
     return 1
   ;;
   ( * )

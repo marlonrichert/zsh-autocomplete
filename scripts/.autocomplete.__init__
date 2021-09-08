@@ -8,6 +8,13 @@ builtin autoload -Uz add-zsh-hook zmathfunc
 zmathfunc
 
 .autocomplete.__init__.precmd() {
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  # NOTE: Needs to come before _everything_ else!
+  [[ -v functions[.zinit-shade-off] ]] &&
+    .zinit-shade-off "${___mode:-load}"
+  [[ -v functions[.zinit-tmp-subst-off] ]] &&
+    .zinit-tmp-subst-off "${___mode:-load}"
+
   emulate -L zsh -o NO_aliases
   setopt $_autocomplete__options
 
@@ -19,12 +26,12 @@ zmathfunc
   unfunction .autocomplete.__init__.precmd
 
   # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
-  if zstyle -L zle-hook types > /dev/null; then
+  if builtin zstyle -L zle-hook types > /dev/null; then
     private hook=
     for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
     do
       [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
-          zle -N zle-$hook azhw:zle-$hook
+          builtin zle -N zle-$hook azhw:zle-$hook
     done
   fi
 
@@ -64,8 +71,8 @@ private zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 
 private mod=
 for mod in compinit config widget key-binding recent-dirs async; do
-  if zstyle -T ':autocomplete:' $mod; then
-    autoload -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod
+  if builtin zstyle -T ':autocomplete:' $mod; then
+    builtin autoload -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod
     .autocomplete.$mod "$@"
     unfunction .autocomplete.$mod
   fi

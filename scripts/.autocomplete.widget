@@ -13,11 +13,11 @@ zmodload zsh/complist
 }
 
 .autocomplete.widget.c() {
-  zle -C "$1" "$2" .autocomplete.$3.completion-widget
+  builtin zle -C "$1" "$2" .autocomplete.$3.completion-widget
 }
 
 .autocomplete.widget.z() {
-  zle -N "$1" .autocomplete.$2.zle-widget
+  builtin zle -N "$1" .autocomplete.$2.zle-widget
 }
 
 .autocomplete.widget.c list-expand complete-word list-expand

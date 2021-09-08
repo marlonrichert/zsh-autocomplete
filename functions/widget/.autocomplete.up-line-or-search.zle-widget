@@ -2,10 +2,10 @@
 
 if (( BUFFERLINES > 1 )); then
   private -i cursor=$CURSOR
-  zle .up-line
+  builtin zle .up-line
   (( cursor == CURSOR )) &&
-      zle .beginning-of-line
+      builtin zle .beginning-of-line
   (( cursor != CURSOR ))
 else
-  zle history-search -w
+  builtin zle history-search -w
 fi

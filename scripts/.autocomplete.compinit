@@ -76,7 +76,7 @@ EOF
 
   (
     local cache_dir=
-    if zstyle -s ':completion:*' cache-path cache_dir; then
+    if builtin zstyle -s ':completion:*' cache-path cache_dir; then
       private src= bin=
       for src in $cache_dir/*~**.zwc~**/.*(N-.); do
         bin=$src.zwc
@@ -228,7 +228,7 @@ EOF
     .autocomplete.patch _wanted
     _wanted() {
       if [[ $funcstack == *_parameters* ]] &&
-          zstyle -T ":completion:${curcontext}:parameters" verbose; then
+          builtin zstyle -T ":completion:${curcontext}:parameters" verbose; then
         local -a params=( $@[(re)-,-1] )
         shift -p $#params
         shift params
@@ -237,7 +237,7 @@ EOF
         local -a displays=()
 
         local sep=
-        zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+        builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
             sep=--
 
         private -i MBEGIN= MEND=
