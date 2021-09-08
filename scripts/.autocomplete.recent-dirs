@@ -3,6 +3,8 @@ zmodload -Fa zsh/files b:zf_mv
 zmodload -Fa zsh/parameter p:commands p:dirstack p:functions
 
 .autocomplete.recent-dirs.precmd() {
+  # NOTE: Cannot set localopts, because of `cdr`, below.
+
   if (( precmd_functions[(I)_zshz_precmd] )) &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
     _autocomplete.recent_dirs() {

@@ -14,6 +14,9 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 builtin zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
 
 .autocomplete.async.precmd() {
+  emulate -L zsh -o NO_aliases
+  setopt $_autocomplete__options
+
   typeset -gHF _autocomplete__async_avg_duration=
   builtin zstyle -s :autocomplete: min-delay _autocomplete__async_avg_duration
   (( _autocomplete__async_avg_duration += 0.1 ))

@@ -15,25 +15,27 @@ zmathfunc
   [[ -v functions[.zinit-tmp-subst-off] ]] &&
     .zinit-tmp-subst-off "${___mode:-load}"
 
-  emulate -L zsh -o NO_aliases
-  setopt $_autocomplete__options
+  () {
+    emulate -L zsh -o NO_aliases
+    setopt $_autocomplete__options
 
-  # Workaround for https://github.com/zdharma/zinit/issues/366
-  [[ -v functions[.zinit-shade-off] ]] &&
-    .zinit-shade-off "${___mode:-load}"
+    # Workaround for https://github.com/zdharma/zinit/issues/366
+    [[ -v functions[.zinit-shade-off] ]] &&
+      .zinit-shade-off "${___mode:-load}"
 
-  add-zsh-hook -d precmd .autocomplete.__init__.precmd
-  unfunction .autocomplete.__init__.precmd
+    add-zsh-hook -d precmd .autocomplete.__init__.precmd
+    unfunction .autocomplete.__init__.precmd
 
-  # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
-  if builtin zstyle -L zle-hook types > /dev/null; then
-    private hook=
-    for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
-    do
-      [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
-          builtin zle -N zle-$hook azhw:zle-$hook
-    done
-  fi
+    # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
+    if builtin zstyle -L zle-hook types > /dev/null; then
+      private hook=
+      for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
+      do
+        [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
+            builtin zle -N zle-$hook azhw:zle-$hook
+      done
+    fi
+  }
 
   private mod=
   for mod in compinit config widget key-binding recent-dirs async; do

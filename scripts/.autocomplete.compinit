@@ -18,6 +18,9 @@ compdef() {
   }
 
 .autocomplete.compinit.precmd() {
+  emulate -L zsh -o NO_aliases
+  setopt $_autocomplete__options
+
   [[ -z $CDPATH ]] &&
       unset CDPATH cdpath
 
