@@ -62,10 +62,10 @@ private -a older_than_a_week=( $logdir/*(Nmd+7) )
 typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
 
 typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N'
-typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n' _autocomplete__ps4=$'%(?,,\t-> %?\n)'
+typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n' _autocomplete__ps4=
 _autocomplete__ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
 _autocomplete__ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
-_autocomplete__ps4+=$'%I\t%(1_,%_ ,)'
+_autocomplete__ps4+=$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
 
 private zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||

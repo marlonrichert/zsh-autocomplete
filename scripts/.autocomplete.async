@@ -397,7 +397,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   local -aU _dopt_=()
   zparseopts -A _opts_ -E -- D: E: J: V: x: X: d:=_dopt_
 
-  if [[ -v _opts_[-E] || -v _opts_[-x] ]]; then
+  if [[ -v _opts_[-E] ]]; then
     .autocomplete.compadd "$@"
     return
   fi
@@ -405,7 +405,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   local -a _matches_=()
   private -i _ret_=1 _new_nmatches_= _new_list_lines_=
   private -i _avail_list_lines_=$((
-      max( _znap__max_lines - ${+_opts_[-X]} - compstate[list_lines], 0 )
+      max( _znap__max_lines - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines], 0 )
   ))
   private _array_name_=
 
