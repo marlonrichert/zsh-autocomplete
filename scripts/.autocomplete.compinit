@@ -3,9 +3,9 @@ zmodload -Fa zsh/files b:zf_rm
 zmodload -Fa zsh/parameter p:funcstack p:functions
 builtin autoload -Uz is-at-least
 
-typeset -gHa _autocomplete_compdef=()
+typeset -gHa _autocomplete__compdef=()
 compdef() {
-  _autocomplete_compdef+=( "${(j: :)${(@q+)@}}" )
+  _autocomplete__compdef+=( "${(j: :)${(@q+)@}}" )
 }
 
 [[ -v functions[_bash_complete] ]] ||
@@ -72,10 +72,10 @@ EOF
   compinit() { : }
 
   private args=
-  for args in "$_autocomplete_compdef[@]"; do
+  for args in "$_autocomplete__compdef[@]"; do
     eval "compdef $args"
   done
-  unset _autocomplete_compdef
+  unset _autocomplete__compdef
 
   (
     local cache_dir=
@@ -177,13 +177,6 @@ EOF
         ret=0
 
     return ret
-  }
-
-  .autocomplete.patch _message
-  _message() {
-    .autocomplete._message "$@"
-    [[ "$1" = -e ]] &&
-        _comp_mesg=  # Otherwise, no further completers will be called.
   }
 
   .autocomplete.patch _approximate
