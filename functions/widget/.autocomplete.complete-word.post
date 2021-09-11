@@ -1,19 +1,26 @@
 #autoload
 unset MENUSELECT
-unset curcontext
 compstate[insert]=
+builtin autoload -Uz is-at-least
 
-private key_name=${(kL)key[(Re)$KEYS]}
+private key_name=
+case $KEYS in
+  ( $'\t'           ) key_name=tab ;;
+  ( $terminfo[kcbt] ) key_name=shift-tab ;;
+esac
 local key_style=
 builtin zstyle -s :autocomplete:${key_name}: widget-style key_style
 
-if  ( [[ $KEYS == $terminfo[kcbt] ]] ||
+if  ( [[ $key_name == shift-tab ]] ||
       builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
     ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
-  # Work around a crashing bug in Zsh.
-  # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-  [[ $key_style == *menu-* && $KEYS == ($'\t'|$terminfo[kcbt]) ]] &&
-      compstate[insert]='automenu-'
+
+  if ! is-at-least 5.8.1; then
+    # Work around a crashing bug in Zsh.
+    # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
+    [[ $key_style == *menu-* && -n $key_name ]] &&
+        compstate[insert]='automenu-'
+  fi
 
   compstate[insert]+=unambiguous
   return
@@ -21,16 +28,20 @@ fi
 
 if [[ $WIDGET == *menu-select ]]; then
   # Determine which terminal line we're on (for async completion).
-  (( _autocomplete__buffer_start_line = max( BUFFERLINES, LINES - compstate[list_lines] ) ))
-  MENUSELECT=0
+  typeset -gHi _autocomplete__buffer_start_line=$((
+      max( BUFFERLINES, LINES - compstate[list_lines] )
+  ))
+  typeset -gHi MENUSELECT=0
 fi
 
-# Work around a crashing bug in Zsh.
-# See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-[[ $key_style == *menu-* && $KEYS == ($'\t'|$terminfo[kcbt]) ]] &&
-    compstate[insert]='menu:'
+if ! is-at-least 5.8.1; then
+  # Work around a crashing bug in Zsh.
+  # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
+  [[ $key_style == *menu-* && -n $key_name ]] &&
+      compstate[insert]='menu:'
+fi
 
-if [[ $KEYS == $terminfo[kcbt] ]]; then
+if [[ $key_name == shift-tab ]]; then
   compstate[insert]+='0'
 else
   compstate[insert]+='1'
