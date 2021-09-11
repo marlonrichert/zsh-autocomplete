@@ -92,6 +92,8 @@ If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the fol
 ```zsh
 znap source marlonrichert/zsh-autocomplete
 ```
+Then restart your shell.
+
 To update, do
 ```zsh
 % znap pull
@@ -99,22 +101,38 @@ To update, do
 
 For configuration options, see the included [`.zshrc` file](.zshrc).
 
+To uninstall, do
+```zsh
+% znap uninstall
+```
+
 ### Manual installation
  1. Clone the repo:
     ```zsh
-    % cd ~/Git  # or wherever you keep your Git repos/Zsh plugins
+    % cd ~/Git  # ...or wherever you keep your Git repos/Zsh plugins
     % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
     ```
- 1. Add to your `~/.zshrc` file, _before_ any calls to `compdef`:
+ 1. Add at or near the top of your `.zshrc` file (_before_ any calls to `compdef`):
     ```zsh
     source ~/Git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
     ```
- 1. Remove any calls to `compinit` from your `~/.zshrc` file.
+ 1. Remove any calls to `compinit` from your `.zshrc` file.
+ 1. If you're using Ubuntu, add to your `.zshenv` file:
+    ```zsh
+    skip_global_compinit=1
+    ```
+Then restart your shell.
 
-Then, to update, do:
+To update, do:
 ```zsh
 % git -C ~zsh-autocomplete pull
 ```
+
+To uninstall, simply undo the installation steps above in reverse order:
+ 1. Restore the lines you deleted in step 3.
+ 1. Delete the line you added in step 2.
+ 1. Delete the repo you created in step 1.
+Finally, restart your shell.
 
 ### Other Frameworks/Plugin Managers
 To install with another Zsh framework or plugin manager, please refer to your
