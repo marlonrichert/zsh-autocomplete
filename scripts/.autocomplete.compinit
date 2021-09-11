@@ -101,24 +101,13 @@ EOF
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
 
+    if ! is-at-least 5.8.1; then
+      [[ -v functions[compadd] ]] ||
+          functions[compadd]=$functions[.autocomplete.compadd]
+    fi
+
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
-    {
-      if ! is-at-least 5.8.1; then
-        # Don't break `_complete_help`, async completion, etc.
-        [[ -v functions[compadd] ]] ||
-            functions[compadd]=$functions[.autocomplete.compadd]
-      fi
-
-      .autocomplete._main_complete "$@"
-      ret=$?
-
-    } always {
-      # Stop `_complete_help` from complaining.
-      [[ $WIDGET == _complete_help ]] ||
-          unfunction compadd 2> /dev/null
-    }
-
-    return ret
+    .autocomplete._main_complete "$@"
   }
 
   is-at-least 5.8.1 ||
@@ -131,10 +120,12 @@ EOF
       }
 
   _autocomplete._main_complete.post() {
-    compstate[list_max]=0
-    MENUSCROLL=0
+    [[ $WIDGET != _complete_help ]] &&
+        unfunction compadd 2> /dev/null
     _autocomplete.all_matches
     _autocomplete.unambiguous
+    compstate[list_max]=0
+    MENUSCROLL=0
   }
 
   .autocomplete.patch _expand

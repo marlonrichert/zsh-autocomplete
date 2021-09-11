@@ -20,4 +20,4 @@ fi
 
 local -a expl=()
 _description all-matches expl 'all matches'
-compadd "$expl[@]" -C
+builtin compadd "$expl[@]" -C

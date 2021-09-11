@@ -112,7 +112,7 @@ if [[ $WIDGET == (|*-)search(|-*) ]]; then
   local -a expl=()
   local _comp_no_ignore=1
   _description -2V "$tag" expl 'history line'
-  compadd "$expl[@]" -qS "$suf" -QU -ld displays -a matches
+  builtin compadd "$expl[@]" -qS "$suf" -QU -ld displays -a matches
 }
 
 _autocomplete.history_lines "$@"

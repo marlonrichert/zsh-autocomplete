@@ -412,9 +412,9 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   shift 3
 
   if [[ -n $1 ]]; then
-    compadd "$@"
+    builtin compadd "$@"
   elif [[ $_nmatches_ == 0 && -n $_mesg_ ]]; then
-    compadd -x "$_mesg_"
+    builtin compadd -x "$_mesg_"
   elif [[ -n $compstate[old_list] ]] && .autocomplete.async.same-state; then
     compstate[old_list]=keep
   else
@@ -436,11 +436,11 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log_file
-# functions -T .autocomplete.async.list-choices.completion-widget
+# functions -t .autocomplete.async.list-choices.completion-widget
 
 .autocomplete.async.list-choices.post() {
   [[ -v _autocomplete__partial_list ]] &&
-      compadd -J -last- -x '%F{0}%K{14}(MORE)%f%k'
+      builtin compadd -J -last- -x '%F{0}%K{14}(MORE)%f%k'
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }
@@ -461,6 +461,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
       _autocomplete__max_lines=$(( max( min_lines, lines_below_buffer ) ))
 
       functions[compadd]=$functions[.autocomplete.async.compadd]
+      # functions -T compadd
     } "$@"
     local curcontext=list-choices:::
     _main_complete
