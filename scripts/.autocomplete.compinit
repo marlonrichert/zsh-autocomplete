@@ -103,9 +103,11 @@ EOF
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     {
-      # Don't break `_complete_help`, async completion, etc.
-      [[ -v functions[compadd] ]] ||
-          functions[compadd]=$functions[.autocomplete.compadd]
+      if ! is-at-least 5.8.1; then
+        # Don't break `_complete_help`, async completion, etc.
+        [[ -v functions[compadd] ]] ||
+            functions[compadd]=$functions[.autocomplete.compadd]
+      fi
 
       .autocomplete._main_complete "$@"
       ret=$?
@@ -113,19 +115,20 @@ EOF
     } always {
       # Stop `_complete_help` from complaining.
       [[ $WIDGET == _complete_help ]] ||
-          unfunction compadd
+          unfunction compadd 2> /dev/null
     }
 
     return ret
   }
 
-  .autocomplete.compadd() {
-    if [[ $_completer == expand* ]]; then
-      builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-    else
-      builtin compadd "$@"
-    fi
-  }
+  is-at-least 5.8.1 ||
+      .autocomplete.compadd() {
+        if [[ $_completer == expand* ]]; then
+          builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
+        else
+          builtin compadd "$@"
+        fi
+      }
 
   _autocomplete._main_complete.post() {
     compstate[list_max]=0
@@ -136,7 +139,6 @@ EOF
 
   .autocomplete.patch _expand
   _expand() {
-
     if _autocomplete.is_glob; then
       [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
           local +h ISUFFIX="*"
