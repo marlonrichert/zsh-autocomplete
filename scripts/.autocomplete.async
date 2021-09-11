@@ -475,7 +475,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   local -aU _dopt_=()
   zparseopts -A _opts_ -E -- D: E: J: V: x: X: d:=_dopt_
 
-  if [[ -v _opts_[-E] ]]; then
+  if [[ -v _opts_[-E] || ( -v _opts_[-x] && $# == 2 ) ]]; then
     .autocomplete.compadd "$@"
     return
   fi
