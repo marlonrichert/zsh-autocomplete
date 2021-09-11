@@ -203,7 +203,7 @@ EOF
 
       .autocomplete._approximate "$@"
       ret=$?
-
+      _lastdescr=( ${_lastdescr[@]:#corrections} )
     } always {
       if [[ -v functions[.autocomplete.__tmp__] ]]; then
         functions[compadd]=$functions[.autocomplete.__tmp__]
