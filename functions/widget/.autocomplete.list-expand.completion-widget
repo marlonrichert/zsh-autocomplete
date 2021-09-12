@@ -12,7 +12,9 @@ $0() {
 
 $0.post() {
   # Determine which terminal line we're on (for async completion).
-  (( _autocomplete__buffer_start_line = max( BUFFERLINES, LINES - compstate[list_lines] ) ))
+  typeset -gHi _autocomplete__buffer_start_line=$((
+      max( min( _autocomplete__buffer_start_line, LINES - compstate[list_lines] ), BUFFERLINES )
+  ))
 
   if (( compstate[list_lines] > LINES - BUFFERLINES )); then
     compstate[insert]=menu

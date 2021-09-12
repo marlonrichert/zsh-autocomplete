@@ -300,7 +300,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   fi
   unset _autocomplete__mesg _autocomplete__comp_mesg
   {
-    local curcontext=${curcontext:-${WIDGET}:::}
+    local curcontext=${curcontext:-list-choices:::}
     unset 'compstate[vared]'
 
     _message() {
@@ -398,7 +398,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 .autocomplete.async.list-choices.completion-widget() {
   unset _autocomplete__mesg _autocomplete__comp_mesg _autocomplete__words _autocomplete__current
 
-  if [[ $1 != <->.<-> || $2 != <-> ]]; then
+  if [[ ! -v 1 || $1 != <->.<-> || ! -v 2 || $2 != <-> ]]; then
     compstate[list]=
     return
   fi
@@ -411,20 +411,21 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   private _mesg_=$3
   shift 3
 
-  if [[ -n $1 ]]; then
+  local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
+  if [[ -n $compstate[old_list] ]] && .autocomplete.async.same-state; then
+    compstate[old_list]=keep
+  elif [[ -n $1 ]]; then
     builtin compadd "$@"
   elif [[ $_nmatches_ == 0 && -n $_mesg_ ]]; then
     builtin compadd -x "$_mesg_"
-  elif [[ -n $compstate[old_list] ]] && .autocomplete.async.same-state; then
-    compstate[old_list]=keep
   else
-    _autocomplete__async_avg_duration=$((
+    typeset -gHF _autocomplete__async_avg_duration=$((
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
-    local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
     if [[ -n $curcontext ]]; then
       _main_complete
     else
+      local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete
     fi
   fi
@@ -447,24 +448,20 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
 .autocomplete.async.list-choices.main-complete() {
   {
-    local -i _autocomplete__max_lines=
+    local -i min_lines=
+    builtin zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
+        min_lines=16
+    min_lines=$(( min( LINES - ( 1 + BUFFERLINES ), min_lines ) ))
+    private -i lines_below_buffer=$(( LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
+    local -i _autocomplete__max_lines=$(( max( min_lines, lines_below_buffer ) ))
+    local -i _autocomplete__reserved_lines=0
     () {
       emulate -L zsh
-      setopt $_autocomplete__options[@]
-
-      local -i min_lines=
-      builtin zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
-          min_lines=16
-
-      private -i lines_below_buffer=$(( LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
-      min_lines=$(( min( LINES - ( 1 + BUFFERLINES ), min_lines ) ))
-      _autocomplete__max_lines=$(( max( min_lines, lines_below_buffer ) ))
-
+      setopt $_autocomplete__func_opts[@]
       functions[compadd]=$functions[.autocomplete.async.compadd]
-      # functions -T compadd
+      # functions -T compadd _describe
     } "$@"
-    local curcontext=list-choices:::
-    _main_complete
+    _main_complete "$@"
   } always {
     unfunction compadd comptags 2> /dev/null
   }
@@ -473,114 +470,110 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 .autocomplete.async.compadd() {
   local -A _opts_=()
   local -aU _dopt_=()
-  zparseopts -A _opts_ -E -- D: E: J: V: x: X: d:=_dopt_
+  zparseopts -A _opts_ -E -- D: E: J: O: V: x: X: d:=_dopt_
 
-  if [[ -v _opts_[-E] || ( -v _opts_[-x] && $# == 2 ) ]]; then
+  if [[ ( -v _opts_[-x] && $# == 2 ) ]]; then
     .autocomplete.compadd "$@"
     return
+  elif [[ $funcstack[(I)_describe] -gt 0 && ! -v _opts_[-D] ]]; then
+    _autocomplete__reserved_lines=0
   fi
 
-  local -a _matches_=()
-  private -i _ret_=1 _new_nmatches_= _new_list_lines_=
+  private _displ_array_= _matches_array_=
+  private -i _ret_=1 _new_nmatches_=-1 _new_list_lines_=-1
   private -i _avail_list_lines_=$((
-      max( _autocomplete__max_lines - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines], 0 )
+      max( _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines], 0 )
   ))
-  private _array_name_=
 
   if [[ -v _opts_[-D] ]]; then
     .autocomplete.compadd "$@"
     _ret_=$?
 
-    [[ $funcstack[2] == _describe ]] ||
+     (( funcstack[(I)_describe] )) ||
         return _ret_
 
-    _array_name_=$_opts_[-D]
-    _matches_=( ${(PA)_array_name_} )
+    _displ_array_=$_opts_[-D]
 
-    (( ${_matches_[(I)*:*]} > 0 )) ||
+    (( ${${(P)_displ_array_}[(I)*:*]} )) ||
         return _ret_
 
-    private -aU _uniques_=( ${_matches_[@]#*:} )
-    _new_nmatches_=$#_matches_[@]
-    _new_list_lines_=$#_uniques_[@]
+    _matches_array_=$_opts_[-O]
+    if [[ -z $_matches_array_ ]]; then
+      local -a _matches_=( "${(P)_displ_array_}" )
+      _matches_array_=_matches_
+    fi
+
     (( _avail_list_lines_ -= _autocomplete__reserved_lines ))
+    _new_nmatches_=${(PA)#_displ_array_}
+    _new_list_lines_=${#${(@u)${(PA)_displ_array_}[@]#*:}}
+    (( _autocomplete__reserved_lines += _new_list_lines_ ))
   else
     _autocomplete__reserved_lines=0
 
-    # Filter out non-matching completions.
-    (( ${#_dopt_[@]} )) &&
-        _dopt_=( -O "$_dopt_[2]" )
-    .autocomplete.compadd -O _matches_ $_dopt_ "$@"
-
-    # Pre-emptively trim the matches that will definitely not _fit_ on screen.
-    shift -p $(( max( ${#_matches_[@]} - ( ( COLUMNS * _autocomplete__max_lines ) / 3 ), 0 ) )) _matches_
-
-    # Note: Can't put comments inside expansions, without setting INTERACTIVE_COMMENTS.
-    private -a _out_=( "${(0)"$(
-      {
-        trap '' SEGV
-        _autocomplete.compadd_opts_len "$@"
-        .autocomplete.compadd "$@[1,?]" -a -- _matches_
-      } always {
+    # (Note: Can't put comments inside expansions, without setting INTERACTIVE_COMMENTS.)
+    private -a _out_=()
+    _out_=( "${(0)"$(
+        .autocomplete.compadd "$@"
         print -rNC1 -- "$compstate[list_lines]" "$compstate[nmatches]"
-      }
     )"}" )
-    _new_list_lines_=$(( _out_[1] - compstate[list_lines] ))
-    _new_nmatches_=$((   _out_[2] - compstate[nmatches]   ))
+    (( _new_list_lines_ = max( 0, $_out_[1] - $compstate[list_lines] ) ))
+    (( _new_nmatches_ =   max( 0, $_out_[2] - $compstate[nmatches]   ) ))
   fi
 
   if (( _new_list_lines_ <= _avail_list_lines_ )); then
-    if [[ $funcstack[2] == _describe && -v _opts_[-D] ]]; then
-      (( _autocomplete__reserved_lines += $_new_list_lines_ ))
-      return _ret_
+    if ! [[ -v _opts_[-D] ]]; then
+      .autocomplete.compadd "$@"
+      _ret_=$?
     fi
-    .autocomplete.compadd "$@"
-    return
-  fi
-
-  if [[ -v _opts_[-D] ]]; then
-    if (( ${#_uniques_[@]} > _avail_list_lines_ )); then
-      typeset -gH _autocomplete__partial_list
-      shift -p $(( ${#_uniques_[@]} - max( _avail_list_lines_ - 1, 0 ) )) _uniques_
-      set -A $_array_name_ ${(M@)${(PA)_array_name_}:#*:(${(~j:|:)_uniques_})}
-    fi
-    (( _autocomplete__reserved_lines += ${#_uniques_[@]} ))
-    (( ${(P@)#_array_name_} > 0 ))
-    return
+    return _ret_
   fi
 
   local -a _groupname_=()
-  zparseopts -A _opts_ -D -E - a k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
+  zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
   set -- "$_groupname_[@]" "$@"
 
-  if (( _new_list_lines_ > 0 )); then
-    private -i _matches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
-    if (( _matches_per_line_ < 1 )); then
-      _matches_per_line_=1
-      if ! (( ${#_dopt_[@]} )); then
-        local -a displ=( "$_matches_[@]" )
-        _dopt_=( -d displ )
-      fi
-      _array_name_=$_dopt_[-1]
-      _dopt_=( -l "$_dopt_[@]" )
-      set -A $_array_name_ ${(r:COLUMNS-1:@)${(P@)_array_name_}//$'\n'/\n}
-    fi
-    if (( ${#_matches_[@]} > _matches_per_line_ * _avail_list_lines_ )); then
-      [[ -z $_autocomplete__partial_list ]] &&
-          typeset -gH _autocomplete__partial_list=$curtag
-
-      # Round this down, before subtracting.
-      private -i _fit_=$(( _matches_per_line_ * max( _avail_list_lines_ - 1, 0 ) ))
-
-      shift -p $(( ${#_matches_[@]} - _fit_ )) _matches_
-      (( ${#_matches_} > 0 )) ||
-          comptags() {
-            [[ $funcstack[3] == _autocomplete.history_lines ]] ||
-                return 1
-            builtin comptags "$@"
-          }
-    fi
+  if ! [[ -v _opts_[-D] ]]; then
+    local -a _matches_=()
+    .autocomplete.compadd -O _matches_ "$@" # Collect all matching completions.
+    _matches_array_=_matches_
   fi
-  _autocomplete.compadd_opts_len "$@"
-  .autocomplete.compadd "$@[1,?]" $_dopt_ -a -- _matches_
+  _displ_array_=$_dopt_[-1]
+
+  private -i _nmatches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
+  if [[ _nmatches_per_line_ -lt 1 && ! -v _opts_[-D] ]]; then
+    # If we need more than one line per match, then make each match fit on one line.
+    if [[ -z $_displ_array_ ]]; then
+      local -a displ=( "${(P@)_matches_array}" )
+      _dopt_=( -d displ )
+      _displ_array_=displ
+    fi
+    _dopt_=( -l "$_dopt_[@]" )
+    set -A $_displ_array_ ${(r:COLUMNS-1:@)${(P@)_displ_array_}//$'\n'/\n}
+    _nmatches_per_line_=1
+  fi
+
+  # Need to round this down _before_ subtracting or it will be effectively rounded up.
+  private -i _fit_=$(( max( _avail_list_lines_, 0 ) * _nmatches_per_line_ ))
+  private -i _trim_=$(( _new_nmatches_ - _fit_ ))
+
+  if (( _trim_ )); then
+    shift -p $(( min( _trim_, ${(PA)#_matches_array_} ) )) $_matches_array_
+    [[ -n $_displ_array_ ]] &&
+        shift -p $(( min( _trim_, ${(PA)#_displ_array_} ) )) $_displ_array_
+    typeset -gH _autocomplete__partial_list=$curtag
+
+    # If we have to trim off matches, that means we've run out of screen space.
+    # So, disable all further completion.
+    comptags() {
+      return 1
+    }
+  fi
+
+  if ! [[ -v _opts_[-D] ]]; then
+    _autocomplete.compadd_opts_len "$@"
+    .autocomplete.compadd $_dopt_ "$@[1,?]" -a -- $_matches_array_
+    _ret_=$?
+  fi
+
+  return _ret_
 }

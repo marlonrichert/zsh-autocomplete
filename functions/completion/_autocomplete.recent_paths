@@ -39,7 +39,7 @@ _autocomplete.recent_paths() {
 
 .autocomplete.recent_paths.add() {
   local -a displ=() matches=( "$@" )
-  compadd "$expl[@]" -D matches -- "$@:t"
+  builtin compadd "$expl[@]" -D matches -- "$@:t"
   displ=( "${(@D)matches}" )
   zformat -a displ '' $^displ':'
 

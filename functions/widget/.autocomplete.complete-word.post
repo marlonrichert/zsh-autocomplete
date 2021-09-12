@@ -29,7 +29,7 @@ fi
 if [[ $WIDGET == *menu-select ]]; then
   # Determine which terminal line we're on (for async completion).
   typeset -gHi _autocomplete__buffer_start_line=$((
-      max( BUFFERLINES, LINES - compstate[list_lines] )
+      max( min( _autocomplete__buffer_start_line, LINES - compstate[list_lines] ), BUFFERLINES )
   ))
   typeset -gHi MENUSELECT=0
 fi
