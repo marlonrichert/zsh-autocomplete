@@ -1,5 +1,5 @@
 #autoload
-zmodload -Fa zsh/parameter p:functions
+zmodload -F zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
   (( compstate[nmatches] < 2 )) ||

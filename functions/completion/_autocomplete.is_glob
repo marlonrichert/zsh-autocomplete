@@ -1,5 +1,5 @@
 #autoload
-zmodload -Fa zsh/parameter p:patchars
+zmodload -F zsh/parameter p:patchars
 
 local word=$PREFIX$SUFFIX
 if [[ $word == ${~${(q)word}} &&

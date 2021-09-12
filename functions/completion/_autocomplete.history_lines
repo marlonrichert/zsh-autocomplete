@@ -114,5 +114,6 @@ if [[ $WIDGET == (|*-)search(|-*) ]]; then
   _description -2V "$tag" expl 'history line'
   builtin compadd "$expl[@]" -qS "$suf" -QU -ld displays -a matches
 }
+# functions -T _autocomplete.history_lines
 
 _autocomplete.history_lines "$@"

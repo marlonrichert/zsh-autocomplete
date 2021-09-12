@@ -3,8 +3,8 @@ typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
 
 .autocomplete.widget.precmd() {
-  emulate -L zsh -o NO_aliases
-  setopt $_autocomplete__options
+  emulate -L zsh
+  setopt $_autocomplete__func_opts[@]
 
   private tab_style=
   for tab_style in complete-word menu-complete menu-select; do

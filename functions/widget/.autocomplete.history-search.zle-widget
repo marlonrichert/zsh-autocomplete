@@ -11,8 +11,6 @@ ${0}.context() {
 }
 
 ${0}() {
-  setopt localoptions completeinword completealiases
-
   private lbuffer="$LBUFFER" rbuffer="$RBUFFER"
   private keymap_menuselect="$( builtin bindkey -M menuselect -L )"
   typeset -g ZLE_REMOVE_SUFFIX_CHARS=${ZLE_REMOVE_SUFFIX_CHARS/ }
@@ -25,6 +23,8 @@ ${0}() {
         '\eOD' .backward-char \
         '\e[C' .forward-char \
         '\eOC' .forward-char
+
+    setopt $_autocomplete__comp_opts[@] $_autocomplete__ctxt_opts[@]
 
     local lcontext= rcontext=
     builtin zle ${(%):-%N}.context

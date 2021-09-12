@@ -1,10 +1,10 @@
 #!/bin/zsh
 zmodload zsh/complist
-zmodload -Fa zsh/parameter p:funcstack p:functions
+zmodload -F zsh/parameter p:funcstack p:functions
 
 .autocomplete.key-binding.precmd() {
-  emulate -L zsh -o NO_aliases
-  setopt $_autocomplete__options
+  emulate -L zsh
+  setopt $_autocomplete__func_opts[@]
 
   local tab_style=
   builtin zstyle -s :autocomplete:tab: widget-style tab_style ||

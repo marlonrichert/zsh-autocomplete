@@ -1,8 +1,8 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_mkdir b:zf_rm
-zmodload -Fa zsh/parameter p:functions
-zmodload -Fa zsh/system p:sysparams
-zmodload -Fa zsh/zleparameter p:widgets
+zmodload -F zsh/parameter p:functions
+zmodload -F zsh/system p:sysparams
+zmodload -F zsh/zleparameter p:widgets
 zmodload -Fa zsh/zutil b:zstyle
 builtin autoload -Uz add-zsh-hook zmathfunc
 zmathfunc
@@ -16,8 +16,8 @@ zmathfunc
     .zinit-tmp-subst-off "${___mode:-load}"
 
   () {
-    emulate -L zsh -o NO_aliases
-    setopt $_autocomplete__options
+    emulate -L zsh
+    setopt $_autocomplete__func_opts[@]
 
     # Workaround for https://github.com/zdharma/zinit/issues/366
     [[ -v functions[.zinit-shade-off] ]] &&
@@ -29,10 +29,12 @@ zmathfunc
     # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
     if builtin zstyle -L zle-hook types > /dev/null; then
       private hook=
-      for hook in isearch-{exit,update} line-{pre-redraw,init,finish} history-line-set keymap-select
+      for hook in \
+          zle-{isearch-{exit,update},line-{pre-redraw,init,finish},history-line-set,keymap-select}
       do
-        [[ $widgets[zle-$hook] == user:_zsh_highlight_widget_orig-s*-r<->-zle-$hook ]] &&
-            builtin zle -N zle-$hook azhw:zle-$hook
+        [[ -v widgets[$hook] &&
+              $widgets[$hook] == user:_zsh_highlight_widget_orig-s*-r<->-$hook ]] &&
+            builtin zle -N $hook azhw:$hook
       done
     fi
   }
@@ -62,10 +64,13 @@ private -a older_than_a_week=( $logdir/*(Nmd+7) )
 typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
 
 typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N'
-typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n' _autocomplete__ps4=
-_autocomplete__ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
-_autocomplete__ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
-_autocomplete__ps4+=$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
+typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n'
+
+private ps4=
+ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
+ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
+ps4+=$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
+typeset -gH _autocomplete__ps4="$ps4"
 
 private zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||

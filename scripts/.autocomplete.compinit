@@ -1,6 +1,6 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
-zmodload -Fa zsh/parameter p:funcstack p:functions
+zmodload -F zsh/parameter p:funcstack p:functions
 builtin autoload -Uz is-at-least
 
 typeset -gHa _autocomplete__compdef=()
@@ -18,15 +18,16 @@ compdef() {
   }
 
 .autocomplete.compinit.precmd() {
-  emulate -L zsh -o NO_aliases
-  setopt $_autocomplete__options
+  emulate -L zsh
+  setopt $_autocomplete__func_opts[@]
 
   [[ -z $CDPATH ]] &&
       unset CDPATH cdpath
 
   # Decrease Oh My Zsh start-up time. See below.
+  private -a omzdump=()
   [[ -v ZSH_COMPDUMP ]] &&
-    private -a omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
+    omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
 
   typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
   typeset -gH \
@@ -62,7 +63,7 @@ compdef() {
     }
 
     # Prevent Oh My Zsh from deleting comp dump file.
-    (( $#omzdump > 0 )) &&
+    (( ${#omzdump[@]} > 0 )) &&
       tee -a "$ZSH_COMPDUMP" &> /dev/null <<EOF
 $omzdump[-2]
 $omzdump[-1]
@@ -78,6 +79,7 @@ EOF
   unset _autocomplete__compdef
 
   (
+    local -a reply=()
     local cache_dir=
     if builtin zstyle -s ':completion:*' cache-path cache_dir; then
       private src= bin=
@@ -159,18 +161,19 @@ EOF
   .autocomplete.patch _complete
   _complete() {
     .autocomplete._complete "$@"
-    private -i ret=$?
+    private -i __ret__=$?
 
     [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
-        return ret
+        return __ret__
 
     _autocomplete.ancestor_dirs "$@" &&
-        ret=0
+        __ret__=0
     _autocomplete.recent_paths "$@" &&
-        ret=0
+        __ret__=0
 
-    return ret
+    return __ret__
   }
+  # functions -T _complete
 
   .autocomplete.patch _approximate
   _approximate() {
@@ -196,7 +199,7 @@ EOF
           PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
         else
           PREFIX="(#a${_comp_correct})$PREFIX"
-      fi
+        fi
 
         builtin compadd "$@"
       }
@@ -255,9 +258,9 @@ EOF
         for i in "$tmp[@]"; do
           if [[ "$i" = *:* ]]; then
             faked=( "$faked[@]" "$i" )
-      else
+          else
             fakes=( "$fakes[@]" "$i" )
-      fi
+          fi
         done
       fi
       compadd "$@" "$expl[@]" - "$normal[@]" "${(@)fakes:|described}" \

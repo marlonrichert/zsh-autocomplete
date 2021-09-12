@@ -11,14 +11,17 @@ zmodload zsh/param/private
 setopt NO_flowcontrol NO_singlelinezle
 
 () {
-  emulate -L zsh -o NO_aliases
-  zmodload -Fa zsh/parameter p:functions
+  emulate -L zsh
+  zmodload -F zsh/parameter p:functions
 
-  typeset -gHa _autocomplete__options=(
+  typeset -gHa _autocomplete__func_opts=(
     localoptions extendedglob clobber
-    NO_banghist NO_completeinword NO_listbeep NO_shortloops NO_warncreateglobal
+    NO_aliases localloops pipefail NO_shortloops NO_unset warncreateglobal warnnestedvar
   )
-  setopt $_autocomplete__options[@]
+  setopt $_autocomplete__func_opts[@]
+
+  typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist NO_completeinword NO_listbeep )
+  typeset -gHa _autocomplete__ctxt_opts=( completealiases completeinword )
 
   private basedir=${${(%):-%x}:P:h}
   if ! [[ -n $basedir && -d $basedir ]]; then

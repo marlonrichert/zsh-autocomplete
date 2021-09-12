@@ -48,8 +48,9 @@ else
   compstate[insert]+='1'
 fi
 
-local -a tags=()
+local -a tags=() match=() mbegin=() mend=()
 builtin zstyle -a :autocomplete: add-space tags ||
     tags=( executables aliases functions builtins reserved-words commands )
+
 [[ $RBUFFER != [[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]] &&
     compstate[insert]+=' '

@@ -1,9 +1,9 @@
 #!/bin/zsh
 emulate -L zsh
-setopt $_autocomplete__options
+setopt $_autocomplete__func_opts[@]
 
 # If no arg, assume same widget as last time.
-[[ -n $1 ]] &&
+[[ -v 1 && -n $1 ]] &&
     typeset -gH _autocomplete__last_widget="$1"
 
 # Return 0 to continue, 1 to abort.
