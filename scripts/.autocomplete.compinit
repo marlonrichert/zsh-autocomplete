@@ -94,7 +94,7 @@ EOF
   _main_complete() {
     local -i _autocomplete__reserved_lines=0
     private -i ret=1
-    unset _autocomplete__partial_list
+    unset _autocomplete__partial_list _autocomplete__unambiguous
 
     compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
     compstate[last_prompt]=yes  # Completion doesn't stay on the same command line without this.

@@ -1,4 +1,5 @@
 #autoload
+# setopt localoptions verbose xtrace
 
 [[ -v _autocomplete__partial_list ]] &&
     return 1
@@ -23,6 +24,11 @@ fi
 
 private tag=unambiguous
 _tags $tag
-_tags && _requested $tag &&
-    builtin compadd -J "$tag" \
-        -x $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+_tags ||
+    return
+_requested $tag ||
+    return
+
+builtin compadd -J "$tag" \
+    -x $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"

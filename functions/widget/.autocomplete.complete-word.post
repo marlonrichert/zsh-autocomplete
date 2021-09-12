@@ -13,7 +13,7 @@ builtin zstyle -s :autocomplete:${key_name}: widget-style key_style
 
 if  ( [[ $key_name == shift-tab ]] ||
       builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
-    ) && [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX != *${compstate[unambiguous]:#?}* ]]; then
+    ) && [[ -v _autocomplete__unambiguous ]]; then
 
   if ! is-at-least 5.8.1; then
     # Work around a crashing bug in Zsh.
@@ -23,6 +23,7 @@ if  ( [[ $key_name == shift-tab ]] ||
   fi
 
   compstate[insert]+=unambiguous
+  unset _autocomplete__unambiguous
   return
 fi
 
