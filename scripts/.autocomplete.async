@@ -297,7 +297,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     return
   fi
   if .autocomplete.async.same-state; then
-    print -rNC1 -- "$_lastcomp[nmatches]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
+    print -rNC1 -- "$_lastcomp[list_lines]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
     return
   fi
   unset _autocomplete__mesg _autocomplete__comp_mesg
@@ -308,7 +308,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     _message() {
       compadd() {
         typeset -gHa _autocomplete__comp_mesg=( "$@" )
-        .autocomplete.compadd "$@"
+        builtin compadd "$@"
       }
       zformat() {
         builtin zformat "$@"
@@ -322,10 +322,10 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
     _main_complete
   } always {
-    print -rNC1 -- "$compstate[nmatches]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
+    print -rNC1 -- "$compstate[list_lines]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
   }
 } 2>>| $_autocomplete__log_file
-# functions -T .autocomplete.async.pty.completion-widget.inner
+# functions -t .autocomplete.async.pty.completion-widget.inner
 
 .autocomplete.async.pty.message() {
   typeset -gH _autocomplete__mesg=$mesg
@@ -409,16 +409,16 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
       return
 
   private -F _seconds_=$1
-  private -i _nmatches_=$2
+  private -i _list_lines_=$2
   private _mesg_=$3
   shift 3
 
   local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
   if [[ -n $compstate[old_list] ]] && .autocomplete.async.same-state; then
     compstate[old_list]=keep
-  elif [[ -n $1 ]]; then
+  elif [[ $_list_lines_ == 1 && -n $1 ]]; then
     builtin compadd "$@"
-  elif [[ $_nmatches_ == 0 && -n $_mesg_ ]]; then
+  elif [[ $_list_lines_ == 1 && -n $_mesg_ ]]; then
     builtin compadd -x "$_mesg_"
   else
     typeset -gHF _autocomplete__async_avg_duration=$((
