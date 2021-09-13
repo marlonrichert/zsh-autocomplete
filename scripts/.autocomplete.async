@@ -556,7 +556,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   # Need to round this down _before_ subtracting or it will be effectively rounded up.
   private -i _fit_=$(( max( _avail_list_lines_, 0 ) * _nmatches_per_line_ ))
-  private -i _trim_=$(( _new_nmatches_ - _fit_ ))
+  private -i _trim_=$(( max( 0, _new_nmatches_ - _fit_ ) ))
 
   if (( _trim_ )); then
     shift -p $(( min( _trim_, ${(PA)#_matches_array_} ) )) $_matches_array_
