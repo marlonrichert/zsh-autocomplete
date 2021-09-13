@@ -63,14 +63,12 @@ private -a older_than_a_week=( $logdir/*(Nmd+7) )
     zf_rm -f -- $older_than_a_week[@]
 typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
 
-typeset -gH _autocomplete__prev=$'\0' _autocomplete__next=$'\n# %e. %N'
+typeset -gH _autocomplete__prev=' ' _autocomplete__next=$'\n# %e. %N'
 typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n'
-
-private ps4=
-ps4+='${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'
-ps4+='${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'
-ps4+=$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
-typeset -gH _autocomplete__ps4="$ps4"
+typeset -gH _autocomplete__ps4=\
+'${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'\
+'${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'\
+$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
 
 private zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
@@ -88,5 +86,7 @@ done
 add-zsh-hook precmd .autocomplete.__init__.precmd
 
 # Ensure we run before zsh-autosuggestions.
-(( $precmd_functions[(I)_zsh_autosuggest_start] )) &&
-    precmd_functions=( ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start )
+[[ -v precmd_functions && $precmd_functions[(I)_zsh_autosuggest_start] != 0 ]] &&
+    typeset -gHaU precmd_functions=(
+        ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start
+    )

@@ -1,41 +1,41 @@
 #!/bin/zsh
-zmodload -Fa zsh/files b:zf_mv
+zmodload -Fa zsh/files b:zf_mv b:zf_mkdir
 zmodload -F zsh/parameter p:commands p:dirstack p:functions
 
 .autocomplete.recent-dirs.precmd() {
   # NOTE: Cannot set localopts, because of `cdr`, below.
 
-  if (( precmd_functions[(I)_zshz_precmd] )) &&
+  if [[ -v precmd_functions && $precmd_functions[(I)_zshz_precmd] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'zsh-z'; then
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( zshz --complete -l $1 2> /dev/null )"} )
     }
 
-  elif (( chpwd_functions[(I)__zoxide_hook] )) &&
+  elif [[ -v chpwd_functions && $chpwd_functions[(I)__zoxide_hook] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'zoxide'; then
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( zoxide query --list $1 2> /dev/null )"} )
     }
 
-  elif (( precmd_functions[(I)_zlua_precmd] )) &&
+  elif [[ -v precmd_functions && $precmd_functions[(I)_zlua_precmd] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(f)"$( _zlua --complete $1 2> /dev/null )"}##<->[[:space:]]##} )
     }
 
-  elif (( precmd_functions[(I)_z_precmd] )) &&
+  elif [[ -v precmd_functions && $precmd_functions[(I)_z_precmd] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'z.sh'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(fOa)"$( _z -l $1 2>&1 )"}##(common:|<->)[[:space:]]##} )
     }
 
-  elif (( chpwd_functions[(I)autojump_chpwd] )) &&
+  elif [[ -v chpwd_functions && $chpwd_functions[(I)autojump_chpwd] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'autojump'; then
     _autocomplete.recent_dirs() {
       reply=( ${${(f)"$( autojump --complete $1 2> /dev/null )"}##${1}__<->__} )
     }
 
-  elif (( preexec_functions[(I)_fasd_preexec] )) &&
+  elif [[ -v preexec_functions && $preexec_functions[(I)_fasd_preexec] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'fasd'; then
     _autocomplete.recent_dirs() {
       reply=( ${(f)"$( fasd -dlR $1 2> /dev/null )"} )
@@ -87,7 +87,7 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
     }
   fi
 
-  if (( preexec_functions[(I)_fasd_preexec] )) &&
+  if [[ -v preexec_functions && $preexec_functions[(I)_fasd_preexec] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-files 'fasd'; then
     _autocomplete.recent_files() {
       reply=( $( fasd -flR $1 2> /dev/null ) )
