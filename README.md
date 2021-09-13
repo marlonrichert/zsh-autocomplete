@@ -101,7 +101,7 @@ To update, do
 
 For configuration options, see the included [`.zshrc` file](.zshrc).
 
-To uninstall, do
+To uninstall, remove `znap source marlonrichert/zsh-autocomplete` from your `.zshrc` file, then run
 ```zsh
 % znap uninstall
 ```
