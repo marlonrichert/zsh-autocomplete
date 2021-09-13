@@ -13,7 +13,8 @@ local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]"
 if [[ $WIDGET == *menu-* && -v _autocomplete__partial_list ]] ||
     ( ( [[ $key_name == shift-tab ]] ||
         builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
-      ) && [[ -n $compstate[old_list] && -v _autocomplete__unambiguous ]] ); then
+      ) && [[ -n $compstate[old_list] &&
+        -v _autocomplete__unambiguous && -n $_autocomplete__unambiguous ]] ); then
   _main_complete
 elif [[ -n $compstate[old_list] ]]; then
   compstate[old_list]=keep

@@ -10,6 +10,15 @@
     $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
   return 1
 
+private tag=unambiguous
+_tags $tag
+_tags ||
+    return
+_requested $tag ||
+    return
+
+typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"
+
 if builtin zstyle -t :autocomplete:tab: insert-unambiguous; then
   private -i nxt= prv=1
   private subs= cols=
@@ -22,13 +31,5 @@ if builtin zstyle -t :autocomplete:tab: insert-unambiguous; then
   return 1
 fi
 
-private tag=unambiguous
-_tags $tag
-_tags ||
-    return
-_requested $tag ||
-    return
-
 builtin compadd -J "$tag" \
     -x $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
-typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"
