@@ -49,7 +49,7 @@ zmathfunc
   done
 }
 
-private xdg_data_home=${XDG_DATA_HOME:-$HOME/.private/share}
+private xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 
 private zsh_data_dir=$xdg_data_home/zsh
 [[ -d $zsh_data_dir ]] ||
