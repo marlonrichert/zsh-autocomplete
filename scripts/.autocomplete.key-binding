@@ -6,11 +6,16 @@ zmodload -F zsh/parameter p:funcstack p:functions
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
+  local -a ignored=()
+  builtin zstyle -g ignored ':autocomplete:shift-tab:*' insert-unambiguous ||
+      builtin zstyle ':autocomplete:shift-tab:*' insert-unambiguous yes
+
   local tab_style=
   builtin zstyle -s :autocomplete:tab: widget-style tab_style ||
       tab_style='complete-word'
 
-  if builtin zstyle -t :autocomplete:tab: fzf || builtin zstyle -t :autocomplete:tab: fzf-completion; then
+  if  builtin zstyle -t :autocomplete:tab: fzf ||
+      builtin zstyle -t :autocomplete:tab: fzf-completion; then
     typeset -gH fzf_default_completion=$tab_style
     functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
     fzf-completion() {

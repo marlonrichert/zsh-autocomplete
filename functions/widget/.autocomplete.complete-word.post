@@ -1,7 +1,8 @@
 #autoload
+builtin autoload -Uz is-at-least
+
 unset MENUSELECT
 compstate[insert]=
-builtin autoload -Uz is-at-least
 
 private key_name=
 case $KEYS in
@@ -11,9 +12,11 @@ esac
 local key_style=
 builtin zstyle -s :autocomplete:${key_name}: widget-style key_style
 
-if  ( [[ $key_name == shift-tab ]] ||
+if  [[ ! -v compstate[old_list] || -z $compstate[old_list] ]] ||
+    (
+      [[ -v _autocomplete__unambiguous && -n $_autocomplete__unambiguous ]] &&
       builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
-    ) && [[ -v _autocomplete__unambiguous && -n $_autocomplete__unambiguous ]]; then
+    ); then
 
   if ! is-at-least 5.8.1; then
     # Work around a crashing bug in Zsh.
@@ -23,6 +26,7 @@ if  ( [[ $key_name == shift-tab ]] ||
   fi
 
   compstate[insert]+=unambiguous
+  compstate[list]='list force packed rows'
   unset _autocomplete__unambiguous
   return
 fi
