@@ -64,23 +64,22 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
 .autocomplete.async.read-cursor-position() {
   emulate -L zsh
-  setopt $_autocomplete__func_opts[@]
+  # Cannot set strict shell options here, because other programs' async
+  # callbacks can interrupt the code and then get executed in the same context.
+  # See https://github.com/marlonrichert/zsh-autocomplete/issues/342
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  if ! [[ -v terminfo[u6] && -v terminfo[u7] ]]; then
+  # $MC_SID is set when we're in a subshell started by Midnight Commander.
+  # See https://github.com/marlonrichert/zsh-autocomplete/issues/269
+  if [[ -v MC_SID || ! ( -v terminfo[u6] && -v terminfo[u7] ) ]]; then
     local -i max_lines=
     builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
         max_lines=16
     typeset -gHi _autocomplete__buffer_start_line=$(( min( max( LINES - max_lines, 1 ), LINES ) ))
     return 0
   fi
-
-  # Don't run if we're in the subshell started by Midnight Commander.
-  # See https://github.com/marlonrichert/zsh-autocomplete/issues/269
-  [[ -v MC_SID ]] &&
-      return
 
   # Cursor position report (u6) always contains two %d markers.
   private -a CPR=( "${(s:%d:)$( echoti u6 )}" )
@@ -91,7 +90,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   local REPLY=
   private Y=
-  echoti u7           # Send cursor position request.
+  echoti u7  # Send cursor position request.
 
   # Parse the cursor position report.
   read -rsk $#CPR[1]  # Discard the preamble.
@@ -99,7 +98,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     read -rsk
     Y+=$REPLY
   done
-  Y="${Y%$CPR[2]}"    # Discard the separator.
+  Y="${Y%$CPR[2]}"  # Discard the separator.
 
   # Flush the rest.
   while [[ $REPLY != $CPR[3] ]]; do
