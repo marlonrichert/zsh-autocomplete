@@ -3,7 +3,7 @@ Setup:
 % autoload -Uz zmathfunc && zmathfunc
 % autoload -Uz $PWD/functions/widget/.autocomplete.complete-word.post
 % unset terminfo
-% typeset -gA terminfo=() compstate=( [old_list]=shown ) _lastcomp=()
+% typeset -gA terminfo=() compstate=( old_list shown ) _lastcomp=()
 % terminfo[kcbt]=BACKSPACE
 % zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
 %
