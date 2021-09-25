@@ -11,12 +11,13 @@ assignees: ''
 <!-- Give a brief summary of the feature. -->
 
 ## Why do you want this?
-<!-- Explain what you need this for or how this would improve your experience. -->
+<!-- Explain what you would use this for or how this would enhance your experience. -->
 
 ## Who else would benefit from this?
 <!-- Describe what kind of users would enjoy this feature. -->
 
-## Explain in detail how you would expect this to work
+## Example scenario
+
 Given the following situation:
 * <!-- State the circumstance under which this feature would apply. -->
 

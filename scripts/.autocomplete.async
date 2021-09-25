@@ -9,6 +9,7 @@ builtin autoload -Uz add-zle-hook-widget
 
 typeset -gHi _autocomplete__buffer_start_line=1
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
+private -a log_functions=()
 
 builtin zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
 builtin zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
@@ -106,7 +107,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   done
 
   typeset -gHi _autocomplete__buffer_start_line=$(( min( max( Y - i, 1 ), LINES ) ))
-} 2>>| $_autocomplete__log_file
+}
 
 .autocomplete.async.history-incremental-search() {
   if [[ $curcontext == $WIDGET* ]]; then
@@ -246,7 +247,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     print -rNC1 -- "$SECONDS" "${text%$'\0\C-C'}"
   }
 } 2>>| $_autocomplete__log_file
-# functions -T .autocomplete.async.start.inner
+log_functions+=( .autocomplete.async.start.inner )
 
 .autocomplete.async.pty() {
   typeset -gH _autocomplete__lbuffer="$LBUFFER" _autocomplete__rbuffer="$RBUFFER"
@@ -255,6 +256,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   local __tmp__=
   builtin vared __tmp__
 } 2>>| $_autocomplete__log_file
+log_functions+=( .autocomplete.async.pty )
 
 .autocomplete.async.pty.no-op() {
   :
@@ -281,7 +283,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     builtin kill $sysparams[pid]
   }
 } 2>>| $_autocomplete__log_file
-# functions -t .autocomplete.async.pty.zle-widget.inner
+log_functions+=( .autocomplete.async.pty.zle-widget.inner )
 
 .autocomplete.async.pty.completion-widget() {
   .autocomplete.async.pty.completion-widget.inner "$@"
@@ -321,7 +323,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     print -rNC1 -- "$compstate[list_lines]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
   }
 } 2>>| $_autocomplete__log_file
-# functions -t .autocomplete.async.pty.completion-widget.inner
+log_functions+=( .autocomplete.async.pty.completion-widget.inner )
 
 .autocomplete.async.pty.message() {
   typeset -gH _autocomplete__mesg=$mesg
@@ -371,7 +373,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   fi
   return 0
 } 2>>| $_autocomplete__log_file
-# functions -T .autocomplete.async.complete.fd-widget.inner
+log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
 .autocomplete.async.insufficient-input() {
   local min_input=
@@ -396,7 +398,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 .autocomplete.async.list-choices.completion-widget() {
   unset _autocomplete__mesg _autocomplete__comp_mesg _autocomplete__words _autocomplete__current
 
-  if [[ ! -v 1 || $1 != <->.<-> || ! -v 2 || $2 != <-> ]]; then
+  if [[ $1 != <->.<-> || $2 != <-> ]]; then
     compstate[list]=
     return
   fi
@@ -435,7 +437,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log_file
-# functions -t .autocomplete.async.list-choices.completion-widget
+log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.list-choices.post() {
   [[ -v _autocomplete__partial_list ]] &&
@@ -575,3 +577,5 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   return _ret_
 }
+
+typeset -gHa _autocomplete__log_functions=( $log_functions[@] )
