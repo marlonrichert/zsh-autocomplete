@@ -21,7 +21,7 @@ compdef() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
-  [[ -z $CDPATH ]] &&
+  [[ -v CDPATH && -z $CDPATH ]] &&
       unset CDPATH cdpath
 
   # Decrease Oh My Zsh start-up time. See below.

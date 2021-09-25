@@ -14,8 +14,8 @@ zmodload -F zsh/parameter p:funcstack p:functions
   builtin zstyle -s :autocomplete:tab: widget-style tab_style ||
       tab_style='complete-word'
 
-  if  builtin zstyle -t :autocomplete:tab: fzf ||
-      builtin zstyle -t :autocomplete:tab: fzf-completion; then
+  if builtin zstyle -t :autocomplete:tab: fzf-completion &&
+      [[ -v functions[fzf-completion] ]]; then
     typeset -gH fzf_default_completion=$tab_style
     functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
     fzf-completion() {
