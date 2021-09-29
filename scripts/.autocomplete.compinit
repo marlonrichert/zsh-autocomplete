@@ -217,56 +217,31 @@ EOF
   }
 
   if ! is-at-least 5.8.1; then
-    _parameters() {
-      # Copied from zsh commit e7320734153829e8bc94c1255bdeba724e13e8b6.
+    .autocomplete.patch _wanted
+    _wanted() {
+      if [[ $funcstack == *_parameters* ]] &&
+          builtin zstyle -T ":completion:${curcontext}:parameters" verbose; then
+        local -a params=( $@[(re)-,-1] )
+        shift -p $#params
+        shift params
+        _description "$@[1,3]"
+        builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
+        local -a displays=()
 
-      if compset -P '*:'; then
-        _history_modifiers p
-        return
-      fi
+        local sep=
+        builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+            sep=--
 
-      local i pfilt
-      local -i nm=$compstate[nmatches]
-      local -a expl pattern=( -g \* ) normal described verbose faked fakes tmp
-
-      zstyle -t ":completion:${curcontext}:parameters" prefix-needed &&
-          [[ $PREFIX != [_.]* ]] &&
-              pfilt='[^_.]'
-      _description parameters expl parameter
-      zparseopts -D -K -E g:=pattern
-
-      if zstyle -t ":completion:${curcontext}:parameters" extra-verbose; then
-        described=(
-            "${(@M)${(@k)parameters[(R)$~pattern[2]~*(hideval|local|special)*]}:#$~pfilt*}"
-        )
-        compadd "$@" "$expl[@]" -D described -a - described
-        if (( $#described )); then
-          verbose=(
-              ${${${(f@)"$( typeset -m ${(@b)described} )"}/=/:}[@]//'\'/'\\'}
-          )
-          _describe -t parameters parameter verbose "$@" "$expl[@]"
-        fi
-
-        normal=(
-            "${(@M)${(@k)parameters[(R)$~pattern[2]~^(*(hideval|special)*)~*local*]}:#$~pfilt*}"
-        )
+        private -i MBEGIN= MEND=
+        private MATCH=
+        zformat -a displays " $sep " \
+            "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
+        displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
+        displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
+        .autocomplete._wanted "$@" -d displays -a params
       else
-        normal=( "${(@M)${(@k)parameters[(R)$~pattern[2]~*local*]}:#$~pfilt*}" )
+        .autocomplete._wanted "$@"
       fi
-
-      if zstyle -a ":completion:${curcontext}:" fake-parameters tmp; then
-        for i in "$tmp[@]"; do
-          if [[ "$i" = *:* ]]; then
-            faked=( "$faked[@]" "$i" )
-          else
-            fakes=( "$fakes[@]" "$i" )
-          fi
-        done
-      fi
-      compadd "$@" "$expl[@]" - "$normal[@]" "${(@)fakes:|described}" \
-          "${(@)${(@)${(@M)faked:#${~pattern[2]}}%%:*}:|described}"
-
-      (( compstate[nmatches] > nm ))
     }
   fi
 }
