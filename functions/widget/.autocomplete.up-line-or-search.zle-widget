@@ -1,11 +1,7 @@
 #!/bin/zsh
 
-if (( BUFFERLINES > 1 )); then
-  private -i cursor=$CURSOR
-  builtin zle .up-line
-  (( cursor == CURSOR )) &&
-      builtin zle .beginning-of-line
-  (( cursor != CURSOR ))
+if [[ $LBUFFER == *$'\n'* ]]; then
+  builtin zle up-line
 else
   builtin zle history-search -w
 fi
