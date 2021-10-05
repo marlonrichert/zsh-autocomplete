@@ -117,12 +117,6 @@ builtin bindkey -M menuselect \
     '\r'  .accept-line \
     '^@'  accept-and-hold \
     "$terminfo[kpp]" backward-word \
-    "$terminfo[knp]" forward-word \
-    '\ef' .forward-word \
-    '\eF' .forward-word \
-    '\eb' .backward-word \
-    '\eB' .backward-word \
-    '^A'  .beginning-of-line \
-    '^E'  .end-of-line \
+    "$terminfo[knp]" forward-word
 
 unfunction .autocomplete.key-binding.{{,re,un}bind,bound}
