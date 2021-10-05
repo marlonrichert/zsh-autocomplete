@@ -2,8 +2,8 @@
 zmodload -F zsh/parameter p:functions
 
 _autocomplete.recent_paths() {
-  (( compstate[nmatches] < 2 )) ||
-      return
+  (( compstate[nmatches] > 1 )) &&
+      return 1
 
   private -aU dirs=()
   private -i ret=1
@@ -49,11 +49,10 @@ _autocomplete.recent_paths() {
 
   # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
   while (( $#matches )); do
-    compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
-          -- "$matches[1]:t" &&
-        ret=0
-    displ=( "$displ[@]" )
-    matches=( "$matches[@]" )
+    (( $#displ[1] > 1 )) &&
+        compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
+              -- "$matches[1]:t" &&
+            ret=0
     shift -- displ matches
   done
 
