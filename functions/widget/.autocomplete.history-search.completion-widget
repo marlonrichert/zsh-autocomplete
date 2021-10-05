@@ -9,7 +9,7 @@ $0() {
   _main_complete _autocomplete.history_lines
 
   unset curcontext
-  (( compstate[nmatches] > 0 ))
+  (( _lastcomp[nmatches] ))
 }
 
 $0.post() {

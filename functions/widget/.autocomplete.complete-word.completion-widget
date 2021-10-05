@@ -1,6 +1,5 @@
 #!/bin/zsh
-unfunction .autocomplete.complete-word.post 2> /dev/null
-builtin autoload -Uz .autocomplete.complete-word.post
+zmodload -F zsh/terminfo p:terminfo
 
 private key_name=
 case $KEYS in
@@ -10,18 +9,15 @@ esac
 
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
-if [[ $WIDGET == *menu-* && -v _autocomplete__partial_list ]] ||
-    ( ( [[ $key_name == shift-tab ]] ||
-        builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
-      ) && [[ -n $compstate[old_list] &&
-        -v _autocomplete__unambiguous && -n $_autocomplete__unambiguous ]] ); then
+
+if [[ -z $compstate[old_list] ]] || [[ $WIDGET == *menu-* && -v _autocomplete__partial_list ]] ||
+    ( builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous &&
+        [[ -n $_autocomplete__unambiguous ]] ); then
   _main_complete
-elif [[ -n $compstate[old_list] ]]; then
+else
   compstate[old_list]=keep
   [[ $key_name == shift-tab && $_lastcomp[tags] == *all-matches ]] &&
       compstate[insert]=all
   _main_complete -
-else
-  _main_complete
 fi
-return 0  # Prevent beeping.
+[[ _lastcomp[nmatches] -gt 0 && -n $compstate[insert] ]]

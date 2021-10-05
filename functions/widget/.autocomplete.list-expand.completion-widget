@@ -8,6 +8,7 @@ $0() {
   compstate[old_list]=
   local +h -a comppostfuncs=( $0.post "$comppostfuncs[@]" )
   _main_complete
+  (( _lastcomp[nmatches] ))
 }
 
 $0.post() {

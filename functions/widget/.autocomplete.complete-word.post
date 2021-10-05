@@ -1,7 +1,7 @@
 #autoload
 builtin autoload -Uz is-at-least
 
-unset MENUSELECT
+unset MENUSELECT 'compstate[list]'
 compstate[insert]=
 
 private key_name=
@@ -9,41 +9,42 @@ case $KEYS in
   ( $'\t'           ) key_name=tab ;;
   ( $terminfo[kcbt] ) key_name=shift-tab ;;
 esac
-local key_style=
-builtin zstyle -s :autocomplete:${key_name}: widget-style key_style
+local widget_style=
+builtin zstyle -s :autocomplete:${key_name}: widget-style widget_style ||
+    widget_style=menu-select
 
-if  [[ ! -v compstate[old_list] || -z $compstate[old_list] ]] ||
-    (
-      [[ -v _autocomplete__unambiguous && -n $_autocomplete__unambiguous ]] &&
-      builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous
-    ); then
-
-  if ! is-at-least 5.8.1; then
-    # Work around a crashing bug in Zsh.
-    # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-    [[ $key_style == *menu-* && -n $key_name ]] &&
-        compstate[insert]='automenu-'
-  fi
-
+if [[ -n $_autocomplete__unambiguous ]] &&
+    builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous; then
+  [[ $widget_style == (|*-)menu-* ]] &&
+      compstate[insert]='automenu-'
   compstate[insert]+=unambiguous
-  compstate[list]='list force packed rows'
   unset _autocomplete__unambiguous
   return
 fi
 
-if [[ $WIDGET == *menu-select ]]; then
-  # Determine which terminal line we're on (for async completion).
-  typeset -gHi _autocomplete__buffer_start_line=$((
-      max( min( _autocomplete__buffer_start_line, LINES - compstate[list_lines] ), BUFFERLINES )
-  ))
-  typeset -gHi MENUSELECT=0
+private -i nmatches=0
+if [[ $compstate[old_list] == keep ]]; then
+  nmatches=$_lastcomp[nmatches]
+else
+  nmatches=$compstate[nmatches]
 fi
 
-if ! is-at-least 5.8.1; then
-  # Work around a crashing bug in Zsh.
-  # See [zsh-workers 48936](https://www.zsh.org/mla/workers/2021/msg01162.html).
-  [[ $key_style == *menu-* && -n $key_name ]] &&
-      compstate[insert]='menu:'
+if (( nmatches > 1 )); then
+  if [[ $widget_style == (|*-)menu-select ]]; then
+    typeset -gHi MENUSELECT=0
+    compstate[insert]='menu:'
+
+    # Determine which terminal line we're on (for async completion).
+    typeset -gHi _autocomplete__buffer_start_line=$((
+        max( min( _autocomplete__buffer_start_line, LINES - compstate[list_lines] ), BUFFERLINES )
+    ))
+
+  elif [[ $compstate[old_list] != keep && $_lastcomp[insert] != (|*-)unambiguous ]]; then
+    compstate[list]='list force'
+    return
+  elif [[ $widget_style == (|*-)menu-complete ]]; then
+    compstate[insert]='menu:'
+  fi
 fi
 
 if [[ $key_name == shift-tab ]]; then
@@ -52,9 +53,16 @@ else
   compstate[insert]+='1'
 fi
 
-local -a tags=() match=() mbegin=() mend=()
-builtin zstyle -a :autocomplete: add-space tags ||
-    tags=( executables aliases functions builtins reserved-words commands )
-
-[[ $RBUFFER != [[:space:]]* && -n ${${=${_comp_tags:-$_lastcomp[tags]}}:*tags} ]] &&
-    compstate[insert]+=' '
+if [[ $RBUFFER != [[:space:]]* ]]; then
+  local -a spacetags=()
+  builtin zstyle -a :autocomplete: add-space spacetags ||
+      spacetags=( executables aliases functions builtins reserved-words commands )
+  private -a comptags=()
+  if [[ $compstate[old_list] == keep ]]; then
+    comptags=( $=_lastcomp[tags] )
+  else
+    comptags=( $=_comp_tags )
+  fi
+  [[ -n ${comptags:*spacetags} ]] &&
+      compstate[insert]+=' '
+fi

@@ -8,7 +8,7 @@
     .zinit-tmp-subst-off "${___mode:-load}"
 
 zmodload zsh/param/private
-setopt NO_flowcontrol NO_singlelinezle
+setopt NO_flowcontrol NO_listbeep NO_singlelinezle
 
 () {
   emulate -L zsh
@@ -21,7 +21,7 @@ setopt NO_flowcontrol NO_singlelinezle
   )
   setopt $_autocomplete__func_opts[@]
 
-  typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist NO_completeinword NO_listbeep )
+  typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist NO_completeinword )
   typeset -gHa _autocomplete__ctxt_opts=( completealiases completeinword )
 
   private basedir=${${(%):-%x}:P:h}
