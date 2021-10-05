@@ -61,7 +61,10 @@ private logdir=$xdg_data_home/zsh-autocomplete/log
 private -a older_than_a_week=( $logdir/*(Nmd+7) )
 (( $#older_than_a_week[@] )) &&
     zf_rm -f -- $older_than_a_week[@]
-typeset -gH _autocomplete__log_file=$logdir/${(%):-%D{%F}}.log
+private date=${(%):-%D{%F}}
+typeset -gH _autocomplete__log=$logdir/$date.log
+typeset -gH _autocomplete__log_async=$logdir/$date.async.log
+typeset -gH _autocomplete__log_pty=$logdir/$date.pty.log
 
 typeset -gH _autocomplete__prev=' ' _autocomplete__next=$'\n# %e. %N'
 typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n'
@@ -78,8 +81,11 @@ private mod=
 for mod in compinit config widget key-binding recent-dirs async; do
   if builtin zstyle -T ':autocomplete:' $mod; then
     builtin autoload -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod
-    .autocomplete.$mod "$@"
-    unfunction .autocomplete.$mod
+    {
+      .autocomplete.$mod "$@"
+    } always {
+      unfunction .autocomplete.$mod
+    }
   fi
 done
 

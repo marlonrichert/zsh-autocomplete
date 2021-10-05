@@ -13,7 +13,7 @@ assignees: ''
 <!-- Replace the contents of this block with the output of the commands below: -->
 ```zsh
 git -C ~zsh-autocomplete log --oneline -n1
-print $_autocomplete__funcfiletrace
+print -l $_autocomplete__funcfiletrace
 print $VENDOR $OSTYPE $SHELL $ZSH_ARGZERO $ZSH_PATCHLEVEL
 ```
 

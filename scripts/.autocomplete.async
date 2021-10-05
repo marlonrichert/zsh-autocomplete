@@ -246,7 +246,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     # $_autocomplete__async_complete_fd (if necessary).
     print -rNC1 -- "$SECONDS" "${text%$'\0\C-C'}"
   }
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log_async
 log_functions+=( .autocomplete.async.start.inner )
 
 .autocomplete.async.pty() {
@@ -255,7 +255,7 @@ log_functions+=( .autocomplete.async.start.inner )
   builtin bindkey $'\t' .autocomplete.async.pty.zle-widget
   local __tmp__=
   builtin vared __tmp__
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log_pty
 log_functions+=( .autocomplete.async.pty )
 
 .autocomplete.async.pty.no-op() {
@@ -283,7 +283,7 @@ log_functions+=( .autocomplete.async.pty )
         "$_autocomplete__list_lines" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" '\C-C'
     builtin kill $sysparams[pid]
   }
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log_pty
 log_functions+=( .autocomplete.async.pty.zle-widget.inner )
 
 .autocomplete.async.pty.completion-widget() {
@@ -323,7 +323,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
   } always {
     typeset -gHi _autocomplete__list_lines=$compstate[list_lines]
   }
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log_pty
 log_functions+=( .autocomplete.async.pty.completion-widget.inner )
 
 .autocomplete.async.pty.message() {
@@ -362,7 +362,7 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
   setopt $_autocomplete__comp_opts[@]
   [[ -n $curcontext ]] &&
       setopt $_autocomplete__ctxt_opts[@]
-  if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log_file; then
+  if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log; then
     region_highlight=( "$_autocomplete__highlight[@]" )
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
         _zsh_autosuggest_highlight_apply
@@ -373,7 +373,7 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
     .autocomplete.async.stop
   fi
   return 0
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
 .autocomplete.async.insufficient-input() {
@@ -437,7 +437,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   typeset -gHi _autocomplete__current=$CURRENT
 
   return 2  # Don't return 1, to prevent beeping.
-} 2>>| $_autocomplete__log_file
+} 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.list-choices.post() {

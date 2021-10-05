@@ -13,7 +13,7 @@ setopt NO_flowcontrol NO_listbeep NO_singlelinezle
 () {
   emulate -L zsh
   zmodload -F zsh/parameter p:funcfiletrace p:functions
-  typeset -gH _autocomplete__funcfiletrace=${(F)funcfiletrace[2,-2]}
+  typeset -gHa _autocomplete__funcfiletrace=( $funcfiletrace[2,-2] )
 
   typeset -gHa _autocomplete__func_opts=(
     localoptions extendedglob clobber
