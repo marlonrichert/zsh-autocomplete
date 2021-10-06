@@ -207,11 +207,6 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
 .autocomplete.async.start.inner() {
   {
-    local -F min_delay=
-    builtin zstyle -s :autocomplete: min-delay min_delay ||
-        min_delay=0.01
-    zselect -t "$(( [#10] 100 * max( 0, min_delay - SECONDS ) ))"
-
     private hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
     builtin unset ${^hooks}_functions &> /dev/null
     $hooks[@] () { : }
@@ -228,6 +223,11 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
       private -i fd=$REPLY
 
       zpty -w AUTOCOMPLETE $'\t'
+
+      local -F min_delay=
+      builtin zstyle -s :autocomplete: min-delay min_delay ||
+          min_delay=0.01
+      zselect -t "$(( [#10] 100 * max( 0, min_delay - SECONDS ) ))"
 
       local header=
       zpty -r AUTOCOMPLETE header $'*\C-B'
@@ -279,8 +279,7 @@ log_functions+=( .autocomplete.async.pty )
         setopt $_autocomplete__ctxt_opts[@]
     builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
   } always {
-    print -rNC1 -- \
-        "$_autocomplete__list_lines" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" '\C-C'
+    print -n -- '\C-C'
     builtin kill $sysparams[pid]
   }
 } 2>>| $_autocomplete__log_pty
@@ -292,11 +291,11 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
 
 .autocomplete.async.pty.completion-widget.inner() {
   if .autocomplete.async.insufficient-input; then
-    typeset -gHi _autocomplete__list_lines=0
+    print -rNC1 -- "0" "" ""
     return
   fi
   if .autocomplete.async.same-state; then
-    typeset -gHi _autocomplete__list_lines=$_lastcomp[list_lines]
+    print -rNC1 -- "$_lastcomp[list_lines]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
     return
   fi
   unset _autocomplete__mesg _autocomplete__comp_mesg
@@ -321,7 +320,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
     _main_complete
   } always {
-    typeset -gHi _autocomplete__list_lines=$compstate[list_lines]
+    print -rNC1 -- "$compstate[list_lines]" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]"
   }
 } 2>>| $_autocomplete__log_pty
 log_functions+=( .autocomplete.async.pty.completion-widget.inner )
