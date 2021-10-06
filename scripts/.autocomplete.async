@@ -280,7 +280,7 @@ log_functions+=( .autocomplete.async.pty )
     builtin zle .autocomplete.async.pty.completion-widget -w 2> /dev/null
   } always {
     print -rNC1 -- \
-        "$_autocomplete__list_lines" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" '\C-C'
+        "$_autocomplete__list_lines" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" $'\C-C'
     builtin kill $sysparams[pid]
   }
 } 2>>| $_autocomplete__log_pty
