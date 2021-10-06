@@ -5,23 +5,23 @@
 [[ $_comp_tags == *( | local-)'directories '* ]] ||
     return
 
-private tag=ancestor-directories
+local -P tag=ancestor-directories
 _tags $tag
 _tags ||
     return
 _requested $tag ||
     return
 
-private -a ancestors=()
-private parent=$PWD:h
+local -Pa ancestors=()
+local -P parent=$PWD:h
 while (( $#parent > 1 )); do
   ancestors+=( $parent )
   parent=$parent:h
 done
 
 local displ= expl=
-private -i ret=1
-private a=
+local -Pi ret=1
+local -P a=
 while _next_label -V $tag expl 'ancestor directory'; do
   for a in ${(aO)ancestors[@]}; do
     displ=( "$a" )

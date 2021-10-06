@@ -54,7 +54,7 @@ zmodload -F zsh/parameter p:funcstack p:functions
 }
 
 .autocomplete.key-binding.bind() {
-  private map=$1 widget=$2
+  local -P map=$1 widget=$2
   shift 2
   builtin bindkey -M "$map" "${@:^^widget}"
 }
@@ -77,9 +77,9 @@ builtin bindkey -M emacs '^@' list-expand
 builtin bindkey -M vicmd '^@' list-expand
 builtin bindkey -M viins '^@' list-expand
 
-private -a prefix=( '\e'{\[,O} )
-private -a up=( ${^prefix}A ) down=( ${^prefix}B )
-private -a alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
+local -Pa prefix=( '\e'{\[,O} )
+local -Pa up=( ${^prefix}A ) down=( ${^prefix}B )
+local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
 
 .autocomplete.key-binding.bind emacs up-line-or-search $up[@]
 .autocomplete.key-binding.bind viins up-line-or-search $up[@]

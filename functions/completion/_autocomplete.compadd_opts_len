@@ -1,6 +1,6 @@
 #autoload
 
-private -i len=$(( ${@[(i)(-|--)]} - 1 ))
+local -Pi len=$(( ${@[(i)(-|--)]} - 1 ))
 (( len < $# )) &&
     return len
 

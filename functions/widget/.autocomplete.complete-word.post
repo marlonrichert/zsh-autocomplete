@@ -1,10 +1,9 @@
 #autoload
-builtin autoload -Uz is-at-least
 
 unset MENUSELECT 'compstate[list]'
 compstate[insert]=
 
-private key_name=
+local -P key_name=
 case $KEYS in
   ( $'\t'           ) key_name=tab ;;
   ( $terminfo[kcbt] ) key_name=shift-tab ;;
@@ -22,7 +21,7 @@ if [[ -n $_autocomplete__unambiguous ]] &&
   return
 fi
 
-private -i nmatches=0
+local -Pi nmatches=0
 if [[ $compstate[old_list] == keep ]]; then
   nmatches=$_lastcomp[nmatches]
 else
@@ -57,7 +56,7 @@ if [[ $RBUFFER != [[:space:]]* ]]; then
   local -a spacetags=()
   builtin zstyle -a :autocomplete: add-space spacetags ||
       spacetags=( executables aliases functions builtins reserved-words commands )
-  private -a comptags=()
+  local -Pa comptags=()
   if [[ $compstate[old_list] == keep ]]; then
     comptags=( $=_lastcomp[tags] )
   else

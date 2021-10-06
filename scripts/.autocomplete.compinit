@@ -1,7 +1,7 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
-builtin autoload -Uz is-at-least
+builtin autoload -RUz is-at-least
 
 typeset -gHa _autocomplete__compdef=()
 compdef() {
@@ -11,7 +11,7 @@ compdef() {
 [[ -v functions[_bash_complete] ]] ||
   _bash_complete compgen complete () {
     unfunction _bash_complete compgen complete
-    builtin autoload -Uz bashcompinit
+    builtin autoload +X -Uz bashcompinit
     bashcompinit
     bashcompinit() { : }
     ${(%):-%N} "$@"
@@ -25,7 +25,7 @@ compdef() {
       unset CDPATH cdpath
 
   # Decrease Oh My Zsh start-up time. See below.
-  private -a omzdump=()
+  local -Pa omzdump=()
   [[ -v ZSH_COMPDUMP ]] &&
     omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
 
@@ -36,14 +36,14 @@ compdef() {
   if [[ -v _comps && $_comps[-command-] != _autocomplete.command ]]; then
     zf_rm -f $_comp_dumpfile
   else
-    private -a comps=( ~zsh-autocomplete/functions/completion/_autocomplete.*~*.zwc(N-.) )
+    local -Pa comps=( ~zsh-autocomplete/functions/completion/_autocomplete.*~*.zwc(N-.) )
 
     if ! (( $#comps )); then
       print -u2 -- 'zsh-autocomplete: Failed to find completion functions. Aborting.'
       return 66
     fi
 
-    private f=
+    local -P f=
     for f in $comps[@]; do
       if ! [[ -v functions[$f:t] && $f -ot $_comp_dumpfile ]]; then
         zf_rm -f $_comp_dumpfile
@@ -54,9 +54,9 @@ compdef() {
 
   if ! [[ -v _comp_setup && -f $_comp_dumpfile ]]; then
     unfunction compdef compinit 2> /dev/null
-    builtin autoload -Uz compinit
     bindkey() { : }
     {
+      builtin autoload +X -Uz compinit
       compinit -C -d $_comp_dumpfile
     } always {
       unfunction bindkey
@@ -72,7 +72,7 @@ EOF
 
   compinit() { : }
 
-  private args=
+  local -P args=
   for args in "$_autocomplete__compdef[@]"; do
     eval "compdef $args"
   done
@@ -82,7 +82,7 @@ EOF
     local -a reply=()
     local cache_dir=
     if builtin zstyle -s ':completion:*' cache-path cache_dir; then
-      private src= bin=
+      local -P src= bin=
       for src in $cache_dir/*~**.zwc~**/.*(N-.); do
         bin=$src.zwc
         if [[ ! -e $bin || $bin -ot $src ]]; then
@@ -95,7 +95,7 @@ EOF
   .autocomplete.patch _main_complete
   _main_complete() {
     local -i _autocomplete__reserved_lines=0
-    private -i ret=1
+    local -Pi ret=1
     unset _autocomplete__partial_list _autocomplete__unambiguous
 
     compstate[insert]=menu  # To get the best output from `_expand` (and some other functions).
@@ -146,7 +146,7 @@ EOF
     (( compstate[nmatches] > 1 )) &&
         return 0
 
-    private exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+    local -P exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
 
     [[ $exp == ($word|$compstate[unambiguous]) ]] &&
       return 0
@@ -161,7 +161,7 @@ EOF
   .autocomplete.patch _complete
   _complete() {
     .autocomplete._complete "$@"
-    private -i __ret__=$?
+    local -Pi __ret__=$?
 
     [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
         return __ret__
@@ -184,13 +184,13 @@ EOF
     _autocomplete.is_glob &&
         return 1
 
-    private -i ret=1
+    local -Pi ret=1
     {
       [[ -v functions[compadd] ]] &&
         functions[.autocomplete.__tmp__]=$functions[compadd]
 
       compadd() {
-        private ppre="$argv[(I)-p]"
+        local -P ppre="$argv[(I)-p]"
 
         [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 && "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] &&
             return
@@ -232,8 +232,8 @@ EOF
         builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
             sep=--
 
-        private -i MBEGIN= MEND=
-        private MATCH=
+        local -Pi MBEGIN= MEND=
+        local -P MATCH=
         zformat -a displays " $sep " \
             "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
         displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )

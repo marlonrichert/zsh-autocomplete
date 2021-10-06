@@ -11,8 +11,8 @@ ${0}.context() {
 }
 
 ${0}() {
-  private lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-  private keymap_menuselect="$( builtin bindkey -M menuselect -L )"
+  local -P lbuffer="$LBUFFER" rbuffer="$RBUFFER"
+  local -P keymap_menuselect="$( builtin bindkey -M menuselect -L )"
   typeset -g ZLE_REMOVE_SUFFIX_CHARS=${ZLE_REMOVE_SUFFIX_CHARS/ }
   {
     builtin bindkey -M menuselect -s \

@@ -1,5 +1,5 @@
 #compdef -command-
-private ret=1
+local -P ret=1
 _expand_alias "$@" &&
 	  ret=0
 _autocd "$@" &&

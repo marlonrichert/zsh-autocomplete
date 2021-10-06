@@ -41,13 +41,13 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
       reply=( ${(f)"$( fasd -dlR $1 2> /dev/null )"} )
     }
 
-  elif builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler &&
+  elif builtin autoload -RUz chpwd_recent_dirs chpwd_recent_filehandler &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'cdr'; then
     setopt autopushd pushdignoredups
 
     if ! builtin zstyle -s :chpwd: recent-dirs-file _; then
-      private old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
-      private new=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/chpwd-recent-dirs
+      local -P old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
+      local -P new=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/chpwd-recent-dirs
       builtin zstyle ':chpwd:*' recent-dirs-file $new
       [[ -e $old && ! -e $new ]] &&
           zf_mv "$old" "$new"
@@ -67,20 +67,20 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
     add-zsh-hook chpwd _autocomplete.recent_dirs.save
 
     _autocomplete.recent_dirs() {
-      private -a dirs=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
+      local -Pa dirs=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
-      private ancestor=$PWD:h
+      local -P ancestor=$PWD:h
       while [[ $ancestor != / ]]; do
         dirs=( ${dirs[@]:#$ancestor} )
         ancestor=$ancestor:h
       done
 
-      private -a displ=( "${(@D)dirs}" )
-      private -A displ_to_dirs=( "${(@)displ:^dirs}" )
+      local -Pa displ=( "${(@D)dirs}" )
+      local -PA displ_to_dirs=( "${(@)displ:^dirs}" )
       _autocomplete.sort_by_length "$displ[@]"
 
-      private -i MBEGIN= MEND=
-      private MATCH=
+      local -Pi MBEGIN= MEND=
+      local -P MATCH=
       reply=( ${reply[@]:/(#m)*/${displ_to_dirs[$MATCH]}} )
 
       (( $#reply[@] ))

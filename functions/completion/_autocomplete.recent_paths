@@ -5,9 +5,9 @@ _autocomplete.recent_paths() {
   (( compstate[nmatches] > 1 )) &&
       return 1
 
-  private -aU dirs=()
-  private -i ret=1
-  private tag=
+  local -PaU dirs=()
+  local -Pi ret=1
+  local -P tag=
   _tags recent-directories recent-files
   while _tags; do
 
@@ -45,7 +45,7 @@ _autocomplete.recent_paths() {
 
   .autocomplete.recent_paths.trim
 
-  private -i ret=1
+  local -Pi ret=1
 
   # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
   while (( $#matches )); do
@@ -61,7 +61,7 @@ _autocomplete.recent_paths() {
 
 # Workaround to prevent the prompt from jumping
 .autocomplete.recent_paths.trim() {
-  private total="${(j:/  :)displ}/  "
+  local -P total="${(j:/  :)displ}/  "
   while (( $#total > COLUMNS )); do
     shift -p -- displ matches
     total="${(j:/  :)displ}/  "
