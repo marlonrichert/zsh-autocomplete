@@ -1,4 +1,5 @@
 #autoload
+local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 
 unset MENUSELECT 'compstate[list]'
 compstate[insert]=

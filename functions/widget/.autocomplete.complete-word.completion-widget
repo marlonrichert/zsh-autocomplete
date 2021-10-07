@@ -1,5 +1,6 @@
 #!/bin/zsh
 zmodload -F zsh/terminfo p:terminfo
+local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 
 local -P key_name=
 case $KEYS in
