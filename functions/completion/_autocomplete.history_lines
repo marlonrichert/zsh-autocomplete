@@ -22,7 +22,8 @@ _autocomplete.history_lines() {
     fi
     if [[ -o histfindnodups ]]; then
       while (( $#events[@] < max_lines && 0 < histno && histno < HISTNO )); do
-        [[ -v history[$histno] && ! -v events[$history[$histno]] ]] &&
+        # -v's arg is a literal string, so we need to escape glob chars.
+        [[ -v history[$histno] && ! -v events[${(b)history[$histno]}] ]] &&
             events[$history[$histno]]=$histno
         (( histno += inc ))
       done
