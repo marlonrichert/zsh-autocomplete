@@ -1,6 +1,7 @@
 #!/bin/zsh
-typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 zmodload zsh/complist
+typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
 .autocomplete.widget.precmd() {
   emulate -L zsh
