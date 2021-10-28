@@ -35,28 +35,28 @@ _autocomplete.history_lines() {
         (( histno += inc ))
       done
     fi
+    _comp_colors=( '(history-lines)=[[:space:]]#(#b)(<->) *=0=2' "$_comp_colors[@]" )
   else
-    local -P word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
-    local -PaU err=( '(#ia'{0..$(( $#words[CURRENT] / 3 ))}')' )
+    local -PaU queries=() err=( '(#ia'{0..$(( $#words[CURRENT] ))}')' )
+    local -P query lbuffer= rbuffer=
     if [[ $WIDGET == (|*-)search(|-*) ]]; then
-      local -PaU queries=( \*$^err${(j:*:)${(0)words[CURRENT]}}\* )
+      queries=( \*$^err${(j:*:)${(0)words[CURRENT]}}\* )
     else
-      local -P lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}"
-      local -P rbuffer="${(j.[[:blank:]]##.)${(@b)words[CURRENT+1,-1]}}"
+      lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}"
+      rbuffer="${(j.[[:blank:]]##.)${(@b)words[CURRENT+1,-1]}}"
       [[ -n $lbuffer ]] &&
           lbuffer="${lbuffer}[[:blank:]]##"
       [[ -n $rbuffer ]] &&
           rbuffer="[[:blank:]]##${rbuffer}"
       lbuffer="$lbuffer${(b)QIPREFIX}"
       rbuffer="${(b)QISUFFIX}$rbuffer"
-      local -PaU queries=( $lbuffer\*\($^err${words[CURRENT]}\)\*$rbuffer )
+      queries=( $lbuffer\*\($^err${words[CURRENT]}\)\*$rbuffer )
     fi
     if [[ -o histfindnodups ]]; then
       local -Pa numbers=()
-      local -P q=
-      for q in $queries[@]; do
-        numbers=( "${(@k)history[(R)$~q]}" )
-        (( $#numbers[@] )) &&
+      for query in $queries[@]; do
+        numbers=( "${(@k)history[(R)$~query]}" )
+        (( $#numbers[@] > 1 )) &&
             break
       done
       local -Pa lines=( "${(@v)history[(I)(${(~j:|:)numbers})]}" )
@@ -67,13 +67,16 @@ _autocomplete.history_lines() {
       events=( "${(@)lines:^numbers}" )
       events=( "${(@Oa)${(@kv)events}}" )
     else
-      local -P q=
-      for q in $queries[@]; do
-        events=( "${(@kv)history[(R)$~q]}" )
-        (( $#events[@] )) &&
+      for query in $queries[@]; do
+        events=( "${(@kv)history[(R)$~query]}" )
+        (( $#events[@] > 1 )) &&
             break
       done
     fi
+    _comp_colors=(
+        "(history-lines)=[[:space:]]#(#b)(<->) *(${${query#$lbuffer\*}%\*$rbuffer})*=0=2=30;103"
+        "$_comp_colors[@]"
+    )
   fi
 
   (( $#events[@] )) ||
@@ -85,7 +88,7 @@ _autocomplete.history_lines() {
 
   local -Pi diff=$(( $#displays[@] - max_lines ))
   local -P suf=
-if [[ $WIDGET == (|*-)search(|-*) ]]; then
+  if [[ $WIDGET == (|*-)search(|-*) ]]; then
     displays=( ${(@n)displays} )
     (( diff > 0 )) &&
         shift "$diff" displays
