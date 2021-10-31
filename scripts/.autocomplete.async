@@ -529,15 +529,15 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     return _ret_
   fi
 
-  local -a _groupname_=()
-  zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
-  set -- "$_groupname_[@]" "$@"
-
   if ! [[ -v _opts_[-D] ]]; then
     local -a _matches_=()
     .autocomplete.compadd -O _matches_ "$@" # Collect all matching completions.
     _matches_array_=_matches_
   fi
+
+  local -a _groupname_=()
+  zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
+  set -- "$_groupname_[@]" "$@"
   _displ_array_=$_dopt_[-1]
 
   local -Pi _nmatches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
