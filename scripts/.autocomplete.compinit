@@ -160,18 +160,9 @@ EOF
 
   .autocomplete.patch _complete
   _complete() {
-    .autocomplete._complete "$@"
-    local -Pi __ret__=$?
-
-    [[ $compstate[context] == command && CURRENT -eq 1 && -z $PREFIX$SUFFIX ]] &&
-        return __ret__
-
-    _autocomplete.ancestor_dirs "$@" &&
-        __ret__=0
-    _autocomplete.recent_paths "$@" &&
-        __ret__=0
-
-    return __ret__
+    .autocomplete._complete "$@" ||
+        _autocomplete.ancestor_dirs "$@" ||
+            _autocomplete.recent_paths "$@"
   }
   # functions -T _complete
 

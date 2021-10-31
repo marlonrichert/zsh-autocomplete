@@ -5,32 +5,17 @@ _autocomplete.recent_paths() {
   (( compstate[nmatches] > 1 )) &&
       return 1
 
-  local -PaU dirs=()
+  local -PaU files=()
   local -Pi ret=1
   local -P tag=
-  _tags recent-directories recent-files
-  while _tags; do
-
-    tag=recent-directories
-    if _requested $tag &&
-        [[ -v functions[_autocomplete.recent_dirs] && $_comp_tags == *( | local-)directories* ]] &&
-        _autocomplete.recent_dirs "$PREFIX$SUFFIX"; then
-      dirs=( "$reply[@]" )
-      while _next_label -V $tag expl 'recent directory'; do
-        .autocomplete.recent_paths.add $dirs[@] &&
-            ret=0
-      done
-    fi
-
-    tag=recent-files
-    if _requested $tag &&
-        [[ -v functions[_autocomplete.recent_files] && $_comp_tags == *( | all-)'files '* ]] &&
-        _autocomplete.recent_files "$PREFIX$SUFFIX"; then
-      dirs=( "$reply[@]" )
-      while _next_label -v $tag expl 'recent file'; do
-        .autocomplete.recent_paths.add $dirs[@] &&
-            ret=0
-      done
+  for tag in directories files; do
+    if [[ -v functions[_autocomplete.recent_$tag] &&
+            $_comp_tags == (|* )(|(all|local)-)$tag(| *) ]] &&
+        _autocomplete.recent_$tag "$PREFIX$SUFFIX"; then
+      files=( "$reply[@]" )
+      _description -V recent-$tag expl 'recent directory'
+      .autocomplete.recent_paths.add $files[@] &&
+          ret=0
     fi
   done
 
