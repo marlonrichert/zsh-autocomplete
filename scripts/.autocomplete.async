@@ -495,12 +495,12 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
     _displ_array_=$_opts_[-D]
 
-    (( ${${(P)_displ_array_}[(I)*:*]} )) ||
+    (( ${${(PA)_displ_array_}[(I)*:*]} )) ||
         return _ret_
 
     _matches_array_=$_opts_[-O]
     if [[ -z $_matches_array_ ]]; then
-      local -a _matches_=( "${(P)_displ_array_}" )
+      local -a _matches_=( ${(PA)_displ_array_} )
       _matches_array_=_matches_
     fi
 
@@ -544,7 +544,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   if [[ _nmatches_per_line_ -lt 1 && ! -v _opts_[-D] ]]; then
     # If we need more than one line per match, then make each match fit on one line.
     if [[ -z $_displ_array_ ]]; then
-      local -a displ=( "${(P@)_matches_array}" )
+      local -a displ=( ${(PA)_matches_array} )
       _dopt_=( -d displ )
       _displ_array_=displ
     fi
