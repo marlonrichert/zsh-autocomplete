@@ -11,7 +11,7 @@ zmodload -F zsh/parameter p:funcfiletrace p:functions
 zmodload zsh/param/private
 setopt NO_flowcontrol NO_listbeep NO_singlelinezle
 typeset -gHa _autocomplete__funcfiletrace=( $funcfiletrace[2,-2] )
-emulate zsh -c "builtin autoload +X -Uz ${${(%):-%x}:P:h}/scripts/.autocomplete.__init__"
+builtin autoload +X -Uz ${${(%):-%x}:P:h}/scripts/.autocomplete.__init__
 {
   .autocomplete.__init__ "$@"
 } always {
