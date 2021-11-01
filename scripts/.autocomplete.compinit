@@ -199,6 +199,8 @@ EOF
       ret=$?
       _lastdescr=( ${_lastdescr[@]:#corrections} )
     } always {
+      [[ -v functions[compadd] ]] &&
+          unfunction compadd
       if [[ -v functions[.autocomplete.__tmp__] ]]; then
         functions[compadd]=$functions[.autocomplete.__tmp__]
         unfunction .autocomplete.__tmp__
