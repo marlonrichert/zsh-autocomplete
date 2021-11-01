@@ -4,7 +4,7 @@
     return 1
 
 [[ $_comp_tags != (|* )(|local-)directories(| *) ]] &&
-    return
+    return 1
 
 local displ= expl=
 _description -V ancestor-directories expl 'ancestor directory'
