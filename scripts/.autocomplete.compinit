@@ -133,8 +133,8 @@ EOF
   .autocomplete.patch _expand
   _expand() {
     if _autocomplete.is_glob; then
-      [[ $words[CURRENT] == *[^*] && $WIDGET != _complete_help ]] &&
-          local +h ISUFFIX="*"
+      compstate[pattern_insert]=  # Make compstate[insert]=unambiguous work.
+      compstate[pattern_match]=\* # Smartly append * to the pattern.
 
       .autocomplete._expand "$@"
       return
