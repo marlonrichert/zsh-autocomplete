@@ -116,8 +116,20 @@ _autocomplete.history_lines() {
   local -a expl=()
   local _comp_no_ignore=1
   _description -2V "$tag" expl 'history line'
-  builtin compadd "$expl[@]" -qS "$suf" -QU -ld displays -a matches
+  builtin compadd "$expl[@]" -S "$suf" -R _autocomplete.history_lines.suffix \
+      -QU -ld displays -a matches
 }
 # functions -T _autocomplete.history_lines
+
+_autocomplete.history_lines.suffix() {
+  case $KEYS in
+    ( [$ZLE_SPACE_SUFFIX_CHARS$ZLE_REMOVE_SUFFIX_CHARS] )
+      LBUFFER=$LBUFFER[1,-1-$1]
+    ;|
+    ( [$ZLE_SPACE_SUFFIX_CHARS] )
+      LBUFFER+=' '
+    ;;
+  esac
+}
 
 _autocomplete.history_lines "$@"
