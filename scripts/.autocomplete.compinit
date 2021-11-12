@@ -57,7 +57,7 @@ compdef() {
     bindkey() { : }
     {
       builtin autoload +X -Uz compinit
-      compinit -C -d $_comp_dumpfile
+      compinit -d $_comp_dumpfile
     } always {
       unfunction bindkey
     }
