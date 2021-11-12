@@ -75,6 +75,10 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
         ancestor=$ancestor:h
       done
 
+      local exact=$reply[(r)*/$PREFIX$SUFFIX]
+      [[ -n $exact ]] &&
+          reply=( $exact ${reply[@]:#$exact} )
+
       (( $#reply[@] ))
     }
   fi
