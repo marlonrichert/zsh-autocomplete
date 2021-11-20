@@ -1,6 +1,7 @@
 #!/bin/zsh
 zmodload zsh/complist
 zmodload -F zsh/parameter p:funcstack p:functions
+zmodload -F zsh/terminfo p:terminfo
 
 .autocomplete.key-binding.precmd() {
   emulate -L zsh
