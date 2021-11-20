@@ -122,12 +122,21 @@ _autocomplete.history_lines() {
 # functions -T _autocomplete.history_lines
 
 _autocomplete.history_lines.suffix() {
-  case $KEYS in
-    ( [$ZLE_SPACE_SUFFIX_CHARS$ZLE_REMOVE_SUFFIX_CHARS] )
+  case $WIDGET in
+    ( (|.|*-)(hist(|ory)|search|delete|kill)(|-*) )
+    ;;
+    ( (|.)(self-insert(|-*)|magic-space) )
+      case $KEYS[-1] in
+        ( [$ZLE_SPACE_SUFFIX_CHARS$ZLE_REMOVE_SUFFIX_CHARS] )
+          LBUFFER=$LBUFFER[1,-1-$1]
+        ;|
+        ( [$ZLE_SPACE_SUFFIX_CHARS] )
+          LBUFFER+=' '
+        ;;
+      esac
+    ;;
+    ( * )
       LBUFFER=$LBUFFER[1,-1-$1]
-    ;|
-    ( [$ZLE_SPACE_SUFFIX_CHARS] )
-      LBUFFER+=' '
     ;;
   esac
 }
