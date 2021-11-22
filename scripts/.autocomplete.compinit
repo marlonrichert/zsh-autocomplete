@@ -5,7 +5,7 @@ builtin autoload -RUz is-at-least
 
 typeset -gHa _autocomplete__compdef=()
 compdef() {
-  _autocomplete__compdef+=( "${(j: :)${(@q+)@}}" )
+  typeset -gHa _autocomplete__compdef=( $_autocomplete__compdef[@] "${(j: :)${(@q+)@}}" )
 }
 
 [[ -v functions[_bash_complete] ]] ||
