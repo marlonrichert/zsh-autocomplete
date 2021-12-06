@@ -26,10 +26,10 @@ git -C ~zsh-autocomplete log --oneline -n1
 cd $(mktemp -d)
 git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
 > .zshrc <<EOF
-PS1='%# ' PS2= RPS2='%^'; setopt transientrprompt
+PS1='%# ' PS2= RPS2='%^'; setopt transientrprompt interactivecomments
 source ~/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 EOF
-env -i HOME=$PWD PATH=$PATH FPATH=$FPATH TERM=$TERM ${TERMINFO:-TERMINFO=$TERMINFO} zsh -d
+env -i HOME=$PWD PATH=$PATH TERM=$TERM ${TERMINFO:-TERMINFO=$TERMINFO} zsh -d
 ```
 <!--
 In the shell created above, try to reproduce your problem.
