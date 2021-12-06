@@ -460,7 +460,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       emulate -L zsh
       setopt $_autocomplete__func_opts[@]
       functions[compadd]=$functions[.autocomplete.async.compadd]
-      # functions -T compadd _describe
+      # functions -T compadd .autocomplete.compadd _describe
     } "$@"
     _main_complete "$@"
   } always {
@@ -470,8 +470,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.compadd() {
   local -A _opts_=()
-  local -aU _dopt_=()
-  zparseopts -A _opts_ -E -- D: E: J: O: V: x: X: d:=_dopt_
+  local -a _dopt_=()
+  zparseopts -A _opts_ -E -- D: E: J: O: V: x: X: d:
 
   if [[ ( -v _opts_[-x] && $# == 2 ) ]]; then
     .autocomplete.compadd "$@"
@@ -517,8 +517,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         .autocomplete.compadd "$@"
         print -rNC1 -- "$compstate[list_lines]" "$compstate[nmatches]"
     )"}" )
-    (( _new_list_lines_ = max( 0, $_out_[1] - $compstate[list_lines] ) ))
-    (( _new_nmatches_ =   max( 0, $_out_[2] - $compstate[nmatches]   ) ))
+    _new_list_lines_=$(( max( 0, $_out_[1] - $compstate[list_lines] ) ))
+    _new_nmatches_=$((   max( 0, $_out_[2] - $compstate[nmatches]   ) ))
   fi
 
   if (( _new_list_lines_ <= _avail_list_lines_ )); then
@@ -577,6 +577,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   fi
 
   return _ret_
-}
+} 2>>| $_autocomplete__log
+log_functions+=( .autocomplete.async.compadd )
 
 typeset -gHa _autocomplete__log_functions=( $log_functions[@] )

@@ -160,11 +160,15 @@ EOF
 
   .autocomplete.patch _complete
   _complete() {
+    local -i nmatches=$compstate[nmatches]
     .autocomplete._complete "$@" ||
         _autocomplete.ancestor_dirs "$@" ||
             _autocomplete.recent_paths "$@"
+
+    # Workaround the fact that some completion functions mistakenly don't
+    # return 0 when they have succeeded.
+    (( compstate[nmatches] > nmatches ))
   }
-  # functions -T _complete
 
   .autocomplete.patch _approximate
   _approximate() {
