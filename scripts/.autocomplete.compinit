@@ -115,6 +115,8 @@ EOF
   is-at-least 5.8.1 ||
       .autocomplete.compadd() {
         if [[ $_completer == expand* ]]; then
+          [[ $@[-1] == space && $#space[@] -eq 1 ]] &&
+              space=( ${(q+)${(Q)space}} )
           builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
         else
           builtin compadd "$@"
@@ -140,22 +142,7 @@ EOF
       return
     fi
 
-    .autocomplete._expand "$@" ||
-        return
-
-    (( compstate[nmatches] > 1 )) &&
-        return 0
-
-    local -P exp=${(Q)compstate[unambiguous]} word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
-
-    [[ $exp == ($word|$compstate[unambiguous]) ]] &&
-      return 0
-
-    local -a expl=()
-    _description -V expansions expl expansions "o:$word"
-    compadd "$expl[@]" -UQ -qS '' - "${(q+)exp}"
-
-    return 0
+    .autocomplete._expand "$@"
   }
 
   .autocomplete.patch _complete

@@ -544,12 +544,17 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   if [[ _nmatches_per_line_ -lt 1 && ! -v _opts_[-D] ]]; then
     # If we need more than one line per match, then make each match fit on one line.
     if [[ -z $_displ_array_ ]]; then
-      local -a displ=( ${(PA)_matches_array} )
+      local -a displ=( ${(PA)_matches_array_} )
       _dopt_=( -d displ )
       _displ_array_=displ
     fi
     _dopt_=( -l "$_dopt_[@]" )
-    set -A $_displ_array_ ${(r:COLUMNS-1:@)${(P@)_displ_array_}//$'\n'/\n}
+
+    # WORKAROUND: Display strings that are exactly $COLUMNS wide are mistakenly
+    # counted as spanning two lines, causing the dreaded
+    # `zsh: do you wish to see all XX possibilities (YY lines)?`
+    set -A $_displ_array_ ${(@r:COLUMNS-1:)${(PA)_displ_array_}[@]//$'\n'/\n}
+
     _nmatches_per_line_=1
   fi
 
