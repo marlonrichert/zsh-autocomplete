@@ -12,7 +12,7 @@ Besides live autocompletion, `zsh-autocomplete` comes with many other useful com
 
 ### Optimized completion config
 Zsh's completion system is powerful, but hard to configure. So, `zsh-autocomplete` [does it for
-you](module/.autocomplete.config), while providing a manageable list of [configuration
+you](scripts/.autocomplete.config), while providing a manageable list of [configuration
 settings](.zshrc) for changing the defaults.
 
 ### Live history search
