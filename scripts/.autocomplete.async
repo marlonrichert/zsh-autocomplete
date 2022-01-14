@@ -209,7 +209,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   {
     local -F min_delay=
     builtin zstyle -s :autocomplete: min-delay min_delay ||
-        min_delay=0.01
+        min_delay=0.05
     zselect -t "$(( [#10] 100 * max( 0, min_delay - SECONDS ) ))"
 
     local -P hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
