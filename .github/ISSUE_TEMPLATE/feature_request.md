@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Would you like to suggest an improvement?
+about: If this template doesn't suit your needs, then please open a Discussion instead.
 title: ''
 labels: 'enhancement'
 assignees: ''
@@ -16,10 +16,12 @@ assignees: ''
 ## Who else would benefit from this?
 <!-- Describe what kind of users would enjoy this feature. -->
 
-## Example scenario
+## How should it work?
+<!-- Fill out the steps below. -->
 
 Given the following situation:
-* <!-- State the circumstance under which this feature would apply. -->
+* <!-- State the circumstances under which this feature would apply. -->
+*
 
 When I perform the following steps:
 1. <!-- List what actions you would take in the situation described above. -->
@@ -27,3 +29,4 @@ When I perform the following steps:
 
 Then I expect the following to happen:
 * <!-- Describe how you would expect the system to behave in response to your actions above. -->
+*

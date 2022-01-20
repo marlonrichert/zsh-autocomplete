@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Is something broken?
+about: Always include minimal, reproducible test case. If I cannot reproduce it, then I cannot fix it!
 title: ''
 labels: 'bug'
 assignees: ''
