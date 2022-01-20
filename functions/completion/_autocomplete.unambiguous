@@ -32,4 +32,4 @@ if builtin zstyle -t :autocomplete:tab: insert-unambiguous; then
 fi
 
 builtin compadd -J "$tag" \
-    -x $'%{\e[1;2;39m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+    -x $'%{\e[0;2m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
