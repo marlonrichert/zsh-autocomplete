@@ -100,6 +100,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     Y+=$REPLY
   done
   Y="${Y%$CPR[2]}"  # Discard the separator.
+  Y=${(M)Y%%<->}    # Keep trailing digits only (to work around input pollution).
 
   # Flush the rest.
   while [[ $REPLY != $CPR[3] ]]; do
