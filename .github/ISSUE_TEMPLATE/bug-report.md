@@ -12,15 +12,17 @@ Please read all of the steps below very carefully and follow them to the letter.
 If I cannot reproduce your problem, then I cannot fix it.
 -->
 
-### Environment
+## Environment
 <!-- Replace the contents of this block with the output of the commands below: -->
 ```zsh
 print $VENDOR $OSTYPE $SHELL $ZSH_ARGZERO $ZSH_PATCHLEVEL
 print -l $_autocomplete__funcfiletrace
 git -C ~zsh-autocomplete log --oneline -n1
 ```
+* Operating system: <!-- e.g. macOS, Ubuntu -->
+* Terminal emulator: <!-- e.g. Terminal.app, Konsole -->
 
-### Steps to reproduce
+## Steps to reproduce
 <!-- Run the following commands: -->
 ```zsh
 cd $(mktemp -d)
