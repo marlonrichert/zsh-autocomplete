@@ -292,7 +292,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
 }
 
 .autocomplete.async.pty.completion-widget.inner() {
-  if .autocomplete.async.insufficient-input; then
+  if ! .autocomplete.async.sufficient-input; then
     typeset -gHi _autocomplete__list_lines=0
     return
   fi
@@ -300,6 +300,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
     typeset -gHi _autocomplete__list_lines=$_lastcomp[list_lines]
     return
   fi
+
   unset _autocomplete__mesg _autocomplete__comp_mesg
   {
     local curcontext=${curcontext:-list-choices:::}
@@ -377,21 +378,25 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
 } 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
-.autocomplete.async.insufficient-input() {
+.autocomplete.async.sufficient-input() {
+  # Don't check the input if we're not doing normal autocompletion.
+  [[ -n $curcontext ]] &&
+      return
+
   local min_input=
-  builtin zstyle -s :autocomplete:${curcontext:-list-choices} min-input min_input ||
+  builtin zstyle -s :autocomplete:list-choices min-input min_input ||
       min_input=0
   local ignored=
-  builtin zstyle -s :autocomplete:${curcontext:-list-choices} ignored-input ignored
+  builtin zstyle -s :autocomplete:list-choices ignored-input ignored
   if (( ${#words[@]} == 1 && ${#words[CURRENT]} < min_input )) ||
       [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
     compstate[list]=
-    true
-  else
     false
+  else
+    true
   fi
 }
-# functions -T .autocomplete.async.insufficient-input
+# functions -T .autocomplete.async.sufficient-input
 
 .autocomplete.async.same-state() {
   [[ $_autocomplete__words == $words && $_autocomplete__current == $CURRENT ]]
@@ -405,8 +410,8 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     return
   fi
 
-  .autocomplete.async.insufficient-input &&
-      return
+  .autocomplete.async.sufficient-input ||
+      return 2
 
   local -PF _seconds_=$1
   local -Pi _list_lines_=$2
