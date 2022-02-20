@@ -103,25 +103,24 @@ EOF
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
 
-    if ! is-at-least 5.8.1; then
-      [[ -v functions[compadd] ]] ||
-          functions[compadd]=$functions[.autocomplete.compadd]
-    fi
+    [[ -v functions[compadd] ]] ||
+        functions[compadd]=$functions[.autocomplete.compadd]
 
     local +h -a comppostfuncs=( _autocomplete._main_complete.post "$comppostfuncs[@]" )
     .autocomplete._main_complete "$@"
   }
 
-  is-at-least 5.8.1 ||
-      .autocomplete.compadd() {
-        if [[ $_completer == expand* ]]; then
-          [[ $@[-1] == space && $#space[@] -eq 1 ]] &&
-              space=( ${(q+)${(Q)space}} )
-          builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-        else
-          builtin compadd "$@"
-        fi
-      }
+  # Add support for coloring file types to _expand.
+  # TODO: Might be added a future version of zsh.
+  .autocomplete.compadd() {
+    if [[ $_completer == expand* ]]; then
+      [[ $@[-1] == space && $#space[@] -eq 1 ]] &&
+          space=( ${(q+)${(Q)space}} )
+      builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
+    else
+      builtin compadd "$@"
+    fi
+  }
 
   _autocomplete._main_complete.post() {
     [[ $WIDGET != _complete_help ]] &&
@@ -200,32 +199,32 @@ EOF
     return ret
   }
 
-  if ! is-at-least 5.8.1; then
-    .autocomplete.patch _wanted
-    _wanted() {
-      if [[ $funcstack == *_parameters* ]] &&
-          builtin zstyle -T ":completion:${curcontext}:parameters" verbose; then
-        local -a params=( $@[(re)-,-1] )
-        shift -p $#params
-        shift params
-        _description "$@[1,3]"
-        builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
-        local -a displays=()
+  # Let parameter completion list each parameter's value.
+  # TODO: Might be added to a future version of zsh.
+  .autocomplete.patch _wanted
+  _wanted() {
+    if [[ $funcstack == *_parameters* ]] &&
+        builtin zstyle -T ":completion:${curcontext}:parameters" verbose; then
+      local -a params=( $@[(re)-,-1] )
+      shift -p $#params
+      shift params
+      _description "$@[1,3]"
+      builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
+      local -a displays=()
 
-        local sep=
-        builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
-            sep=--
+      local sep=
+      builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+          sep=--
 
-        local -Pi MBEGIN= MEND=
-        local -P MATCH=
-        zformat -a displays " $sep " \
-            "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
-        displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
-        displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
-        .autocomplete._wanted "$@" -d displays -a params
-      else
-        .autocomplete._wanted "$@"
-      fi
-    }
-  fi
+      local -Pi MBEGIN= MEND=
+      local -P MATCH=
+      zformat -a displays " $sep " \
+          "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
+      displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
+      displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
+      .autocomplete._wanted "$@" -d displays -a params
+    else
+      .autocomplete._wanted "$@"
+    fi
+  }
 }
