@@ -476,13 +476,13 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.compadd() {
   local -A _opts_=()
-  local -a _dopt_=()
-  zparseopts -A _opts_ -E -- D: E: J: O: V: x: X: d:
+  local -a _Dopt_=() _dopt_=()
+  zparseopts -A _opts_ -E -- D:=_Dopt_ E: J: O: V: x: X: d:
 
   if [[ ( -v _opts_[-x] && $# == 2 ) ]]; then
     .autocomplete.compadd "$@"
     return
-  elif [[ $funcstack[(I)_describe] -gt 0 && ! -v _opts_[-D] ]]; then
+  elif [[ $funcstack[(I)_describe] -gt 0 && -z $_Dopt_ ]]; then
     _autocomplete__reserved_lines=0
   fi
 
@@ -492,7 +492,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       max( _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines], 0 )
   ))
 
-  if [[ -v _opts_[-D] ]]; then
+  if [[ -n $_Dopt_ ]]; then
     .autocomplete.compadd "$@"
     _ret_=$?
 
@@ -528,26 +528,29 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   fi
 
   if (( _new_list_lines_ <= _avail_list_lines_ )); then
-    if ! [[ -v _opts_[-D] ]]; then
+    if [[ -z $_Dopt_ ]]; then
       .autocomplete.compadd "$@"
       _ret_=$?
     fi
     return _ret_
   fi
 
-  if ! [[ -v _opts_[-D] ]]; then
+  if [[ -z $_Dopt_ ]]; then
     local -a _matches_=()
     .autocomplete.compadd -O _matches_ "$@" # Collect all matching completions.
     _matches_array_=_matches_
   fi
 
   local -a _groupname_=()
+
+  # NOTE: This will overwrite the contents of $_opts_ !
   zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
+
   set -- "$_groupname_[@]" "$@"
   _displ_array_=$_dopt_[-1]
 
   local -Pi _nmatches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
-  if [[ _nmatches_per_line_ -lt 1 && ! -v _opts_[-D] ]]; then
+  if [[ _nmatches_per_line_ -lt 1 && -z $_Dopt_ ]]; then
     # If we need more than one line per match, then make each match fit on one line.
     if [[ -z $_displ_array_ ]]; then
       local -a displ=( ${(PA)_matches_array_} )
@@ -581,7 +584,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     }
   fi
 
-  if ! [[ -v _opts_[-D] ]]; then
+  if [[ -z $_Dopt_ ]]; then
     _autocomplete.compadd_opts_len "$@"
     .autocomplete.compadd $_dopt_ "$@[1,?]" -a -- $_matches_array_
     _ret_=$?
