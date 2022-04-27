@@ -26,8 +26,8 @@ compdef() {
 
   # Decrease Oh My Zsh start-up time. See below.
   local -Pa omzdump=()
-  [[ -v ZSH_COMPDUMP ]] &&
-    omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
+  [[ -v ZSH_COMPDUMP && -r $ZSH_COMPDUMP ]] &&
+      omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
 
   typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
   typeset -gH \
@@ -52,7 +52,7 @@ compdef() {
     done
   fi
 
-  if ! [[ -v _comp_setup && -f $_comp_dumpfile ]]; then
+  if ! [[ -v _comp_setup && -r $_comp_dumpfile ]]; then
     unfunction compdef compinit 2> /dev/null
     bindkey() { : }
     {
