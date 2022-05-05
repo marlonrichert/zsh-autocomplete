@@ -466,7 +466,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       emulate -L zsh
       setopt $_autocomplete__func_opts[@]
       functions[compadd]=$functions[.autocomplete.async.compadd]
-      # functions -T compadd .autocomplete.compadd _describe
+      # functions -T compadd .autocomplete.compadd #_describe
     } "$@"
     _main_complete "$@"
   } always {
@@ -505,10 +505,6 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         return _ret_
 
     _matches_array_=$_opts_[-O]
-    if [[ -z $_matches_array_ ]]; then
-      local -a _matches_=( ${(PA)_displ_array_} )
-      _matches_array_=_matches_
-    fi
 
     (( _avail_list_lines_ -= _autocomplete__reserved_lines ))
     _new_nmatches_=${(PA)#_displ_array_}
@@ -539,6 +535,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     local -a _matches_=()
     .autocomplete.compadd -O _matches_ "$@" # Collect all matching completions.
     _matches_array_=_matches_
+    _new_nmatches_=$#_matches_[@]
   fi
 
   local -a _groupname_=()
@@ -547,7 +544,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
 
   set -- "$_groupname_[@]" "$@"
-  _displ_array_=$_dopt_[-1]
+  [[ -z $_Dopt_ ]] &&
+      _displ_array_=$_dopt_[-1]
 
   local -Pi _nmatches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
   if [[ _nmatches_per_line_ -lt 1 && -z $_Dopt_ ]]; then
@@ -572,7 +570,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   local -Pi _trim_=$(( max( 0, _new_nmatches_ - _fit_ ) ))
 
   if (( _trim_ )); then
-    shift -p $(( min( _trim_, ${(PA)#_matches_array_} ) )) $_matches_array_
+    [[ -n $_matches_array_ ]] &&
+        shift -p $(( min( _trim_, ${(PA)#_matches_array_} ) )) $_matches_array_
     [[ -n $_displ_array_ ]] &&
         shift -p $(( min( _trim_, ${(PA)#_displ_array_} ) )) $_displ_array_
     typeset -gH _autocomplete__partial_list=$curtag
