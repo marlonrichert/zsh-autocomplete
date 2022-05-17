@@ -87,6 +87,13 @@ Minimum:
 * Should theoretically work with Zsh 5.4 or newer, but I'm unable to test that.
 
 ## Installing & Updating
+### [Oh-My-Zsh](https://github.com/ohmyzsh/ohmyzsh)
+If you use Oh-My-Zsh, clone the repository inside your oh-my-zsh repo to install:
+```zsh
+git clone https://github.com/marlonrichert/zsh-autocomplete ${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-autocomplete
+```
+
+### Znap
 If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the following to your
 `.zshrc` file:
 ```zsh
