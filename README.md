@@ -138,6 +138,27 @@ Finally, restart your shell.
 To install with another Zsh framework or plugin manager, please refer to your
 framework's/plugin manager's documentation for instructions.
 
+#### Oh My Zsh
+The following command will clone the repo into the plugins directory of Oh My Zsh
+```zsh
+% git clone https://github.com/marlonrichert/zsh-autocomplete ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autocomplete
+```
+
+Then add the following to your `.zshrc` file:
+```
+plugins=(
+  ...
+  zsh-autosuggestions
+)
+```
+
+Lastly run the following commands to update your shell:
+```zsh
+% cd
+% source ~/.zshrc
+```
+
+
 ## Troubleshooting
 Try the steps in the [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
 
