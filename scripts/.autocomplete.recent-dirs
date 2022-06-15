@@ -17,7 +17,7 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
       reply=( ${(f)"$( zoxide query --list $1 2> /dev/null )"} )
     }
 
-  elif [[ -v precmd_functions && $precmd_functions[(I)_zlua_precmd] != 0 ]] &&
+  elif [[ -v chpwd_functions && $chpwd_functions[(I)_zlua_precmd] != 0 ]] &&
       builtin zstyle -T ':autocomplete:' recent-dirs 'z.lua'; then
     _autocomplete.recent_directories() {
       reply=( ${${(f)"$( _zlua --complete $1 2> /dev/null )"}##<->[[:space:]]##} )
