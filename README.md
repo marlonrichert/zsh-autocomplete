@@ -134,6 +134,14 @@ To uninstall, simply undo the installation steps above in reverse order:
  1. Delete the repo you created in step 1.
 Finally, restart your shell.
 
+### Fig
+
+[Fig](https://fig.io) adds apps, shortcuts, and autocomplete to your existing terminal.
+
+Install `zsh-autocomplete` in just one click.
+
+<a href="https://fig.io/plugins/other/zsh-autocomplete" target="_blank"><img src="https://fig.io/badges/install-with-fig.svg" /></a>
+
 ### Other Frameworks/Plugin Managers
 To install with another Zsh framework or plugin manager, please refer to your
 framework's/plugin manager's documentation for instructions.
