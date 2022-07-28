@@ -7,23 +7,26 @@ assignees: ''
 
 ---
 
-<!--
-Please read all of the steps below very carefully and follow them to the letter.
-If I cannot reproduce your problem, then I cannot fix it.
--->
+- [ ] I have carefully read all of the instructions in this issue template.
+- [ ] I have carried them out to the letter.
+
+Failure to do so can and will result in your issue being closed without warning.
 
 ## Environment
-<!-- Replace the contents of this block with the output of the commands below: -->
 ```zsh
 print $VENDOR $OSTYPE $SHELL $ZSH_ARGZERO $ZSH_PATCHLEVEL
 print -l $_autocomplete__funcfiletrace
 git -C ~zsh-autocomplete log --oneline -n1
 ```
+
 * Operating system: <!-- e.g. macOS, Ubuntu -->
 * Terminal emulator: <!-- e.g. Terminal.app, Konsole -->
 
+- [ ] I have filled out the fields above.
+- [ ] I have ran the commands in the code block above.
+- [ ] I have pasted their output into the same block. 
+
 ## Steps to reproduce
-<!-- Run the following commands: -->
 ```zsh
 cd $(mktemp -d)
 git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
@@ -33,7 +36,6 @@ source ~/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 EOF
 env -i HOME=$PWD PATH=$PATH TERM=$TERM ${TERMINFO:+TERMINFO=$TERMINFO} zsh -d
 ```
-<!--
-In the shell created above, try to reproduce your problem.
-Once you're done, copy-paste your entire shell session into the block above.
--->
+- [ ] I have run the code block above to create a test environment.
+- [ ] I have reproduced my problem in this environment in the most minimal way possible.
+- [ ] I have copy-pasted my entire test session into the same code block.
