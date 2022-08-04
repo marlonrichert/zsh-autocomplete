@@ -8,15 +8,16 @@ zstyle ':autocomplete:*' default-context ''
 # '': Start each new command line with normal autocompletion.
 # history-incremental-search-backward: Start in live history search mode.
 
-zstyle ':autocomplete:*' min-delay 0.05  # float
+zstyle ':autocomplete:*' min-delay 0.05  # seconds (float)
 # Wait this many seconds for typing to stop, before showing completions.
 
-zstyle ':autocomplete:*' min-input 0  # int
+zstyle ':autocomplete:*' min-input 0  # characters (int)
 # Wait until this many characters have been typed, before showing completions.
 
 zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
 # '':     Always show completions.
-# '..##': Don't show completions when the input consists of two or more dots.
+# '..##': Don't show completions for the current word, if it consists of two 
+#         or more dots.
 
 zstyle ':autocomplete:*' list-lines 16  # int
 # If there are fewer than this many lines below the prompt, move the prompt up
