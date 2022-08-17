@@ -125,7 +125,6 @@ EOF
   _autocomplete._main_complete.post() {
     [[ $WIDGET != _complete_help ]] &&
         unfunction compadd 2> /dev/null
-    _autocomplete.all_matches
     _autocomplete.unambiguous
     compstate[list_max]=0
     MENUSCROLL=0
