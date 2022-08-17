@@ -120,8 +120,9 @@ builtin bindkey -M viins "$terminfo[knp]" menu-select
 .autocomplete.key-binding.bind menuselect vi-forward-blank-word $alt_down[@]
 builtin bindkey -M menuselect \
     '\r'  .accept-line \
-    '^@'  accept-and-hold \
+    '^@'   accept-and-hold \
     "$terminfo[kpp]" backward-word \
-    "$terminfo[knp]" forward-word
+    "$terminfo[knp]" forward-word \
+    '^_' .undo
 
 unfunction .autocomplete.key-binding.{{,re,un}bind,bound}

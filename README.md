@@ -45,8 +45,8 @@ Works out of the box with zero configuration, but also supports `zsh-z`, `zoxide
 On the command line:
 | Key(s) | Action | <sub>[Widget](.zshrc)</sub> |
 | ------ | ------ | --- |
-| <kbd>Tab</kbd> | Accept top completion | <sub>`complete-word`</sub> |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion | <sub>`complete-word`</sub> |
+| <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion | <sub>`complete-word`</sub> |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
@@ -62,22 +62,24 @@ In the completion menu:
 | <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
 | <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
 | <kbd>PgUp</kbd> / <kbd>PgDn</kbd> | Page up/down |
-| <kbd>Ctrl</kbd><kbd>R</kbd> | Full text search or previous search match |
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Full text search or next search match |
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
-| <kbd>Tab</kbd> | Accept selection |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Accept bottom completion |
-| <kbd>Enter</kbd> | Accept command line |
-| most other keys | Accept selection, then perform usual action |
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Find text forward |
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Find text backward |
+| <kbd>Tab</kbd> | Insert selection and exit menu |
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Insert selection, but stay in menu |
+| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion and exit menu |
+| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Undo and exit menu |
+| <kbd>Enter</kbd> | Submit command line |
+| other keys | Zsh [default behavior](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) |
 
 In the history menu:
 | Key(s) | Action |
 | --- | --- |
-| <kbd>↑</kbd>/<kbd>↓</kbd> | Change selection |
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Multi-select |
-| <kbd>Tab</kbd> | Accept selection |
-| <kbd>Enter</kbd> | Accept command line |
-| most other keys | Accept selection, then perform usual action |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Change selection |
+| <kbd>Tab</kbd> | Insert selection and exit menu |
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Insert selection, but stay in menu |
+| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Undo and exit menu |
+| <kbd>Enter</kbd> | Submit command line |
+| other keys | Zsh [default behavior](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) |
 
 ## Requirements
 Recommended:
