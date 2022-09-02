@@ -104,7 +104,7 @@ local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 
 local -P mod=
 for mod in compinit config widget key-binding recent-dirs async; do
-  if builtin zstyle -T ':autocomplete:' $mod; then
+  if builtin zstyle -T ":autocomplete:$mod" enabled; then
     builtin autoload +X -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod
     {
       .autocomplete.$mod "$@"
