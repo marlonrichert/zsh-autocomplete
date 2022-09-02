@@ -1,7 +1,7 @@
 #!/bin/zsh
 
-# The code below sets all of `zsh-autocomplete`'s settings to their default
-# values. To change a setting, copy it into your `.zshrc` file.
+# The code below sets all of Autocomplete's settings to their default values. To
+# change a setting, copy it into your `.zshrc` file and modify it there.
 
 
 zstyle ':autocomplete:*' default-context ''
@@ -16,7 +16,7 @@ zstyle ':autocomplete:*' min-input 0  # characters (int)
 
 zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
 # '':     Always show completions.
-# '..##': Don't show completions for the current word, if it consists of two 
+# '..##': Don't show completions for the current word, if it consists of two
 #         or more dots.
 
 zstyle ':autocomplete:*' list-lines 16  # int
@@ -29,21 +29,9 @@ zstyle ':autocomplete:history-search:*' list-lines 16  # int
 zstyle ':autocomplete:history-incremental-search-*:*' list-lines 16  # int
 # Show this many history lines when pressing ⌃R or ⌃S.
 
-zstyle ':autocomplete:*' recent-dirs cdr
-# cdr:  Use Zsh's `cdr` function to show recent directories as completions.
-# no:   Don't show recent directories.
-# zsh-z|zoxide|z.lua|z.sh|autojump|fasd: Use this instead (if installed).
-# ⚠️ NOTE: This setting can NOT be changed at runtime.
-
 zstyle ':autocomplete:*' insert-unambiguous no
 # no:  Tab inserts the top completion.
 # yes: Tab first inserts a substring common to all listed completions, if any.
-
-zstyle ':autocomplete:*' widget-style complete-word
-# complete-word: (Shift-)Tab inserts the top (bottom) completion.
-# menu-complete: Press again to cycle to next (previous) completion.
-# menu-select:   Same as `menu-complete`, but updates selection in menu.
-# ⚠️ NOTE: This setting can NOT be changed at runtime.
 
 zstyle ':autocomplete:*' fzf-completion no
 # no:  Tab uses Zsh's completion system only.
@@ -56,9 +44,32 @@ zstyle ':autocomplete:*' add-space \
     executables aliases functions builtins reserved-words commands
 
 
-source /path/to/zsh-autocomplete.plugin.zsh
 ##
-# NOTE: All configuration below should come AFTER sourcing zsh-autocomplete!
+# Config in this section should come BEFORE sourcing Autocomplete and cannot be
+# changed at runtime.
+#
+
+# Autocomplete automatically selects a backend for its recent dirs completions.
+# So, normally you won't need to change this.
+# However, you can set it if you find that the wrong backend is being used.
+zstyle ':autocomplete:recent-dirs' backend cdr
+# cdr:  Use Zsh's `cdr` function to show recent directories as completions.
+# no:   Don't show recent directories.
+# zsh-z|zoxide|z.lua|z.sh|autojump|fasd: Use this instead (if installed).
+# ⚠️ NOTE: This setting can NOT be changed at runtime.
+
+zstyle ':autocomplete:*' widget-style complete-word
+# complete-word: (Shift-)Tab inserts the top (bottom) completion.
+# menu-complete: Press again to cycle to next (previous) completion.
+# menu-select:   Same as `menu-complete`, but updates selection in menu.
+# ⚠️ NOTE: This setting can NOT be changed at runtime.
+
+
+source /path/to/zsh-autocomplete.plugin.zsh
+
+
+##
+# Config in this section should come AFTER sourcing Autocomplete.
 #
 
 # Up arrow:
