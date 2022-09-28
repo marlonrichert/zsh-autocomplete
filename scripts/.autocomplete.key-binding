@@ -37,24 +37,26 @@ zmodload -F zsh/terminfo p:terminfo
     builtin bindkey -M viins '\t' $tab_style
   fi
 
-  local backtab_style=
-  if ! builtin zstyle -s :autocomplete:shift-tab: widget-style backtab_style; then
-    backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
-    builtin zstyle ':autocomplete:shift-tab:*' widget-style $backtab_style
-  fi
-
-  builtin bindkey -M emacs $terminfo[kcbt] $backtab_style
-  builtin bindkey -M viins $terminfo[kcbt] $backtab_style
-
   if [[ $tab_style == *menu-* ]]; then
     builtin bindkey -M menuselect '\t' menu-complete
   else
     builtin bindkey -M menuselect '\t' accept-line
   fi
-  if [[ $backtab_style == *menu-* ]]; then
-    builtin bindkey -M menuselect $terminfo[kcbt] reverse-menu-complete
-  else
-    builtin bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
+
+  if [[ -v terminfo[kcbt] && -n $terminfo[kcbt] ]]; then
+    local backtab_style=
+    if ! builtin zstyle -s :autocomplete:shift-tab: widget-style backtab_style; then
+      backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
+      builtin zstyle ':autocomplete:shift-tab:*' widget-style $backtab_style
+    fi
+
+    builtin bindkey -M emacs $terminfo[kcbt] $backtab_style
+    builtin bindkey -M viins $terminfo[kcbt] $backtab_style
+    if [[ $backtab_style == *menu-* ]]; then
+      builtin bindkey -M menuselect $terminfo[kcbt] reverse-menu-complete
+    else
+      builtin bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
+    fi
   fi
 }
 
