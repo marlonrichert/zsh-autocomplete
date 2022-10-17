@@ -17,7 +17,7 @@ jobs:
       - run: PATH=$GITHUB_WORKSPACE/bin/:$PATH ./run-tests.zsh
         shell: zsh {0}
   test-ubuntu:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/checkout@v2
