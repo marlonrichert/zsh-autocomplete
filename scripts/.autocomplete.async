@@ -211,7 +211,12 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     local -F min_delay=
     builtin zstyle -s :autocomplete: min-delay min_delay ||
         min_delay=0.05
-    zselect -t "$(( [#10] 100 * max( 0, min_delay - SECONDS ) ))"
+    
+    # Directly using $(( [#10] 100 * max( 0, min_delay - SECONDS ) )) leads to 0
+    # in Zsh >= 5.9, as the result of the max call is converted to an integer.
+    # See https://github.com/marlonrichert/zsh-autocomplete/issues/441
+    local -i timeout=$(( 100 * max( 0, min_delay - SECONDS ) ))
+    zselect -t $timeout
 
     local -P hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
     builtin unset ${^hooks}_functions &> /dev/null
@@ -235,9 +240,12 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
       local -a reply=()
       local text=
-      zselect -rt "$((
-          [#10] 100 * max( 0, 100 * _autocomplete__async_avg_duration - SECONDS )
-      ))" "$fd" &&
+
+      # Directly using $(( [#10] 100 * max( 0, 100 * _autocomplete__async_avg_duration - SECONDS ) ) ))
+      # leads to 0 in Zsh >= 5.9, as the result of the max call is converted to an integer.
+      # See https://github.com/marlonrichert/zsh-autocomplete/issues/441
+      local -i timeout=$(( 100 * max( 0, 100 * _autocomplete__async_avg_duration - SECONDS ) ))
+      zselect -rt $timeout "$fd" &&
           zpty -r AUTOCOMPLETE text $'*\C-C'
     } always {
       zpty -d AUTOCOMPLETE
