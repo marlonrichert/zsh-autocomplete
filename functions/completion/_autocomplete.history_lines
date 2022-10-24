@@ -110,7 +110,7 @@ _autocomplete.history_lines() {
 
   local -Pa match=() mbegin=() mend=()
   displays=(
-      "${(@r:COLUMNS-1:)displays[@]/%(#b)(<->):(*)/${(l:$#HISTNO:)match[1]} ${(V)${(Z+C+)match[2]}}}"
+      "${(@r:COLUMNS-1:)displays[@]/%(#b)(<->):(*)/${(l:$#HISTNO:)match[1]} ${(V)${(Z+c+)match[2]}}}"
   )
 
   local -a expl=()
