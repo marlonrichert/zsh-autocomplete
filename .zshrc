@@ -97,3 +97,9 @@ bindkey '\0' list-expand
 bindkey -M menuselect '\r' .accept-line
 # .accept-line: Accept command line.
 # accept-line:  Accept selection and exit menu.
+
+# Uncomment the following lines to add vi-like arrow keys in completion menu & history menu:
+# bindkey -M menuselect '^H' backward-char
+# bindkey -M menuselect '^J' down-line-or-history
+# bindkey -M menuselect '^K' up-line-or-history
+# bindkey -M menuselect '^L' forward-char
