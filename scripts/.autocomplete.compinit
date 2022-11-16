@@ -1,7 +1,6 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
-builtin autoload -RUz is-at-least
 
 typeset -gHa _autocomplete__compdef=()
 compdef() {
@@ -9,13 +8,13 @@ compdef() {
 }
 
 [[ -v functions[_bash_complete] ]] ||
-  _bash_complete compgen complete () {
-    unfunction _bash_complete compgen complete
-    builtin autoload +X -Uz bashcompinit
-    bashcompinit
-    bashcompinit() { : }
-    ${(%):-%N} "$@"
-  }
+    _bash_complete compgen complete () {
+      unfunction _bash_complete compgen complete
+      builtin autoload +X -Uz bashcompinit
+      bashcompinit
+      bashcompinit() { : }
+      ${(%):-%N} "$@"
+    }
 
 .autocomplete.compinit.precmd() {
   emulate -L zsh
@@ -33,19 +32,20 @@ compdef() {
   typeset -gH \
       _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump}}
 
-  if [[ -v _comps && $_comps[-command-] != _autocomplete.command ]]; then
+  if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete.command ]]; then
     zf_rm -f $_comp_dumpfile
   else
-    local -Pa comps=( ~zsh-autocomplete/functions/completion/_autocomplete.*~*.zwc(N-.) )
+    local -Pa compfuncfiles=( ~zsh-autocomplete/functions/completion/_autocomplete.*~*.zwc(N-.) )
 
-    if ! (( $#comps )); then
-      print -u2 -- 'zsh-autocomplete: Failed to find completion functions. Aborting.'
+    if ! (( $#compfuncfiles )); then
+      print -u2 -- 'autocomplete: Failed to find completion function files. Aborting.'
       return 66
     fi
 
+    # Check if any of our function files are newer than the comp dump file.
     local -P f=
-    for f in $comps[@]; do
-      if ! [[ -v functions[$f:t] && $f -ot $_comp_dumpfile ]]; then
+    for f in $compfuncfiles[@]; do
+      if [[ -v functions[$f:t] && $f -nt $_comp_dumpfile ]]; then
         zf_rm -f $_comp_dumpfile
         break
       fi
