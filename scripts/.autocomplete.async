@@ -143,7 +143,6 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  region_highlight=()
   [[ -v functions[_zsh_highlight] ]] &&
       _zsh_highlight
   typeset -gH _autocomplete__highlight=( $region_highlight[@] )
