@@ -392,7 +392,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
   local min_input=
   builtin zstyle -s :autocomplete:list-choices min-input min_input ||
-      min_input=0
+      min_input=1
   local ignored=
   builtin zstyle -s :autocomplete:list-choices ignored-input ignored
   if (( ${#words[@]} == 1 && ${#words[CURRENT]} < min_input )) ||
