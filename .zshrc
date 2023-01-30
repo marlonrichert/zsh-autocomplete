@@ -11,7 +11,7 @@ zstyle ':autocomplete:*' default-context ''
 zstyle ':autocomplete:*' min-delay 0.05  # seconds (float)
 # Wait this many seconds for typing to stop, before showing completions.
 
-zstyle ':autocomplete:*' min-input 0  # characters (int)
+zstyle ':autocomplete:*' min-input 1  # characters (int)
 # Wait until this many characters have been typed, before showing completions.
 
 zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
