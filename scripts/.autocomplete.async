@@ -5,7 +5,9 @@ zmodload -F zsh/system b:sysopen p:sysparams
 zmodload -F zsh/zselect b:zselect
 zmodload -F zsh/terminfo b:echoti p:terminfo
 zmodload -F zsh/zutil b:zparseopts
-builtin autoload -RUz add-zle-hook-widget
+builtin autoload -RUz \
+    add-zle-hook-widget \
+    is-at-least
 
 typeset -gHi _autocomplete__buffer_start_line=1
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
@@ -149,6 +151,8 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
 
+  # Prevent crash in Zsh < 5.9 when Autocomplete causes line to be redrawn.
+  ! is-at-least 5.9 &&
   [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
       return
 
@@ -164,8 +168,15 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
         (_complete_help|list-expand|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
       return
 
-  [[ $_lastcomp[insert] == *unambiguous ]] &&
-      builtin zle .auto-suffix-retain  # Make the cursor stay in the right place.
+  [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
+      builtin zle -Rc
+
+  if [[ $_lastcomp[insert] == *unambiguous ]]; then
+    local -a flag=()
+    is-at-least 5.9 &&
+        flag=( -f nolast )
+    builtin zle $flag .auto-suffix-retain  # Make the cursor stay in the right place.
+  fi
 
   .autocomplete.async.start
   return 0
