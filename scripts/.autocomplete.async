@@ -455,7 +455,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.list-choices.post() {
   [[ -v _autocomplete__partial_list ]] &&
-      builtin compadd -J -last- -x '%F{0}%K{14}(MORE)%f%k'
+      builtin compadd -J -last- -x '%F{0}%K{12}(MORE)%f%k'
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }
