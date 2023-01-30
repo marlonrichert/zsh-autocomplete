@@ -58,7 +58,7 @@ typeset -gHa _autocomplete__ctxt_opts=( completealiases completeinword )
 
 local -P basedir=${${(%):-%x}:P:h:h}
 if ! [[ -n $basedir && -d $basedir ]]; then
-  print -u2 -- 'zsh-autocomplete: Failed to find base dir. Aborting.'
+  print -u2 -- 'autocomplete: Failed to find plugin dir. Aborting.'
   return 66
 fi
 hash -d zsh-autocomplete=$basedir
@@ -68,7 +68,7 @@ local -Pa funcs=(
     ~zsh-autocomplete/functions{,/widget}/.autocomplete.*~*.zwc(N-.:P)
 )
 if ! (( $#funcs )); then
-  print -u2 -- 'zsh-autocomplete: Failed to find functions. Aborting.'
+  print -u2 -- 'autocomplete: Failed to find function files. Aborting.'
   return 66
 fi
 unfunction $funcs[@]:t 2> /dev/null

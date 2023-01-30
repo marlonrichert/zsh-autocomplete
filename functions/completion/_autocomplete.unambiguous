@@ -2,12 +2,12 @@
 # setopt localoptions verbose xtrace
 
 [[ -v _autocomplete__partial_list ]] &&
-    return 1
-
-(( compstate[nmatches] > 1 )) ||
   return 1
-[[ $curcontext == history-*:* ||
-    $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
+[[ $curcontext == history-*:* ]] &&
+  return 1
+(( compstate[nmatches] < 2 )) &&
+  return 1
+[[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
   return 1
 
 local -P tag=unambiguous
