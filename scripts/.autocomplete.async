@@ -51,8 +51,6 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     }
   fi
 
-  .autocomplete.patch _message
-
   add-zle-hook-widget line-init .autocomplete.async.read-cursor-position
   add-zle-hook-widget line-init .autocomplete.async.reset-context
   add-zle-hook-widget line-init .autocomplete.async.complete
@@ -221,7 +219,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     local -F min_delay=
     builtin zstyle -s :autocomplete: min-delay min_delay ||
         min_delay=0.05
-    
+
     # Directly using $(( [#10] 100 * max( 0, min_delay - SECONDS ) )) leads to 0
     # in Zsh >= 5.9, as the result of the max call is converted to an integer.
     # See https://github.com/marlonrichert/zsh-autocomplete/issues/441
@@ -324,6 +322,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
     local curcontext=${curcontext:-list-choices:::}
     unset 'compstate[vared]'
 
+    .autocomplete.patch _message
     _message() {
       compadd() {
         typeset -gHa _autocomplete__comp_mesg=( "$@" )
@@ -333,13 +332,13 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
         builtin zformat "$@"
         typeset -gHa _autocomplete__comp_mesg=( "$gopt[@]" -x "$format" )
       }
-      .autocomplete._message "$@"
+      autocomplete:old:_message "$@"
       unfunction zformat
       functions[compadd]="$functions[.autocomplete.compadd]"
     }
 
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-    _main_complete
+    autocomplete:new:_main_complete
   } always {
     typeset -gHi _autocomplete__list_lines=$compstate[list_lines]
   }
@@ -448,7 +447,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
     if [[ -n $curcontext ]]; then
-      _main_complete
+      autocomplete:new:_main_complete
     else
       local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete
@@ -486,7 +485,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       functions[compadd]=$functions[.autocomplete.async.compadd]
       # functions -T compadd .autocomplete.compadd #_describe
     } "$@"
-    _main_complete "$@"
+    autocomplete:new:_main_complete "$@"
   } always {
     unfunction compadd comptags 2> /dev/null
   }
