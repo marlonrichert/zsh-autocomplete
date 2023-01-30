@@ -5,6 +5,9 @@ _autocomplete.recent_paths() {
   (( compstate[nmatches] )) &&
       return 1
 
+  [[ $_comp_tags != (|* )(|local-)directories(| *) ]] &&
+      return 1
+
   local -PaU files=()
   local -Pi ret=1
   local -P tag=
