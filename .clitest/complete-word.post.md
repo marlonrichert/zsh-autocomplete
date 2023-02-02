@@ -1,8 +1,6 @@
 Setup:
 ```zsh
-% zmodload zsh/param/private
-% autoload -Uz zmathfunc && zmathfunc
-% autoload -Uz $PWD/functions/widget/.autocomplete.complete-word.post
+% source .clitest/__init__.zsh
 % unset terminfo
 % typeset -gA compstate=() _lastcomp=() terminfo=()
 % zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
