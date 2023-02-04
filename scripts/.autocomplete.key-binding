@@ -91,18 +91,17 @@ local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
 .autocomplete.key-binding.bind emacs up-line-or-search $up[@]
 .autocomplete.key-binding.bind viins up-line-or-search $up[@]
 
-.autocomplete.key-binding.bind emacs history-search $alt_up[@]
-builtin bindkey -M emacs "$terminfo[kpp]" history-search
-builtin bindkey -M viins "$terminfo[kpp]" history-search
+.autocomplete.key-binding.bind emacs history-search $alt_up[@] $terminfo[kpp]
 .autocomplete.key-binding.bind vicmd history-search $up[@]
+.autocomplete.key-binding.bind viins history-search $terminfo[kpp]
 
 .autocomplete.key-binding.bind emacs down-line-or-select $down[@]
 .autocomplete.key-binding.bind viins down-line-or-select $down[@]
+.autocomplete.key-binding.bind vicmd down-line-or-select $down[@]
 
-.autocomplete.key-binding.bind emacs menu-select $alt_down[@]
-builtin bindkey -M emacs "$terminfo[knp]" menu-select
-builtin bindkey -M viins "$terminfo[knp]" menu-select
+.autocomplete.key-binding.bind emacs menu-select $alt_down[@] $terminfo[knp]
 .autocomplete.key-binding.bind vicmd menu-select $down[@]
+.autocomplete.key-binding.bind viins menu-select $terminfo[knp]
 
 .autocomplete.key-binding.rebind emacs '^D' delete-char-or-list delete-char
 
@@ -119,7 +118,7 @@ builtin bindkey -M viins "$terminfo[knp]" menu-select
 .autocomplete.key-binding.unbind viins  '^G' list-expand
 
 .autocomplete.key-binding.bind menuselect vi-backward-blank-word $alt_up[@]
-.autocomplete.key-binding.bind menuselect vi-forward-blank-word $alt_down[@]
+.autocomplete.key-binding.bind menuselect  vi-forward-blank-word $alt_down[@]
 builtin bindkey -M menuselect \
     '\r'  .accept-line \
     '^@'   accept-and-hold \
