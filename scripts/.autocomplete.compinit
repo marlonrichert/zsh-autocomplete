@@ -113,7 +113,7 @@ EOF
         functions[compadd]=$functions[.autocomplete.compadd]
 
     local +h -a comppostfuncs=( autocomplete:new:_main_complete.post "$comppostfuncs[@]" )
-    :autocomplete:old:_main_complete "$@"
+    autocomplete:old:_main_complete "$@"
   }
 
   # Add support for coloring file types to _expand.
