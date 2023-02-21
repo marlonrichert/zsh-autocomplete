@@ -91,12 +91,7 @@ typeset -gH _autocomplete__log=$logdir/$date.log
 typeset -gH _autocomplete__log_async=$logdir/$date.async.log
 typeset -gH _autocomplete__log_pty=$logdir/$date.pty.log
 
-typeset -gH _autocomplete__prev=' ' _autocomplete__next=$'\n# %e. %N'
-typeset -gH _autocomplete__time=$' [%D{%T.%.}]\n'
-typeset -gH _autocomplete__ps4=\
-'${${_autocomplete__prev:#${(%)_autocomplete__next}}:+'\
-'${_autocomplete__prev::=${(%)_autocomplete__next}}${(%)_autocomplete__time}}'\
-$'%I%(?,\t, ->%?\t)%(1_,%_ ,)'
+typeset -gH _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
 
 local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
