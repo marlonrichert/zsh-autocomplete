@@ -163,7 +163,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   fi
 
   [[ $LASTWIDGET ==
-        (_complete_help|list-expand|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
+        (_complete_help|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
       return
 
   [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&

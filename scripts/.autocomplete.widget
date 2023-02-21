@@ -24,7 +24,6 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   builtin zle -N "$1" .autocomplete.$2.zle-widget
 }
 
-.autocomplete.widget.c list-expand complete-word list-expand
 .autocomplete.widget.c _history_search menu-select history-search
 .autocomplete.widget.z history-search history-search
 .autocomplete.widget.z up-line-or-search up-line-or-search

@@ -57,7 +57,6 @@ On the command line:
 | ------ | ------ | --- |
 | <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
 | <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion | <sub>`complete-word`</sub> |
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Show additional completions | <sub>`list-expand`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or [history menu](#history-menu) | <sub>`up-line-or-search`</sub> |
@@ -246,11 +245,6 @@ bindkey '\e[B' down-line-or-select
 bindkey '\eOB' down-line-or-select
 # down-line-or-select:  Open completion menu.
 # down-line-or-history: Cycle to next history line.
-
-# Control-Space:
-bindkey '\0' list-expand
-# list-expand:      Reveal hidden completions.
-# set-mark-command: Activate text selection.
 
 # Uncomment the following lines to disable live history search:
 # zle -A {.,}history-incremental-search-forward

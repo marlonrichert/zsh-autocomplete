@@ -80,10 +80,6 @@ zmodload -F zsh/terminfo p:terminfo
       builtin bindkey -M "$1" -r "$2"
 }
 
-builtin bindkey -M emacs '^@' list-expand
-builtin bindkey -M vicmd '^@' list-expand
-builtin bindkey -M viins '^@' list-expand
-
 local -Pa prefix=( '\e'{\[,O} )
 local -Pa up=( ${^prefix}A ) down=( ${^prefix}B )
 local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
@@ -111,11 +107,6 @@ local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
 .autocomplete.key-binding.unbind vicmd   '^D' list-choices
 .autocomplete.key-binding.unbind vicmd    '=' list-choices
 .autocomplete.key-binding.unbind viins   '^D' list-choices
-
-.autocomplete.key-binding.unbind emacs '^Xg' list-expand
-.autocomplete.key-binding.unbind emacs '^XG' list-expand
-.autocomplete.key-binding.unbind vicmd  '^G' list-expand
-.autocomplete.key-binding.unbind viins  '^G' list-expand
 
 .autocomplete.key-binding.bind menuselect vi-backward-blank-word $alt_up[@]
 .autocomplete.key-binding.bind menuselect  vi-forward-blank-word $alt_down[@]
