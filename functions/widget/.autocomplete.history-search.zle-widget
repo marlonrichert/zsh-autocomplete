@@ -11,22 +11,13 @@ ${0}.context() {
 }
 
 ${0}() {
+  setopt $_autocomplete__comp_opts[@] $_autocomplete__ctxt_opts[@]
+
   local -P lbuffer="$LBUFFER" rbuffer="$RBUFFER"
-  local -P keymap_menuselect="$( builtin bindkey -M menuselect -L )"
+
+  local lcontext= rcontext=
+  builtin zle ${(%):-%N}.context
   {
-    builtin bindkey -M menuselect -s \
-        '^R' '^_^_^R' \
-        '^S' '^_^_^S'
-    builtin bindkey -M menuselect \
-        '\e[D' .backward-char \
-        '\eOD' .backward-char \
-        '\e[C' .forward-char \
-        '\eOC' .forward-char
-
-    setopt $_autocomplete__comp_opts[@] $_autocomplete__ctxt_opts[@]
-
-    local lcontext= rcontext=
-    builtin zle ${(%):-%N}.context
     LBUFFER="$lcontext"
     RBUFFER="$rcontext"
 
@@ -35,8 +26,6 @@ ${0}() {
     builtin zle _history_search
 
   } always {
-    builtin bindkey -M menuselect -r '^R' '^S' '\e'{\[,O}{D,C}
-    eval "$keymap_menuselect"
     if [[ $BUFFER == $lcontext$rcontext ]] then
       LBUFFER="$lbuffer"
       RBUFFER="$rbuffer"
