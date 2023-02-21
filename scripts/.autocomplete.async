@@ -116,8 +116,6 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   else
     typeset -gH curcontext=${WIDGET}:::
   fi
-  [[ -o sharehistory ]] &&
-      fc -RI  # Get new history events from file.
   .autocomplete.async.start
 }
 

@@ -21,8 +21,6 @@ ${0}() {
     LBUFFER="$lcontext"
     RBUFFER="$rcontext"
 
-    [[ -o sharehistory ]] &&
-        fc -RI  # Get new history events from file.
     builtin zle _history_search
 
   } always {
