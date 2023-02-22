@@ -12,9 +12,9 @@ _autocomplete.recent_paths() {
   local -Pi ret=1
   local -P tag=
   for tag in directories files; do
-    if [[ -v functions[_autocomplete.recent_$tag] &&
+    if [[ -v functions[+autocomplete:recent-$tag] &&
             $_comp_tags == (|* )(|(all|local)-)$tag(| *) ]] &&
-        _autocomplete.recent_$tag "$PREFIX$SUFFIX"; then
+        +autocomplete:recent-$tag "$PREFIX$SUFFIX"; then
       files=( "$reply[@]" )
       _description -V recent-$tag expl 'recent directory'
       .autocomplete.recent_paths.add $files[@] &&

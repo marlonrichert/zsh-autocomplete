@@ -3,47 +3,9 @@ zmodload -Fa zsh/files b:zf_mv b:zf_mkdir
 zmodload -F zsh/parameter p:commands p:dirstack p:functions
 
 .autocomplete.recent-dirs.precmd() {
-  # NOTE: Cannot set localopts, because of `cdr`, below.
-
-  if [[ -v precmd_functions && $precmd_functions[(I)_zshz_precmd] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'zsh-z'; then
-    _autocomplete.recent_directories() {
-      reply=( ${(f)"$( zshz --complete -l $1 2> /dev/null )"} )
-    }
-
-  elif [[ -v chpwd_functions && $chpwd_functions[(I)__zoxide_hook] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend'zoxide'; then
-    _autocomplete.recent_directories() {
-      reply=( ${(f)"$( zoxide query --list $1 2> /dev/null )"} )
-    }
-
-  elif [[ -v chpwd_functions && $chpwd_functions[(I)_zlua_precmd] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'z.lua'; then
-    _autocomplete.recent_directories() {
-      reply=( ${${(f)"$( _zlua --complete $1 2> /dev/null )"}##<->[[:space:]]##} )
-    }
-
-  elif [[ -v precmd_functions && $precmd_functions[(I)_z_precmd] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'z.sh'; then
-    _autocomplete.recent_directories() {
-      reply=( ${${(fOa)"$( _z -l $1 2>&1 )"}##(common:|<->)[[:space:]]##} )
-    }
-
-  elif [[ -v chpwd_functions && $chpwd_functions[(I)autojump_chpwd] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'autojump'; then
-    _autocomplete.recent_directories() {
-      reply=( ${${(f)"$( autojump --complete $1 2> /dev/null )"}##${1}__<->__} )
-    }
-
-  elif [[ -v preexec_functions && $preexec_functions[(I)_fasd_preexec] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'fasd'; then
-    _autocomplete.recent_directories() {
-      reply=( ${(f)"$( fasd -dlR $1 2> /dev/null )"} )
-    }
-
-  elif builtin autoload -RUz chpwd_recent_filehandler &&
-      builtin zstyle -T ':autocomplete:recent-dirs' backend 'cdr'; then
-    setopt autopushd pushdignoredups
+  if [[ ! -v functions[+autocomplete:recent-directories] ]]; then
+    setopt autopushd pushdignoredups  # Set *global* shell options.
+    builtin autoload -RUz chpwd_recent_filehandler
 
     if ! builtin zstyle -s :chpwd: recent-dirs-file _; then
       local -P old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
@@ -61,12 +23,12 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
       dirstack=( ${^reply[@]:#$PWD}(N-/) )
     fi
 
-    _autocomplete.recent_directories.save() {
+    +autocomplete:recent-directories:save() {
       chpwd_recent_filehandler $PWD $dirstack[@]
     }
-    add-zsh-hook chpwd _autocomplete.recent_directories.save
+    add-zsh-hook chpwd +autocomplete:recent-directories:save
 
-    _autocomplete.recent_directories() {
+    +autocomplete:recent-directories() {
       reply=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
       local -P ancestor=$PWD:h
@@ -80,13 +42,6 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
           reply=( $exact ${reply[@]:#$exact} )
 
       (( $#reply[@] ))
-    }
-  fi
-
-  if [[ -v preexec_functions && $preexec_functions[(I)_fasd_preexec] != 0 ]] &&
-      builtin zstyle -T ':autocomplete:' recent-files 'fasd'; then
-    _autocomplete.recent_files() {
-      reply=( $( fasd -flR $1 2> /dev/null ) )
     }
   fi
 }

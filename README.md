@@ -40,8 +40,9 @@ to insert more than one item.
 ![multi-select](.img/multi-select.png)
 
 ### Recent dirs completion
-Works out of the box with zero configuration, but also supports `zsh-z`,
-`zoxide`, `z.lua`, `rupa/z.sh`, `autojump` and `fasd`.
+Works out of the box with zero configuration, but also lets you
+[use your favorite tool for tracking directories](#use-a-custom-backend-for-recent-directories)
+instead.
 
 ![recent dirs](.img/recent-dirs.png)
 
@@ -161,9 +162,33 @@ Try the steps in the
 The following are the most commonly requested ways to configure Autocomplete's
 behavior.  Add these to your `.zshrc` file to use them.
 
+### Use a custom backend for recent directories
+Autocomplete comes with its own backend for keeping track of and listing recent
+directories (which uses part of
+[`cdr`](https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#Recent-Directories)
+under the hood).  However, you can override this and supply Autocomplete with
+recent directories from any source that you like.  To do so, define a function
+like this:
 ```zsh
-# The code below sets all of Autocomplete's settings to their default values. To
-# change a setting, copy it into your `.zshrc` file and modify it there.
++autocomplete:recent-directories() {
+   reply=( [code that generates an array of absolute paths] )
+}
+```
+
+### Add a backend for recent files
+Out of the box, Autocomplete doesn't track or offer recent files. However, it
+will do so if you add a backend for it:
+```zsh
++autocomplete:recent-files() {
+   reply=( [code that generates an array of absolute paths] )
+}
+```
+
+### Other settings
+
+```zsh
+# The code below sets each setting to its default values.  To change a setting,
+# copy it into your `.zshrc` file and modify it there.
 
 
 zstyle ':autocomplete:*' default-context ''
@@ -210,15 +235,6 @@ zstyle ':autocomplete:*' add-space \
 # Config in this section should come BEFORE sourcing Autocomplete and cannot be
 # changed at runtime.
 #
-
-# Autocomplete automatically selects a backend for its recent dirs completions.
-# So, normally you won't need to change this.
-# However, you can set it if you find that the wrong backend is being used.
-zstyle ':autocomplete:recent-dirs' backend cdr
-# cdr:  Use Zsh's `cdr` function to show recent directories as completions.
-# no:   Don't show recent directories.
-# zsh-z|zoxide|z.lua|z.sh|autojump|fasd: Use this instead (if installed).
-# ⚠️ NOTE: This setting can NOT be changed at runtime.
 
 zstyle ':autocomplete:*' widget-style complete-word
 # complete-word: (Shift-)Tab inserts the top (bottom) completion.
