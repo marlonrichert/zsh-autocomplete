@@ -222,7 +222,22 @@ will do so if you add a backend for it:
 }
 ```
 
-### Limit the number of lines shown
+### Start each new line in history search mode
+```zsh
+zstyle ':autocomplete:*' default-context history-incremental-search-backward
+```
+
+### Wait with autocompletion until typing stops for a certain amount of seconds
+```zsh
+zstyle ':autocomplete:*' min-delay 0.05  # seconds (float)
+```
+
+### Don't show completion for current word, if it consists of two or more dots
+```zsh
+zstyle ':autocomplete:*' ignored-input '..##'
+```
+
+## Limit the number of lines shown
 Normally, Autocomplete will try to one half of the terminal's height with
 results, be it completions, the history menu or history search.  You can change
 this number of lines overall or for each of these individually:
@@ -239,7 +254,7 @@ zstyle ':autocomplete:history-search-backward:*' list-lines 16
 # Override history search.
 zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 16
 ```
-Note the use of `zstle -e` to create a dynamically updating value.
+`zstle -e` creates a dynamic value.
 
 ### Reset history key bindings to Zsh default
 Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:
@@ -266,32 +281,6 @@ Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:
    bindkey -M emacs '^S' history-incremental-search-forward
    bindkey -M vicmd '/' vi-history-search-forward
 }
-```
-
-### Other settings
-
-```zsh
-# The code below sets each setting to its default values.  To change a setting,
-# copy it into your `.zshrc` file and modify it there.
-
-
-zstyle ':autocomplete:*' default-context ''
-# '': Start each new command line with normal autocompletion.
-# history-incremental-search-backward: Start in live history search mode.
-
-zstyle ':autocomplete:*' min-delay 0.05  # seconds (float)
-# Wait this many seconds for typing to stop, before showing completions.
-
-zstyle ':autocomplete:*' min-input 1  # characters (int)
-# Wait until this many characters have been typed, before showing completions.
-
-zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
-# '':     Always show completions.
-# '..##': Don't show completions for the current word, if it consists of two
-#         or more dots.
-
-
-source /path/to/zsh-autocomplete.plugin.zsh
 ```
 
 ## Author

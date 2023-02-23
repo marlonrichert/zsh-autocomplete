@@ -70,7 +70,7 @@ typeset -ga _autocomplete__key_alt_up=( '\e'$^_autocomplete__key_up '\e[1;3A' )
 typeset -ga _autocomplete__key_alt_down=( '\e'$^_autocomplete__key_down '\e[1;3B' )
 
 .autocomplete.key-binding.bind   main    up-line-or-search $_autocomplete__key_up[@]
-.autocomplete.key-binding.bind   main  down-line-or-select $_autocomplete__key_up[@]
+.autocomplete.key-binding.bind   main  down-line-or-select $_autocomplete__key_down[@]
 
 .autocomplete.key-binding.rebind emacs   up-line-or-{history,search} '^P'
 .autocomplete.key-binding.rebind emacs down-line-or-{history,select} '^N'
