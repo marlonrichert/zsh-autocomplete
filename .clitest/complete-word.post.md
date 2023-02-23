@@ -91,3 +91,15 @@ Reverse inserts the last match.
 'menu:1 ' 1
 %
 ```
+
+`search` adds `MENUMODE=search-forward`.
+```zsh
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE=menu-select WIDGET=incremental-history-search-forward
+% _autocomplete__unambiguous=
+% .autocomplete.complete-word.post
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+'menu:1 ' 1 search-forward
+%
+```

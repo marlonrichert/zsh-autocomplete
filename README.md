@@ -62,7 +62,7 @@ On the command line:
 | <kbd>↑</kbd> | Cursor up (if able) or [history menu](#history-menu) | <sub>`up-line-or-search`</sub> |
 | <kbd>PgUp</kbd> / <kbd>Alt</kbd><kbd>↑</kbd> | [History menu](#history-menu) (always) | <sub>`history-search-backward`</sub> |
 | <kbd>Ctrl</kbd><kbd>R</kbd> | [Live history search](#live-history-search), newest to oldest | <sub>`history-incremental-search-backward`</sub> |
-| <kbd>Ctrl</kbd><kbd>S</kbd> | [Live history search](#live-history-search), oldest to newest | <sub>`history-incremental-search-forward`</sub> |
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Search through _all_ menu text | <sub>`menu-search`</sub> |
 
 In the completion menu:
 | Key(s) | Action |
@@ -250,6 +250,33 @@ zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 16
 ```
 Note the use of `zstle -e` to create a dynamically updating value.
 
+### Reset history key bindings to Zsh default
+Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:
+
+#### Reset <kbd>↑</kbd> and <kbd>↓</kbd>
+```zsh
+() {
+   local -a prefix=( '\e'{\[,O} )
+   local -a up=( ${^prefix}A ) down=( ${^prefix}B )
+   local key=
+   for key in $up[@]; do
+      bindkey "$key" up-line-or-history
+   done
+   for key in $down[@]; do
+      bindkey "$key" down-line-or-history
+   done
+}
+```
+
+#### Reset <kbd>Ctrl</kbd><kbd>R</kbd> and <kbd>Ctrl</kbd><kbd>S</kbd>
+```
+   zle -A {.,}history-incremental-search-backward
+   zle -A {.,}vi-history-search-backward
+   bindkey -M emacs '^S' history-incremental-search-forward
+   bindkey -M vicmd '/' vi-history-search-forward
+}
+```
+
 ### Other settings
 
 ```zsh
@@ -274,27 +301,6 @@ zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
 
 
 source /path/to/zsh-autocomplete.plugin.zsh
-
-
-##
-# Config in this section should come AFTER sourcing Autocomplete.
-#
-
-# Up arrow:
-bindkey '\e[A' up-line-or-search
-bindkey '\eOA' up-line-or-search
-# up-line-or-search:  Open history menu.
-# up-line-or-history: Cycle to previous history line.
-
-# Down arrow:
-bindkey '\e[B' down-line-or-select
-bindkey '\eOB' down-line-or-select
-# down-line-or-select:  Open completion menu.
-# down-line-or-history: Cycle to next history line.
-
-# Uncomment the following lines to disable live history search:
-# zle -A {.,}history-incremental-search-forward
-# zle -A {.,}history-incremental-search-backward
 ```
 
 ## Author

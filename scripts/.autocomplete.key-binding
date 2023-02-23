@@ -22,6 +22,14 @@ zmodload -F zsh/terminfo p:terminfo
   .autocomplete.key-binding.bind vicmd menu-select $_autocomplete__key_down[@]
   .autocomplete.key-binding.bind viins menu-select $terminfo[knp]
 
+  .autocomplete.key-binding.rebind emacs history-incremental-search-backward{,} '^R'
+  .autocomplete.key-binding.bind-menu history-incremental-search-backward '^R'
+  .autocomplete.key-binding.rebind vicmd vi-history-search-backward history-incremental-search-backward '?'
+
+  .autocomplete.key-binding.rebind emacs history-incremental-search-forward menu-search '^S'
+  .autocomplete.key-binding.bind-menu history-incremental-search-forward '^S'
+  .autocomplete.key-binding.rebind vicmd vi-history-search-forward menu-search '?'
+
   unset -m '_autocomplete__key_*'
   unfunction .autocomplete.key-binding.{{,re,un}bind,bound}
 }

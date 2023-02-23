@@ -14,14 +14,12 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 local -Pa log_functions=()
 
 builtin zle -N history-incremental-search-backward .autocomplete.async.history-incremental-search
-builtin zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
 
 .autocomplete.async.precmd() {
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
-      history-incremental-search-backward
-      history-incremental-search-forward
-  )
+          history-incremental-search-backward
+      )
 
   local -PF delay=
   builtin zstyle -s :autocomplete: min-delay delay
@@ -146,8 +144,7 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
     return 0
   fi
 
-  [[ $LASTWIDGET ==
-        (_complete_help|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
+  [[ $LASTWIDGET == (_complete_help|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
       return
 
   [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&

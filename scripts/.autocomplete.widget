@@ -18,6 +18,7 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   .autocomplete.widget.c reverse-menu-complete{,} complete-word
 
   .autocomplete.widget.c history-search-backward menu-select history-search
+  .autocomplete.widget.c menu-search menu-select complete-word
 
   # Autosuggestions otherwise makes $WIDGETSTYLE disappear
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&

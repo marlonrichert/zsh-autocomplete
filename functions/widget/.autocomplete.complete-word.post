@@ -31,6 +31,8 @@ else
 fi
 
 if (( nmatches > 1 )); then
+  [[ $WIDGET == (|*-)search(|-*) ]] &&
+      MENUMODE=search-forward
   [[ $WIDGETSTYLE == (|*-)select(|-*) ]] &&
       typeset -gHi MENUSELECT=0
   [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
