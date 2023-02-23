@@ -57,7 +57,6 @@ On the command line:
 | Key(s) | Action | <sub>[Widget](.zshrc)</sub> |
 | ------ | ------ | --- |
 | <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion | <sub>`complete-word`</sub> |
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or [history menu](#history-menu) | <sub>`up-line-or-search`</sub> |
@@ -76,7 +75,6 @@ In the completion menu:
 | <kbd>Ctrl</kbd><kbd>S</kbd> | Find text backward |
 | <kbd>Tab</kbd> | Insert selection and exit menu |
 | <kbd>Ctrl</kbd><kbd>Space</kbd> | Insert selection, but stay in menu |
-| <kbd>Shift</kbd><kbd>Tab</kbd> | Insert bottom completion and exit menu |
 | <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Undo and exit menu |
 | <kbd>Enter</kbd> | Submit command line |
 | other keys | Zsh [default behavior](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) |
@@ -162,6 +160,55 @@ Try the steps in the
 The following are the most commonly requested ways to configure Autocomplete's
 behavior.  Add these to your `.zshrc` file to use them.
 
+### Reassign <kbd>Tab</kbd>
+You can reassign <kbd>Tab</kbd> to do something else than the default.  This
+includes letting another plugin set it.  Here are two examples of what you can
+do with this:
+
+#### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> cycle completions on the command line
+```zsh
+bindkey '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
+```
+
+#### Make <kbd>Tab</kbd> go straight to the menu and cycle there
+```zsh
+bindkey '\t' menu-select "$terminfo[kcbt]" menu-select
+bindkey -M menuselect '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
+```
+
+### First insert the common substring
+You can make any completion widget first insert the sequence of characters
+that's common to all completions, if any, before inserting actual completions:
+```zsh
+# all Tab widgets
+zstyle ':autocomplete:*complete*:*' insert-unambiguous yes
+
+# all history widgets
+zstyle ':autocomplete:*history*:*' insert-unambiguous yes
+
+# ^S
+zstyle ':autocomplete:menu-search:*' insert-unambiguous yes
+```
+
+### Make <kbd>Enter</kbd> submit the command line straight from the menu
+By default, pressing <kbd>Enter</kbd> in the menu search exits the search and
+pressing it otherwise in the menu exits the menu.  If you instead want to make
+<kbd>Enter</kbd> _always_ submit the command line, use the following:
+```zsh
+bindkey -M menuselect '\r' .accept-line
+```
+
+### Add or don't add a space after certain completions
+When inserting a completion, a space is added after certain types of
+completions.  The default list is as follows:
+```zsh
+zstyle ':autocomplete:*' add-space \
+    executables aliases functions builtins reserved-words commands
+```
+Modifying this list will change when a space is inserted.  If you change the
+list to `'*'`, a space is always inserted.  If you put no elements in the list,
+then a space is never inserted.
+
 ### Use a custom backend for recent directories
 Autocomplete comes with its own backend for keeping track of and listing recent
 directories (which uses part of
@@ -225,32 +272,6 @@ zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
 # '..##': Don't show completions for the current word, if it consists of two
 #         or more dots.
 
-zstyle ':autocomplete:*' insert-unambiguous no
-# no:  Tab inserts the top completion.
-# yes: Tab first inserts a substring common to all listed completions, if any.
-
-zstyle ':autocomplete:*' fzf-completion no
-# no:  Tab uses Zsh's completion system only.
-# yes: Tab first tries Fzf's completion, then falls back to Zsh's.
-# ⚠️ NOTE: This setting can NOT be changed at runtime and requires that you
-# have installed Fzf's shell extensions.
-
-# Add a space after these completions:
-zstyle ':autocomplete:*' add-space \
-    executables aliases functions builtins reserved-words commands
-
-
-##
-# Config in this section should come BEFORE sourcing Autocomplete and cannot be
-# changed at runtime.
-#
-
-zstyle ':autocomplete:*' widget-style complete-word
-# complete-word: (Shift-)Tab inserts the top (bottom) completion.
-# menu-complete: Press again to cycle to next (previous) completion.
-# menu-select:   Same as `menu-complete`, but updates selection in menu.
-# ⚠️ NOTE: This setting can NOT be changed at runtime.
-
 
 source /path/to/zsh-autocomplete.plugin.zsh
 
@@ -274,12 +295,6 @@ bindkey '\eOB' down-line-or-select
 # Uncomment the following lines to disable live history search:
 # zle -A {.,}history-incremental-search-forward
 # zle -A {.,}history-incremental-search-backward
-
-# Return key in completion menu & history menu:
-bindkey -M menuselect '\r' .accept-line
-# .accept-line: Accept command line.
-# accept-line:  Accept selection and exit menu.
-
 ```
 
 ## Author

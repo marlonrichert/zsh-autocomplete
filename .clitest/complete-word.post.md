@@ -1,84 +1,93 @@
 Setup:
 ```zsh
 % source .clitest/__init__.zsh
-% unset terminfo
-% typeset -gA compstate=() _lastcomp=() terminfo=()
-% zstyle ':autocomplete:*' add-space 'FOO' 'TAG' 'BAR'
-% zstyle ':autocomplete:(|shift-)tab:' widget-style complete-word
-% KEYS=$'\t' WIDGET=complete-word terminfo[kcbt]=BACKTAB
-% compstate[old_list]=keep compstate[nmatches]=0 _lastcomp[nmatches]=2
+% typeset -gA compstate=() _lastcomp=()
+% typeset -ga comptags=()
+% zstyle ':autocomplete:*' add-space 'FOO' 'BAR'
+% zstyle ':autocomplete:*' insert-unambiguous yes
 %
 ```
 
-If we have only 1 match, just insert it:
+If there is a common substring, insert it (if enabled).
 ```zsh
-% _lastcomp[nmatches]=1
+% compstate[old_list]=keep _lastcomp[tags]=
+% compstate[nmatches]=0 _lastcomp[nmatches]=1
+% WIDGETSTYLE= WIDGET=
+% _autocomplete__unambiguous=FOO
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-1 0 0
-% _lastcomp[nmatches]=2
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+unambiguous 0
 %
 ```
 
-If we have more than 1 match, but there's no old list, then show the list and don't insert:
+When using a menu widget, add automenu.
 ```zsh
-% compstate[old_list]= compstate[nmatches]=2
+% compstate[old_list]=keep _lastcomp[tags]=
+% compstate[nmatches]=0 _lastcomp[nmatches]=1
+% WIDGETSTYLE=menu-select WIDGET=
+% _autocomplete__unambiguous=FOO
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-'' 1 0
-% compstate[old_list]=keep compstate[nmatches]=0
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+automenu-unambiguous 0
 %
 ```
 
-`menu-*` widgets set `$compstate[insert]` to `menu:*`:
+If we have only one match, always insert it.
 ```zsh
-% zstyle ':autocomplete:shift-tab:' widget-style reverse-menu-complete
-% KEYS=$terminfo[kcbt]
+% compstate[old_list]=keep _lastcomp[tags]=
+% compstate[nmatches]=0 _lastcomp[nmatches]=1
+% WIDGETSTYLE=menu-select WIDGET=
+% _autocomplete__unambiguous=
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-menu:0 0 0
-% zstyle ':autocomplete:shift-tab:' widget-style complete-word
-% KEYS=$'\t'
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+1 0
 %
 ```
 
-Widgets default to `menu-select`, which sets `$MENUSELECT`, even without old list:
+Add a space for certain tags.
 ```zsh
-% KEYS=OTHER  compstate[old_list]= compstate[nmatches]=2
-% .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-menu:1 0 1
-% KEYS=$'\t' compstate[old_list]=keep compstate[nmatches]=0
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=1
+% WIDGETSTYLE=menu-select WIDGET=
+% _autocomplete__unambiguous=
+% comptags=( BAR ) .autocomplete.complete-word.post
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+'1 ' 0
 %
 ```
 
-`Shift-Tab` key sets `$compstate[insert]` to `*0`:
+When there's more than one match, `menu-complete` inserts `menu:`.
 ```zsh
-% KEYS=$terminfo[kcbt]
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE=menu-complete WIDGET=
+% _autocomplete__unambiguous=
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-0 0 0
-% KEYS=$'\t'
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+'menu:1 ' 0
 %
 ```
 
-If the list is showing and there's an `add-space` tag in the last completion, then add a space:
+Reverse inserts the last match.
 ```zsh
-# % functions -T .autocomplete.complete-word.post
-% _comp_tags='OTHER' _lastcomp[tags]='LOREM TAG IPSUM'
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE=reverse-menu-complete WIDGET=
+% _autocomplete__unambiguous=
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-'1 ' 0 0
-% compstate[old_list]= _lastcomp[tags]=
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+'menu:0 ' 0
 %
 ```
 
-If the list is not showing and there's an `add-space` tag in the new completion, then add a space:
+`select` adds `MENUSELECT`
 ```zsh
-% compstate[old_list]= _comp_tags='LOREM TAG IPSUM' _lastcomp[tags]='OTHER'
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE=menu-select WIDGET=
+% _autocomplete__unambiguous=
 % .autocomplete.complete-word.post
-% print -r -- ${(q+)compstate[insert]} $+compstate[list] $+MENUSELECT
-'1 ' 0 0
-% compstate[old_list]=keep _comp_tags= _lastcomp[tags]=
+% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
+'menu:1 ' 1
 %
 ```

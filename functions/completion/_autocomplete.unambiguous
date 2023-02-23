@@ -19,7 +19,7 @@ _requested $tag ||
 
 typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"
 
-if builtin zstyle -t :autocomplete:tab: insert-unambiguous; then
+if builtin zstyle -t :autocomplete: insert-unambiguous; then
   local -Pi nxt= prv=1
   local -P subs= cols=
   for nxt in ${(s.:.)compstate[unambiguous_positions]}; do

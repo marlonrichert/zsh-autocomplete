@@ -5,19 +5,15 @@ local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
 
-local -P key_name=
-case $KEYS in
-  ( $'\t'           ) key_name=tab ;;
-  ( $terminfo[kcbt] ) key_name=shift-tab ;;
-esac
-if [[ -z $compstate[old_list] ]] || [[ $WIDGET == *menu-* && -v _autocomplete__partial_list ]] ||
-    ( builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous &&
-        [[ -n $_autocomplete__unambiguous ]] ); then
+if [[ -z $compstate[old_list] ]] ||
+    [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
+    { [[ -n $_autocomplete__unambiguous ]] &&
+        builtin zstyle -t ":autocomplete:${WIDGET}:" insert-unambiguous }; then
   autocomplete:new:_main_complete
 else
   compstate[old_list]=keep
   autocomplete:new:_main_complete -
 fi
 
-[[ _lastcomp[nmatches] -gt 0 && -n $compstate[insert] ]] &&
+(( _lastcomp[nmatches] )) && [[ -n $compstate[insert] ]] &&
     unset curcontext

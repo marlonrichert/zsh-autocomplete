@@ -1,68 +1,62 @@
 #autoload
 local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 
-unset MENUSELECT 'compstate[list]'
+unset MENUMODE MENUSELECT
 compstate[insert]=
-
-local -P key_name=
-case $KEYS in
-  ( $'\t'           ) key_name=tab ;;
-  ( $terminfo[kcbt] ) key_name=shift-tab ;;
-esac
-local widget_style=
-builtin zstyle -s :autocomplete:${key_name}: widget-style widget_style ||
-    widget_style=menu-select
+compstate[list]=
+compstate[restore]=
+compstate[to_end]=${${_completer:/prefix/}:+always}
 
 if [[ -n $_autocomplete__unambiguous ]] &&
-    builtin zstyle -t ":autocomplete:${key_name}:" insert-unambiguous; then
-  [[ $widget_style == (|*-)menu-* ]] &&
+    builtin zstyle -t ":autocomplete:$curcontext" insert-unambiguous; then
+
+  [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
       compstate[insert]='automenu-'
-  compstate[insert]+=unambiguous
+
+  compstate[insert]+='unambiguous'
+
   unset _autocomplete__unambiguous
-  return
+
+  return  # !
 fi
 
+local -Pa comptags=()
 local -Pi nmatches=0
+
 if [[ $compstate[old_list] == keep ]]; then
+  comptags=( $=_lastcomp[tags] )
   nmatches=$_lastcomp[nmatches]
 else
+  comptags=( $=_comp_tags )
   nmatches=$compstate[nmatches]
 fi
 
 if (( nmatches > 1 )); then
-  if [[ $widget_style == (|*-)menu-select ]]; then
-    typeset -gHi MENUSELECT=0
-    compstate[insert]='menu:'
+  [[ $WIDGETSTYLE == (|*-)select(|-*) ]] &&
+      typeset -gHi MENUSELECT=0
+  [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
+      compstate[insert]='menu:'
 
-    # Determine which terminal line we're on (for async completion).
-    typeset -gHi _autocomplete__buffer_start_line=$((
-        max( min( _autocomplete__buffer_start_line, LINES - compstate[list_lines] ), BUFFERLINES )
-    ))
-
-  elif [[ $compstate[old_list] != keep && $_lastcomp[insert] != (|*-)unambiguous ]]; then
-    compstate[list]='list force'
-    return
-  elif [[ $widget_style == (|*-)menu-complete ]]; then
-    compstate[insert]='menu:'
-  fi
+  # Determine which terminal line we'll be on (for async completion).
+  typeset -gHi _autocomplete__buffer_start_line=$((
+      max(
+          BUFFERLINES,
+          min(
+              _autocomplete__buffer_start_line,
+              LINES - compstate[list_lines]
+          )
+      )
+  ))
 fi
 
-if [[ $key_name == shift-tab ]]; then
+if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
   compstate[insert]+='0'
 else
   compstate[insert]+='1'
 fi
 
-if [[ $RBUFFER != [[:space:]]* ]]; then
-  local -a spacetags=()
-  builtin zstyle -a :autocomplete: add-space spacetags ||
-      spacetags=( executables aliases functions builtins reserved-words commands )
-  local -Pa comptags=()
-  if [[ $compstate[old_list] == keep ]]; then
-    comptags=( $=_lastcomp[tags] )
-  else
-    comptags=( $=_comp_tags )
-  fi
-  [[ -n ${comptags:*spacetags} ]] &&
-      compstate[insert]+=' '
-fi
+local -a spacetags=()
+builtin zstyle -a :autocomplete: add-space spacetags ||
+    spacetags=( executables aliases functions builtins reserved-words commands )
+[[ -n ${comptags:*spacetags} ]] &&
+    compstate[insert]+=' '

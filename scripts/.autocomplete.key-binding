@@ -7,59 +7,12 @@ zmodload -F zsh/terminfo p:terminfo
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
-  # Need to bind completion widgets here to stop Syntax Highlighting from complaining.
+  .autocomplete.key-binding.rebind main expand-or-complete complete-word '\t'
+  .autocomplete.key-binding.rebind main expand-or-complete-prefix complete-word '\t'
+  .autocomplete.key-binding.rebind main menu-expand-or-complete complete-word '\t'
 
-  local -a ignored=()
-  builtin zstyle -g ignored ':autocomplete:shift-tab:*' insert-unambiguous ||
-      builtin zstyle ':autocomplete:shift-tab:*' insert-unambiguous yes
-
-  local tab_style=
-  if ! builtin zstyle -s :autocomplete:tab: widget-style tab_style; then
-    tab_style='complete-word'
-    builtin zstyle ':autocomplete:tab:*' widget-style $tab_style
-  fi
-
-  if builtin zstyle -t :autocomplete:tab: fzf-completion &&
-      [[ -v functions[fzf-completion] ]]; then
-    typeset -gH fzf_default_completion=$tab_style
-    functions[.autocomplete.fzf-completion]=$functions[fzf-completion]
-    fzf-completion() {
-      zle() {
-        builtin zle "$@" ${${(M)funcstack[2]:#.autocomplete.fzf-completion}:+-w}
-      }
-      {
-        .autocomplete.fzf-completion "$@"
-      } always {
-        [[ -v functions[zle] ]] &&
-            unfunction zle
-      }
-    }
-  else
-    builtin bindkey -M emacs '\t' $tab_style
-    builtin bindkey -M viins '\t' $tab_style
-  fi
-
-  if [[ $tab_style == *menu-* ]]; then
-    builtin bindkey -M menuselect '\t' menu-complete
-  else
-    builtin bindkey -M menuselect '\t' accept-line
-  fi
-
-  if [[ -v terminfo[kcbt] && -n $terminfo[kcbt] ]]; then
-    local backtab_style=
-    if ! builtin zstyle -s :autocomplete:shift-tab: widget-style backtab_style; then
-      backtab_style=${tab_style:/menu-complete/reverse-menu-complete}
-      builtin zstyle ':autocomplete:shift-tab:*' widget-style $backtab_style
-    fi
-
-    builtin bindkey -M emacs $terminfo[kcbt] $backtab_style
-    builtin bindkey -M viins $terminfo[kcbt] $backtab_style
-    if [[ $backtab_style == *menu-* ]]; then
-      builtin bindkey -M menuselect $terminfo[kcbt] reverse-menu-complete
-    else
-      builtin bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
-    fi
-  fi
+  .autocomplete.key-binding.bound main '\t' complete-word &&
+      .autocomplete.key-binding.bind-menu accept-line '\t'
 
   .autocomplete.key-binding.bind emacs history-search-backward $_autocomplete__key_alt_up[@] $terminfo[kpp]
   .autocomplete.key-binding.bind vicmd history-search-backward $_autocomplete__key_up[@]
@@ -74,18 +27,27 @@ zmodload -F zsh/terminfo p:terminfo
 }
 
 .autocomplete.key-binding.bind() {
-  local -P map=$1 widget=$2
+  local -P keymap=$1 widget=$2
   shift 2
-  builtin bindkey -M "$map" "${@:^^widget}"
+  builtin bindkey -M "$keymap" "${@:^^widget}"
+}
+
+.autocomplete.key-binding.bind-menu() {
+  .autocomplete.key-binding.bind isearch "$@"
+  .autocomplete.key-binding.bind menuselect "$@"
 }
 
 .autocomplete.key-binding.bound() {
-  [[ $( builtin bindkey -M "$1" "$2" ) == \"$2\"" $3" ]]
+  [[ $( builtin bindkey -M "$1" "$2" ) == \"[^[:space:]]##\"" $3" ]]
 }
 
 .autocomplete.key-binding.rebind() {
-  .autocomplete.key-binding.bound "$1" "$2" "$3" &&
-      builtin bindkey -M "$1" "$2" "$4"
+  local -P keymap=$1 old=$2 new=$3 key=
+  shift 3
+  for key; do
+    .autocomplete.key-binding.bound "$keymap" "$key" "$old" &&
+        builtin bindkey -M "$keymap" "$key" "$new"
+  done
 }
 
 .autocomplete.key-binding.unbind() {

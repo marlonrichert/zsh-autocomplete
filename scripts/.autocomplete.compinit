@@ -138,8 +138,8 @@ EOF
   .autocomplete.patch _expand
   _expand() {
     if _autocomplete.is_glob; then
-      compstate[pattern_insert]=  # Make compstate[insert]=unambiguous work.
-      compstate[pattern_match]=\* # Smartly append * to the pattern.
+      compstate[pattern_insert]=   # compstate[insert]=unambiguous won't work without this.
+      compstate[pattern_match]=\*  # Append * to the pattern.
 
       autocomplete:old:_expand "$@"
       return
@@ -158,7 +158,7 @@ EOF
         _autocomplete.ancestor_dirs "$@" ||
             _autocomplete.recent_paths "$@"
 
-    # Workaround the fact that some completion functions mistakenly don't
+    # Work around the fact that some completion functions mistakenly don't
     # return 0 when they have succeeded.
     (( compstate[nmatches] > nmatches ))
   }
