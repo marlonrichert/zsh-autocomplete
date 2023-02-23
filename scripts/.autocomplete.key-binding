@@ -61,9 +61,9 @@ zmodload -F zsh/terminfo p:terminfo
     fi
   fi
 
-  .autocomplete.key-binding.bind emacs history-search $_autocomplete__key_alt_up[@] $terminfo[kpp]
-  .autocomplete.key-binding.bind vicmd history-search $_autocomplete__key_up[@]
-  .autocomplete.key-binding.bind viins history-search $terminfo[kpp]
+  .autocomplete.key-binding.bind emacs history-search-backward $_autocomplete__key_alt_up[@] $terminfo[kpp]
+  .autocomplete.key-binding.bind vicmd history-search-backward $_autocomplete__key_up[@]
+  .autocomplete.key-binding.bind viins history-search-backward $terminfo[kpp]
 
   .autocomplete.key-binding.bind emacs menu-select $_autocomplete__key_alt_down[@] $terminfo[knp]
   .autocomplete.key-binding.bind vicmd menu-select $_autocomplete__key_down[@]

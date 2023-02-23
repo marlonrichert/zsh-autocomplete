@@ -39,7 +39,7 @@ _autocomplete.history_lines() {
   else
     local -PaU queries=() err=( '(#ia'{0..$(( $#words[CURRENT] ))}')' )
     local -P query lbuffer= rbuffer=
-    if [[ $WIDGET == (|*-)search(|-*) ]]; then
+    if [[ $WIDGET  == (|*-)history-search-* ]]; then
       queries=( \*$^err${(j:*:)${(0)words[CURRENT]}}\* )
     else
       lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}"
@@ -88,7 +88,7 @@ _autocomplete.history_lines() {
 
   local -Pi diff=$(( $#displays[@] - max_lines ))
   local -P suf=
-  if [[ $WIDGET == (|*-)search(|-*) ]]; then
+  if [[ $WIDGET == (|*-)history-search-* ]]; then
     displays=( ${(@n)displays} )
     (( diff > 0 )) &&
         shift "$diff" displays
@@ -105,7 +105,7 @@ _autocomplete.history_lines() {
   fi
 
   local -a matches=( "${displays[@]##[[:blank:]]#<->:}" )
-  [[ $WIDGET != (|*-)search(|-*) ]] &&
+  [[ $WIDGET != (|*-)history-search-* ]] &&
       matches=( "${(@)${(@)matches[@]##$~lbuffer}%%$~rbuffer}" )
 
   local -Pa match=() mbegin=() mend=()

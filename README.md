@@ -60,7 +60,7 @@ On the command line:
 | <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
 | <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
 | <kbd>↑</kbd> | Cursor up (if able) or [history menu](#history-menu) | <sub>`up-line-or-search`</sub> |
-| <kbd>PgUp</kbd> / <kbd>Alt</kbd><kbd>↑</kbd> | [History menu](#history-menu) (always) | <sub>`history-search`</sub> |
+| <kbd>PgUp</kbd> / <kbd>Alt</kbd><kbd>↑</kbd> | [History menu](#history-menu) (always) | <sub>`history-search-backward`</sub> |
 | <kbd>Ctrl</kbd><kbd>R</kbd> | [Live history search](#live-history-search), newest to oldest | <sub>`history-incremental-search-backward`</sub> |
 | <kbd>Ctrl</kbd><kbd>S</kbd> | [Live history search](#live-history-search), oldest to newest | <sub>`history-incremental-search-forward`</sub> |
 
