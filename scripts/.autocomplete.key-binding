@@ -7,6 +7,8 @@ zmodload -F zsh/terminfo p:terminfo
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
+  # Need to bind completion widgets here to stop Syntax Highlighting from complaining.
+
   local -a ignored=()
   builtin zstyle -g ignored ':autocomplete:shift-tab:*' insert-unambiguous ||
       builtin zstyle ':autocomplete:shift-tab:*' insert-unambiguous yes
@@ -58,6 +60,17 @@ zmodload -F zsh/terminfo p:terminfo
       builtin bindkey -M menuselect -s $terminfo[kcbt] "\t^_$terminfo[kcbt]"
     fi
   fi
+
+  .autocomplete.key-binding.bind emacs history-search $_autocomplete__key_alt_up[@] $terminfo[kpp]
+  .autocomplete.key-binding.bind vicmd history-search $_autocomplete__key_up[@]
+  .autocomplete.key-binding.bind viins history-search $terminfo[kpp]
+
+  .autocomplete.key-binding.bind emacs menu-select $_autocomplete__key_alt_down[@] $terminfo[knp]
+  .autocomplete.key-binding.bind vicmd menu-select $_autocomplete__key_down[@]
+  .autocomplete.key-binding.bind viins menu-select $terminfo[knp]
+
+  unset -m '_autocomplete__key_*'
+  unfunction .autocomplete.key-binding.{{,re,un}bind,bound}
 }
 
 .autocomplete.key-binding.bind() {
@@ -81,23 +94,17 @@ zmodload -F zsh/terminfo p:terminfo
 }
 
 local -Pa prefix=( '\e'{\[,O} )
-local -Pa up=( ${^prefix}A ) down=( ${^prefix}B )
-local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
+typeset -ga _autocomplete__key_up=( ${^prefix}A )
+typeset -ga _autocomplete__key_down=( ${^prefix}B )
+typeset -ga _autocomplete__key_alt_up=( '\e'$^_autocomplete__key_up '\e[1;3A' )
+typeset -ga _autocomplete__key_alt_down=( '\e'$^_autocomplete__key_down '\e[1;3B' )
 
-.autocomplete.key-binding.bind emacs up-line-or-search $up[@]
-.autocomplete.key-binding.bind viins up-line-or-search $up[@]
+.autocomplete.key-binding.bind emacs up-line-or-search $_autocomplete__key_up[@]
+.autocomplete.key-binding.bind viins up-line-or-search $_autocomplete__key_up[@]
 
-.autocomplete.key-binding.bind emacs history-search $alt_up[@] $terminfo[kpp]
-.autocomplete.key-binding.bind vicmd history-search $up[@]
-.autocomplete.key-binding.bind viins history-search $terminfo[kpp]
-
-.autocomplete.key-binding.bind emacs down-line-or-select $down[@]
-.autocomplete.key-binding.bind viins down-line-or-select $down[@]
-.autocomplete.key-binding.bind vicmd down-line-or-select $down[@]
-
-.autocomplete.key-binding.bind emacs menu-select $alt_down[@] $terminfo[knp]
-.autocomplete.key-binding.bind vicmd menu-select $down[@]
-.autocomplete.key-binding.bind viins menu-select $terminfo[knp]
+.autocomplete.key-binding.bind emacs down-line-or-select $_autocomplete__key_down[@]
+.autocomplete.key-binding.bind viins down-line-or-select $_autocomplete__key_down[@]
+.autocomplete.key-binding.bind vicmd down-line-or-select $_autocomplete__key_down[@]
 
 .autocomplete.key-binding.rebind emacs '^D' delete-char-or-list delete-char
 
@@ -108,13 +115,11 @@ local -Pa alt_up=( '\e'$^up '\e[1;3A' ) alt_down=( '\e'$^down '\e[1;3B' )
 .autocomplete.key-binding.unbind vicmd    '=' list-choices
 .autocomplete.key-binding.unbind viins   '^D' list-choices
 
-.autocomplete.key-binding.bind menuselect vi-backward-blank-word $alt_up[@]
-.autocomplete.key-binding.bind menuselect  vi-forward-blank-word $alt_down[@]
+.autocomplete.key-binding.bind menuselect vi-backward-blank-word $_autocomplete__key_alt_up[@]
+.autocomplete.key-binding.bind menuselect  vi-forward-blank-word $_autocomplete__key_alt_down[@]
 builtin bindkey -M menuselect \
     '\r'  .accept-line \
     '^@'   accept-and-hold \
     "$terminfo[kpp]" backward-word \
     "$terminfo[knp]" forward-word \
     '^_' .undo
-
-unfunction .autocomplete.key-binding.{{,re,un}bind,bound}

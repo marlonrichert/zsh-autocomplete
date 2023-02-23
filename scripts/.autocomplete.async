@@ -17,6 +17,13 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 builtin zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
 
 .autocomplete.async.precmd() {
+  # Autosuggestions otherwise makes $WIDGETSTYLE disappear
+  [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
+      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
+      history-incremental-search-backward
+      history-incremental-search-forward
+  )
+
   local -PF delay=
   builtin zstyle -s :autocomplete: min-delay delay
   (( delay += 0.1 ))
@@ -28,28 +35,6 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
       .autocomplete.async.pty.completion-widget
   builtin zle -N .autocomplete.async.complete.fd-widget
   builtin zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
-
-  if [[ -v functions[_zsh_highlight_call_widget] ]]; then
-    _zsh_highlight_call_widget() {
-      .autocomplete.zle-flags $WIDGET
-      builtin zle "$@"
-    }
-  fi
-
-  if [[ -v functions[_zsh_autosuggest_highlight_apply] ]]; then
-    local -P action=
-    for action in clear modify fetch accept partial_accept execute enable disable toggle; do
-      # Set flags according to widget name.
-      eval "_zsh_autosuggest_widget_$action() {
-        .autocomplete.zle-flags \$WIDGET
-        _zsh_autosuggest_$action \"\$@\"
-      }"
-    done
-    _zsh_autosuggest_widget_suggest() {
-      .autocomplete.zle-flags  # Maintain previously set flags.
-      _zsh_autosuggest_suggest "$@"
-    }
-  fi
 
   add-zle-hook-widget line-init .autocomplete.async.read-cursor-position
   add-zle-hook-widget line-init .autocomplete.async.reset-context
@@ -143,12 +128,14 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
 
   [[ -v functions[_zsh_highlight] ]] &&
       _zsh_highlight
-  typeset -gH _autocomplete__highlight=( $region_highlight[@] )
   [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
       _zsh_autosuggest_highlight_apply
+  if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
+    unset POSTDISPLAY
+    _zsh_autosuggest_fetch
+  fi
 
-  # Prevent crash in Zsh < 5.9 when Autocomplete causes line to be redrawn.
-  ! is-at-least 5.9 &&
+  # This means we're in the completion menu.
   [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
       return
 
@@ -168,10 +155,10 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
       builtin zle -Rc
 
   if [[ $_lastcomp[insert] == *unambiguous ]]; then
-    local -a flag=()
+    local -a nolast=()
     is-at-least 5.9 &&
-        flag=( -f nolast )
-    builtin zle $flag .auto-suffix-retain  # Make the cursor stay in the right place.
+        nolast=( -f nolast )
+    builtin zle .auto-suffix-retain $nolast  # Make the cursor stay in the right place.
   fi
 
   .autocomplete.async.start
@@ -380,7 +367,8 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
   [[ -n $curcontext ]] &&
       setopt $_autocomplete__ctxt_opts[@]
   if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log; then
-    region_highlight=( "$_autocomplete__highlight[@]" )
+    [[ -v functions[_zsh_highlight] ]] &&
+        _zsh_highlight
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
         _zsh_autosuggest_highlight_apply
 

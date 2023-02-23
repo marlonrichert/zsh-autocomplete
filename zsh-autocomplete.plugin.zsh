@@ -9,7 +9,7 @@ zmodload -F zsh/parameter p:funcfiletrace p:functions
     .zinit-tmp-subst-off "${___mode:-load}"
 
 zmodload zsh/param/private
-setopt NO_flowcontrol NO_listbeep NO_singlelinezle
+setopt completeinword NO_flowcontrol NO_listbeep NO_singlelinezle
 typeset -gHa _autocomplete__funcfiletrace=( $funcfiletrace[2,-2] )
 builtin autoload +X -Uz ${${(%):-%x}:P:h}/scripts/.autocomplete.__init__
 {

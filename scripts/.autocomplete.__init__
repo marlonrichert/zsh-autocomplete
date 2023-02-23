@@ -13,7 +13,7 @@ typeset -gHa _autocomplete__func_opts=(
 )
 setopt $_autocomplete__func_opts[@]
 
-typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist NO_completeinword )
+typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist )
 typeset -gHa _autocomplete__ctxt_opts=( completealiases completeinword )
 
 .autocomplete.__init__.precmd() {
@@ -110,11 +110,3 @@ for mod in compinit config widget key-binding recent-dirs async; do
 done
 
 add-zsh-hook precmd .autocomplete.__init__.precmd
-
-# Ensure our precmd runs before zsh-autosuggestions'.
-[[ -v precmd_functions && $precmd_functions[(I)_zsh_autosuggest_start] != 0 ]] &&
-    typeset -gHaU precmd_functions=(
-        ${precmd_functions[@]:#_zsh_autosuggest_start} _zsh_autosuggest_start
-    )
-
-true

@@ -151,6 +151,9 @@ EOF
   .autocomplete.patch _complete
   _complete() {
     local -i nmatches=$compstate[nmatches]
+
+    PREFIX=$PREFIX$SUFFIX
+    SUFFIX=
     autocomplete:old:_complete "$@" ||
         _autocomplete.ancestor_dirs "$@" ||
             _autocomplete.recent_paths "$@"
@@ -181,9 +184,9 @@ EOF
             return
 
         if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
-          PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
+          PREFIX="~(#a$_comp_correct)$PREFIX[2,-1]"
         else
-          PREFIX="(#a${_comp_correct})$PREFIX"
+          PREFIX="(#a$_comp_correct)$PREFIX"
         fi
 
         builtin compadd "$@"

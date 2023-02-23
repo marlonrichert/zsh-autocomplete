@@ -1,5 +1,6 @@
 #!/bin/zsh
 zmodload zsh/complist
+typeset -ga _autocomplete__suggest_ignore_widgets=()
 typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
@@ -7,16 +8,29 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
+  # Create all completion widgets here, to avoid getting them wrapped by
+  # Autosuggest or Syntax Highlighting.
+
   local -P tab_style=
   for tab_style in complete-word menu-complete menu-select; do
     .autocomplete.widget.c "$tab_style" "$tab_style" complete-word
   done
-  .autocomplete.widget.c reverse-menu-complete reverse-menu-complete complete-word
+  .autocomplete.widget.c reverse-menu-complete{,} complete-word
 
+  .autocomplete.widget.c _history_search menu-select history-search
+
+  # Autosuggestions otherwise makes $WIDGETSTYLE disappear
+  [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
+      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
+          $_autocomplete__suggest_ignore_widgets
+      )
+
+  unset _autocomplete__suggest_ignore_widgets
   unfunction .autocomplete.widget.c .autocomplete.widget.z
 }
 
 .autocomplete.widget.c() {
+  _autocomplete__suggest_ignore_widgets+=( $1 )
   builtin zle -C "$1" "$2" .autocomplete.$3.completion-widget
 }
 
@@ -24,7 +38,6 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   builtin zle -N "$1" .autocomplete.$2.zle-widget
 }
 
-.autocomplete.widget.c _history_search menu-select history-search
 .autocomplete.widget.z history-search history-search
-.autocomplete.widget.z up-line-or-search up-line-or-search
-.autocomplete.widget.z down-line-or-select down-line-or-select
+.autocomplete.widget.z up-line-or-search{,}
+.autocomplete.widget.z down-line-or-select{,}
