@@ -41,3 +41,4 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
 .autocomplete.widget.z   up-line-or-search{,}
 .autocomplete.widget.z down-line-or-select{,}
+.autocomplete.widget.z history-search{-backward,}

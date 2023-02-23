@@ -7,28 +7,27 @@ zmodload -F zsh/terminfo p:terminfo
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
-  .autocomplete.key-binding.rebind main expand-or-complete complete-word '\t'
-  .autocomplete.key-binding.rebind main expand-or-complete-prefix complete-word '\t'
-  .autocomplete.key-binding.rebind main menu-expand-or-complete complete-word '\t'
+  .autocomplete.key-binding.rebind main  expand-or-complete        complete-word '\t'
+  .autocomplete.key-binding.rebind main  expand-or-complete-prefix complete-word '\t'
+  .autocomplete.key-binding.rebind main  menu-expand-or-complete   complete-word '\t'
 
   .autocomplete.key-binding.bound main '\t' complete-word &&
       .autocomplete.key-binding.bind-menu accept-line '\t'
 
-  .autocomplete.key-binding.bind emacs history-search-backward $_autocomplete__key_alt_up[@] $terminfo[kpp]
-  .autocomplete.key-binding.bind vicmd history-search-backward $_autocomplete__key_up[@]
-  .autocomplete.key-binding.bind viins history-search-backward $terminfo[kpp]
+  .autocomplete.key-binding.bind   main  history-search-backward $_autocomplete__key_alt_up[@]
+  .autocomplete.key-binding.bind   main  menu-select             $_autocomplete__key_alt_down[@]
 
-  .autocomplete.key-binding.bind emacs menu-select $_autocomplete__key_alt_down[@] $terminfo[knp]
-  .autocomplete.key-binding.bind vicmd menu-select $_autocomplete__key_down[@]
-  .autocomplete.key-binding.bind viins menu-select $terminfo[knp]
+  .autocomplete.key-binding.rebind emacs history-search-backward history-search-backward '\ep'
+  .autocomplete.key-binding.rebind emacs history-search-forward  menu-select             '\en'
 
-  .autocomplete.key-binding.rebind emacs history-incremental-search-backward{,} '^R'
-  .autocomplete.key-binding.bind-menu history-incremental-search-backward '^R'
-  .autocomplete.key-binding.rebind vicmd vi-history-search-backward history-incremental-search-backward '?'
+  .autocomplete.key-binding.rebind vicmd vi-rev-repeat-search    history-search-backward 'N'
+  .autocomplete.key-binding.rebind vicmd vi-repeat-search        menu-select             'n'
 
+  .autocomplete.key-binding.rebind emacs history-incremental-search-backward{,}         '^R'
   .autocomplete.key-binding.rebind emacs history-incremental-search-forward menu-search '^S'
-  .autocomplete.key-binding.bind-menu history-incremental-search-forward '^S'
-  .autocomplete.key-binding.rebind vicmd vi-history-search-forward menu-search '?'
+
+  .autocomplete.key-binding.rebind vicmd {vi-history,history-incremental}-search-backward '/'
+  .autocomplete.key-binding.rebind vicmd  vi-history-search-forward         menu-search   '?'
 
   unset -m '_autocomplete__key_*'
   unfunction .autocomplete.key-binding.{{,re,un}bind,bound}
@@ -63,33 +62,34 @@ zmodload -F zsh/terminfo p:terminfo
       builtin bindkey -M "$1" -r "$2"
 }
 
+
 local -Pa prefix=( '\e'{\[,O} )
 typeset -ga _autocomplete__key_up=( ${^prefix}A )
 typeset -ga _autocomplete__key_down=( ${^prefix}B )
 typeset -ga _autocomplete__key_alt_up=( '\e'$^_autocomplete__key_up '\e[1;3A' )
 typeset -ga _autocomplete__key_alt_down=( '\e'$^_autocomplete__key_down '\e[1;3B' )
 
-.autocomplete.key-binding.bind emacs up-line-or-search $_autocomplete__key_up[@]
-.autocomplete.key-binding.bind viins up-line-or-search $_autocomplete__key_up[@]
+.autocomplete.key-binding.bind   main    up-line-or-search $_autocomplete__key_up[@]
+.autocomplete.key-binding.bind   main  down-line-or-select $_autocomplete__key_up[@]
 
-.autocomplete.key-binding.bind emacs down-line-or-select $_autocomplete__key_down[@]
-.autocomplete.key-binding.bind viins down-line-or-select $_autocomplete__key_down[@]
-.autocomplete.key-binding.bind vicmd down-line-or-select $_autocomplete__key_down[@]
+.autocomplete.key-binding.rebind emacs   up-line-or-{history,search} '^P'
+.autocomplete.key-binding.rebind emacs down-line-or-{history,select} '^N'
 
-.autocomplete.key-binding.rebind emacs '^D' delete-char-or-list delete-char
+.autocomplete.key-binding.rebind vicmd   up-line-or-{history,search} 'k'
+.autocomplete.key-binding.rebind vicmd down-line-or-{history,select} 'j'
 
-.autocomplete.key-binding.unbind emacs '^X*' expand-word
+local -Pa menukeys=(
+                '^@' accept-and-hold
+                '^_' .undo
+    "$terminfo[kpp]" backward-word
+    "$terminfo[knp]"  forward-word
+               '^[v' backward-word
+                '^V'  forward-word
+                '^R' history-incremental-search-backward
+                '^S' history-incremental-search-forward
+)
+builtin bindkey -M isearch    "$menukeys[@]"
+builtin bindkey -M menuselect "$menukeys[@]"
 
-.autocomplete.key-binding.unbind emacs '\e^D' list-choices
-.autocomplete.key-binding.unbind vicmd   '^D' list-choices
-.autocomplete.key-binding.unbind vicmd    '=' list-choices
-.autocomplete.key-binding.unbind viins   '^D' list-choices
-
-.autocomplete.key-binding.bind menuselect vi-backward-blank-word $_autocomplete__key_alt_up[@]
-.autocomplete.key-binding.bind menuselect  vi-forward-blank-word $_autocomplete__key_alt_down[@]
-builtin bindkey -M menuselect \
-    '\r'  .accept-line \
-    '^@'   accept-and-hold \
-    "$terminfo[kpp]" backward-word \
-    "$terminfo[knp]" forward-word \
-    '^_' .undo
+.autocomplete.key-binding.bind-menu vi-backward-blank-word $_autocomplete__key_alt_up[@]
+.autocomplete.key-binding.bind-menu vi-forward-blank-word  $_autocomplete__key_alt_down[@]

@@ -47,47 +47,38 @@ instead.
 ![recent dirs](.img/recent-dirs.png)
 
 ## Key Bindings
-Note that, depending on your terminal, not all keybindings might be available to
-you.  Also note that, instead of <kbd>Alt</kbd>, your terminal might require you
-to press <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.  Likewise, in
-most terminals, <kbd>Enter</kbd> is interchangeable with <kbd>Return</kbd>, but
-in some terminals, it is not.
+* Depending on your terminal, not all keybindings might be available to you.
+* Instead of <kbd>Alt</kbd>, your terminal might require you to press
+  <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
+* In most terminals, <kbd>Enter</kbd> is interchangeable with <kbd>Return</kbd>,
+  but in some terminals, it is not.
 
-On the command line:
-| Key(s) | Action | <sub>[Widget](.zshrc)</sub> |
-| ------ | ------ | --- |
-| <kbd>Tab</kbd> | Insert top completion | <sub>`complete-word`</sub> |
-| <kbd>↓</kbd> | Cursor down (if able) or completion menu | <sub>`down-line-or-select`</sub> |
-| <kbd>PgDn</kbd> / <kbd>Alt</kbd><kbd>↓</kbd> | Completion menu (always) | <sub>`menu-select`</sub> |
-| <kbd>↑</kbd> | Cursor up (if able) or [history menu](#history-menu) | <sub>`up-line-or-search`</sub> |
-| <kbd>PgUp</kbd> / <kbd>Alt</kbd><kbd>↑</kbd> | [History menu](#history-menu) (always) | <sub>`history-search-backward`</sub> |
-| <kbd>Ctrl</kbd><kbd>R</kbd> | [Live history search](#live-history-search), newest to oldest | <sub>`history-incremental-search-backward`</sub> |
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Search through _all_ menu text | <sub>`menu-search`</sub> |
+### On the command line
+| `main` | `emacs` | `vicmd` | `viins` | Action
+| -----: | ------: | ------: | ------: | -----:
+| | <kbd>Tab</kbd> | | <kbd>Tab</kbd> | Insert top completion
+| <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | |  Cursor up _-or-_ [History menu](#history-menu)
+| <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | | Cursor down _-or-_ Completion menu
+| <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Shift</kbd><kbd>N</kbd> | | History menu (always)
+| <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>N</kbd> | | Completion menu (always)
+| | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | | Search through _all_ menu text
+| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | | Toggle [history search mode](#real-time-history-search) on/off
 
-In the completion menu:
+### In the menus
 | Key(s) | Action |
-| ------ | ------ |
-| <kbd>↑</kbd> / <kbd>↓</kbd> / <kbd>←</kbd> / <kbd>→</kbd> | Change selection |
-| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group |
-| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group |
-| <kbd>PgUp</kbd> / <kbd>PgDn</kbd> | Page up/down |
-| <kbd>Ctrl</kbd><kbd>R</kbd> | Find text forward |
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Find text backward |
-| <kbd>Tab</kbd> | Insert selection and exit menu |
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Insert selection, but stay in menu |
-| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Undo and exit menu |
-| <kbd>Enter</kbd> | Submit command line |
-| other keys | Zsh [default behavior](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) |
-
-In the history menu:
-| Key(s) | Action |
-| --- | --- |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Change selection |
-| <kbd>Tab</kbd> | Insert selection and exit menu |
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Insert selection, but stay in menu |
-| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Undo and exit menu |
-| <kbd>Enter</kbd> | Submit command line |
-| other keys | Zsh [default behavior](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) |
+| -----: | ------
+| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Change selection
+| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group (completion only)
+| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group (completion only)
+| <kbd>PgUp</kbd><br><kbd>Alt</kbd><kbd>V</kbd> | Page up
+| <kbd>PgDn</kbd><br><kbd>Ctrl</kbd><kbd>V</kbd> | Page down
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Enter search mode _-or-_ Go to next match
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Enter search mode _-or-_ Go to previous match
+| <kbd>Tab</kbd><br><kbd>Enter</kbd> | Exit search mode _-or-_ Exit menu
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Add another completion
+| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Remove last completion
+| <kbd>Ctrl</kbd><kbd>G</kbd> | Remove all completions
+| Other keys | Depends on the keymap from which you opened the menu. See the Zsh manual on [menu selection](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection).
 
 ## Requirements
 Recommended:
@@ -118,13 +109,13 @@ To uninstall, remove `znap source marlonrichert/zsh-autocomplete` from your
 ### Manual installation
  1. Clone the repo:
     ```zsh
-    % cd ~/Git  # ...or wherever you keep your Git repos/Zsh plugins
+    % cd ~/Repos  # ...or wherever you keep your Git repos/Zsh plugins
     % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
     ```
  1.  Add at or near the top of your `.zshrc` file (_before_ any calls to
     `compdef`):
     ```zsh
-    source ~/Git/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+    source ~/Repos/zsh-autocomplete/zsh-autocomplete.plugin.zsh
     ```
  1. Remove any calls to `compinit` from your `.zshrc` file.
  1. Restart your shell.
