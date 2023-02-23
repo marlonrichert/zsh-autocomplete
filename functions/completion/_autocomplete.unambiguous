@@ -1,14 +1,20 @@
 #autoload
-# setopt localoptions verbose xtrace
 
+# Does not work correctly.
+[[ $_comp_tags == history-lines ]] &&
+    return 1
+
+# Is not going to be correct.
 [[ -v _autocomplete__partial_list ]] &&
-  return 1
-[[ $curcontext == history-*:* ]] &&
-  return 1
+    return 1
+
+# Doesn't make sense to show.
 (( compstate[nmatches] < 2 )) &&
-  return 1
+    return 1
+
+# Nothing to insert.
 [[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
-  return 1
+    return 1
 
 local -P tag=unambiguous
 _tags $tag
@@ -19,17 +25,15 @@ _requested $tag ||
 
 typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"
 
-if builtin zstyle -t :autocomplete: insert-unambiguous; then
-  local -Pi nxt= prv=1
-  local -P subs= cols=
-  for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
-    subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
-    cols+='=30;103'  # black foreground, bright yellow background
-    (( prv = ++nxt ))
-  done
-  ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
-  return 1
-fi
+local -Pi nxt= prv=1
+local -P subs= cols=
+for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
+  subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
+  cols+='=30;103'  # black foreground, bright yellow background
+  (( prv = ++nxt ))
+done
 
-builtin compadd -J "$tag" \
-    -x $'%{\e[0;2m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
+builtin compadd -J "$tag" -x $'%{\e[0;2m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+
+false

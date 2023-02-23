@@ -17,7 +17,6 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 builtin zle -N history-incremental-search-forward .autocomplete.async.history-incremental-search
 
 .autocomplete.async.precmd() {
-  # Autosuggestions otherwise makes $WIDGETSTYLE disappear
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
       history-incremental-search-backward
@@ -304,7 +303,6 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
 
   unset _autocomplete__mesg _autocomplete__comp_mesg
   {
-    local curcontext=${curcontext:-list-choices:::}
     unset 'compstate[vared]'
 
     .autocomplete.patch _message
@@ -323,7 +321,13 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
     }
 
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-    autocomplete:_main_complete:new
+
+    if [[ $curcontext == *history-* ]]; then
+      autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
+    else
+      local curcontext=list-choices:::
+      .autocomplete.async.list-choices.main-complete
+    fi
   } always {
     typeset -gHi _autocomplete__list_lines=$compstate[list_lines]
   }
@@ -382,15 +386,18 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
 log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
 .autocomplete.async.sufficient-input() {
-  # Don't check the input if we're not doing normal autocompletion.
-  [[ -n $curcontext ]] &&
-      return
-
   local min_input=
-  builtin zstyle -s :autocomplete:list-choices min-input min_input ||
+  if ! builtin zstyle -s :autocomplete:$curcontext min-input min_input; then
+    if [[ $curcontext == *history-* ]]; then
+      min_input=0
+    else
       min_input=1
+    fi
+  fi
+
   local ignored=
-  builtin zstyle -s :autocomplete:list-choices ignored-input ignored
+  builtin zstyle -s :autocomplete:$curcontext ignored-input ignored
+
   if (( ${#words[@]} == 1 && ${#words[CURRENT]} < min_input )) ||
       [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
     compstate[list]=
@@ -399,7 +406,6 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     true
   fi
 }
-# functions -T .autocomplete.async.sufficient-input
 
 .autocomplete.async.same-state() {
   [[ $_autocomplete__words == $words && $_autocomplete__current == $CURRENT ]]
@@ -432,8 +438,8 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     typeset -gHF _autocomplete__async_avg_duration=$((
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
-    if [[ -n $curcontext ]]; then
-      autocomplete:_main_complete:new
+    if [[ $curcontext == *history-* ]]; then
+      autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
     else
       local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete

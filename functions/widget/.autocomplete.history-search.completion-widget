@@ -3,16 +3,16 @@ local 0=${(%):-%N}
 
 $0() {
   typeset -gH curcontext=${WIDGET}:::
-
   local +h -a comppostfuncs=( ${(%):-%N}.post "$comppostfuncs[@]" )
   compstate[old_list]=
-  autocomplete:_main_complete:new _autocomplete.history_lines
+  autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
 
   unset curcontext
   (( _lastcomp[nmatches] ))
 }
 
 $0.post() {
+  typeset -gi MENUSELECT=0
   compstate[insert]='menu:0'
 }
 

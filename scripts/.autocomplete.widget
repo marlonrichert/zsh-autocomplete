@@ -17,7 +17,7 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   done
   .autocomplete.widget.c reverse-menu-complete{,} complete-word
 
-  .autocomplete.widget.c _history_search menu-select history-search
+  .autocomplete.widget.c history-search-backward menu-select history-search
 
   # Autosuggestions otherwise makes $WIDGETSTYLE disappear
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
@@ -38,6 +38,5 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
   builtin zle -N "$1" .autocomplete.$2.zle-widget
 }
 
-.autocomplete.widget.z history-search{-backward,}
-.autocomplete.widget.z up-line-or-search{,}
+.autocomplete.widget.z   up-line-or-search{,}
 .autocomplete.widget.z down-line-or-select{,}

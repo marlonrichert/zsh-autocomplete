@@ -7,8 +7,7 @@ compstate[list]=
 compstate[restore]=
 compstate[to_end]=${${_completer:/prefix/}:+always}
 
-if [[ -n $_autocomplete__unambiguous ]] &&
-    builtin zstyle -t ":autocomplete:$curcontext" insert-unambiguous; then
+if _autocomplete.should_insert_unambiguous; then
 
   [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
       compstate[insert]='automenu-'

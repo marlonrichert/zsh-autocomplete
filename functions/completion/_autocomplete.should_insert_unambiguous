@@ -1,0 +1,6 @@
+#autoload
+
+local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
+
+[[ -n $_autocomplete__unambiguous ]] &&
+    builtin zstyle -t ":autocomplete:$curcontext" insert-unambiguous

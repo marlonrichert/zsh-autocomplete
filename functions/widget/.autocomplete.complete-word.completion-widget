@@ -1,19 +1,19 @@
 #!/bin/zsh
 zmodload -F zsh/terminfo p:terminfo
 
-local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
 
-if [[ -z $compstate[old_list] ]] ||
+if [[ $_lastcomp[tags] == history-lines && -z $compstate[old_list] ]]; then
+    autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
+elif [[ -z $compstate[old_list] ]] ||
     [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
-    { [[ -n $_autocomplete__unambiguous ]] &&
-        builtin zstyle -t ":autocomplete:${WIDGET}:" insert-unambiguous }; then
+    _autocomplete.should_insert_unambiguous; then
   autocomplete:_main_complete:new
 else
   compstate[old_list]=keep
   autocomplete:_main_complete:new -
 fi
 
-(( _lastcomp[nmatches] )) && [[ -n $compstate[insert] ]] &&
-    unset curcontext
+unset curcontext
+[[ $_lastcomp[nmatches] -gt 0 && -n $compstate[insert] ]]
