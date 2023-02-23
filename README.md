@@ -184,6 +184,25 @@ will do so if you add a backend for it:
 }
 ```
 
+### Limit the number of lines shown
+Normally, Autocomplete will try to one half of the terminal's height with
+results, be it completions, the history menu or history search.  You can change
+this number of lines overall or for each of these individually:
+```zsh
+# Set the value for all.
+zstyle -e ':autocomplete:*' list-lines 'reply=( $(( LINES / 3 )) )'
+
+# Override autocompletion.
+zstyle -e ':autocomplete:list-choices:*' list-lines 'reply=( $(( LINES / 3 )) )'
+
+# Override history menu.
+zstyle ':autocomplete:history-search-backward:*' list-lines 16
+
+# Override history search.
+zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 16
+```
+Note the use of `zstle -e` to create a dynamically updating value.
+
 ### Other settings
 
 ```zsh
@@ -205,16 +224,6 @@ zstyle ':autocomplete:*' ignored-input '' # extended glob pattern
 # '':     Always show completions.
 # '..##': Don't show completions for the current word, if it consists of two
 #         or more dots.
-
-zstyle ':autocomplete:*' list-lines 16  # int
-# If there are fewer than this many lines below the prompt, move the prompt up
-# to make room for showing this many lines of completions (approximately).
-
-zstyle ':autocomplete:history-search:*' list-lines 16  # int
-# Show this many history lines when pressing ↑.
-
-zstyle ':autocomplete:history-incremental-search-*:*' list-lines 16  # int
-# Show this many history lines when pressing ⌃R or ⌃S.
 
 zstyle ':autocomplete:*' insert-unambiguous no
 # no:  Tab inserts the top completion.

@@ -8,11 +8,10 @@ _autocomplete.history_lines() {
   _requested $tag ||
       return 1
 
-  local -PA events=()
-  local -Pi min_lines= max_lines=
-  builtin zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
-      min_lines=16
-  (( max_lines = min( min_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
+  local -i max_lines=
+  builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
+      (( max_lines = LINES / 2 ))
+  (( max_lines = min( max_lines, HISTNO - 1, LINES - BUFFERLINES ) ))
 
   if [[ -z $BUFFER ]]; then
     if [[ $curcontext == *-forward:* ]]; then

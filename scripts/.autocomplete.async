@@ -61,8 +61,8 @@ builtin zle -N history-incremental-search-forward .autocomplete.async.history-in
   # See https://github.com/marlonrichert/zsh-autocomplete/issues/269
   if [[ -v MC_SID || ! ( -v terminfo[u6] && -v terminfo[u7] ) ]]; then
     local -i max_lines=
-    builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
-        max_lines=16
+    builtin zstyle -s ":autocomplete:list-choices::::" list-lines max_lines ||
+        (( max_lines = LINES / 2 ))
     typeset -gHi _autocomplete__buffer_start_line=$(( min( max( LINES - max_lines, 1 ), LINES ) ))
     return 0
   fi
@@ -458,12 +458,12 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.list-choices.main-complete() {
   {
-    local -i min_lines=
-    builtin zstyle -s ":autocomplete:${curcontext}:" list-lines min_lines ||
-        min_lines=16
-    min_lines=$(( min( LINES - ( 1 + BUFFERLINES ), min_lines ) ))
+    local -i max_lines=
+    builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
+        (( max_lines = LINES / 2 ))
+    max_lines=$(( min( LINES - ( 1 + BUFFERLINES ), max_lines ) ))
     local -Pi lines_below_buffer=$(( LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
-    local -i _autocomplete__max_lines=$(( max( min_lines, lines_below_buffer ) ))
+    local -i _autocomplete__max_lines=$(( max( max_lines, lines_below_buffer ) ))
     local -i _autocomplete__reserved_lines=0
     () {
       emulate -L zsh
