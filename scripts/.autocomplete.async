@@ -457,7 +457,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.list-choices.post() {
   [[ -v _autocomplete__partial_list ]] &&
-      builtin compadd -J -last- -x '%F{0}%K{12}(MORE)%f%k'
+      builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
   compstate[insert]=
   unset MENUSELECT MENUMODE
 }
@@ -470,7 +470,6 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     max_lines=$(( min( LINES - ( 1 + BUFFERLINES ), max_lines ) ))
     local -Pi lines_below_buffer=$(( LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
     local -i _autocomplete__max_lines=$(( max( max_lines, lines_below_buffer ) ))
-    local -i _autocomplete__reserved_lines=0
     () {
       emulate -L zsh
       setopt $_autocomplete__func_opts[@]
@@ -489,124 +488,133 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     fi
   }
 }
+# functions -T .autocomplete.async.list-choices.main-complete
 
 .autocomplete.async.compadd() {
-  local -A _opts_=()
-  local -a _Dopt_=() _dopt_=()
-  zparseopts -A _opts_ -E -- D:=_Dopt_ E: J: O: V: x: X: d:
+  local -Pi _ret_=1
 
-  if [[ ( -v _opts_[-x] && $# == 2 ) ]]; then
+  local -A _opts_=()
+  local -a _displ_=() _dopt_=() _groupname_=()
+  zparseopts -A _opts_ -E -- D: O: X: x: d+:=_dopt_ l
+
+  if [[ -v _opts_[-x] && $# == 2 ]]; then
     .autocomplete.compadd "$@"
     return
-  elif [[ $funcstack[(I)_describe] -gt 0 && -z $_Dopt_ ]]; then
-    _autocomplete__reserved_lines=0
   fi
 
-  local -P _displ_array_= _matches_array_=
-  local -Pi _ret_=1 _new_nmatches_=-1 _new_list_lines_=-1
   local -Pi _avail_list_lines_=$((
-      max( _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines], 0 )
+      max(
+          0,
+          _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines]
+      )
   ))
 
-  if [[ -n $_Dopt_ ]]; then
-    .autocomplete.compadd "$@"
-    _ret_=$?
+  if (( funcstack[(I)_describe] )); then
 
-     (( funcstack[(I)_describe] )) ||
-        return _ret_
-
-    _displ_array_=$_opts_[-D]
-
-    (( ${${(PA)_displ_array_}[(I)*:*]} )) ||
-        return _ret_
-
-    _matches_array_=$_opts_[-O]
-
-    (( _avail_list_lines_ -= _autocomplete__reserved_lines ))
-    _new_nmatches_=${(PA)#_displ_array_}
-    _new_list_lines_=${#${(@u)${(PA)_displ_array_}[@]#*:}}
-    (( _autocomplete__reserved_lines += _new_list_lines_ ))
-  else
-    _autocomplete__reserved_lines=0
-
-    # (Note: Can't put comments inside expansions, without setting INTERACTIVE_COMMENTS.)
-    local -Pa _out_=()
-    _out_=( "${(0)"$(
+    if [[ -z $_opts_[-D] ]]; then
         .autocomplete.compadd "$@"
-        print -rNC1 -- "$compstate[list_lines]" "$compstate[nmatches]"
-    )"}" )
-    _new_list_lines_=$(( max( 0, $_out_[1] - $compstate[list_lines] ) ))
-    _new_nmatches_=$((   max( 0, $_out_[2] - $compstate[nmatches]   ) ))
-  fi
 
-  if (( _new_list_lines_ <= _avail_list_lines_ )); then
-    if [[ -z $_Dopt_ ]]; then
-      .autocomplete.compadd "$@"
-      _ret_=$?
+        return  #!
+
+    else
+      _displ_name_=$_opts_[-D]
+
+      if ! [[ -v _autocomplete__partial_list ]]; then
+        .autocomplete.compadd "$@"
+        _ret_=$?
+
+        _displ_=( ${(@PA)_displ_name_} )
+
+        if [[ -n $_displ_ ]]; then
+          local -PaU _uniques_=( ${_displ_[@]#*:} )
+
+          _autocomplete__max_lines=$(( _avail_list_lines_ - $#_uniques_[@] ))
+          if (( _autocomplete__max_lines <= 0 )); then
+            set -A $_displ_name_ "${(@)${(@o)_displ_}[1,_avail_list_lines_]}"
+
+            .autocomplete.async.compadd.disable
+          fi
+        fi
+      else
+        set -A $_displ_name_
+        _ret_=1
+      fi
+
+      return _ret_  #!
     fi
-    return _ret_
   fi
 
-  if [[ -z $_Dopt_ ]]; then
-    local -a _matches_=()
-    .autocomplete.compadd -O _matches_ "$@" # Collect all matching completions.
-    _matches_array_=_matches_
-    _new_nmatches_=$#_matches_[@]
+  if [[ -n $_opts_[-D]$_opts_[-O] ]]; then
+    .autocomplete.compadd "$@"
+    return
   fi
 
-  local -a _groupname_=()
+  [[ -v _autocomplete__partial_list ]] &&
+      return 1
 
-  # NOTE: This will overwrite the contents of $_opts_ !
-  zparseopts -A _opts_ -D -E - k U d:=_dopt_ l=_dopt_ J:=_groupname_ V:=_groupname_
+  local -Pi _resulting_list_lines="$(
+              .autocomplete.compadd "$@"
+              print -nr -- $compstate[list_lines]
+          )"
+  local -Pi _new_list_lines_=$(( _resulting_list_lines - $compstate[list_lines] ))
+  local -Pi _remaining_list_lines=$(( _avail_list_lines_ - _new_list_lines_ ))
 
-  set -- "$_groupname_[@]" "$@"
-  [[ -z $_Dopt_ ]] &&
-      _displ_array_=$_dopt_[-1]
+  (( _remaining_list_lines <= 0 )) &&
+      .autocomplete.async.compadd.disable
 
-  local -Pi _nmatches_per_line_=$(( 1.0 * _new_nmatches_ / _new_list_lines_ ))
-  if [[ _nmatches_per_line_ -lt 1 && -z $_Dopt_ ]]; then
+  if (( _remaining_list_lines >= 0 )); then
+    .autocomplete.compadd "$@"
+    return
+  fi
+
+  typeset -p1 _dopt_ >&2
+
+  local -a _matches_=()
+  local -P _displ_name_=$_dopt_[2]
+  [[ -n $_displ_name_ ]] &&
+      local -a _Dopt_=( -D $_displ_name_ )
+
+  # Collect all matching completions and remove the display strings of those that don't match.
+  .autocomplete.compadd -O _matches_ $_Dopt_ "$@"
+
+  if [[ -z $_displ_name_ ]]; then
+    _displ_=( "$_matches_[@]" )
+    _dopt_=( -d _displ_ )
+    _displ_name_=_displ_
+  fi
+
+  local -Pi _nmatches_per_line_=$(( 1.0 * $#_matches_ / _new_list_lines_ ))
+
+  if (( _nmatches_per_line_ < 1 )); then
     # If we need more than one line per match, then make each match fit on one line.
-    if [[ -z $_displ_array_ ]]; then
-      local -a displ=( ${(PA)_matches_array_} )
-      _dopt_=( -d displ )
-      _displ_array_=displ
-    fi
+    _nmatches_per_line_=1
+
     _dopt_=( -l "$_dopt_[@]" )
 
     # WORKAROUND: Display strings that are exactly $COLUMNS wide are mistakenly
     # counted as spanning two lines, causing the dreaded
     # `zsh: do you wish to see all XX possibilities (YY lines)?`
-    set -A $_displ_array_ ${(@r:COLUMNS-1:)${(PA)_displ_array_}[@]//$'\n'/\n}
-
-    _nmatches_per_line_=1
+    set -A $_displ_name_ ${(@r:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
   fi
 
   # Need to round this down _before_ subtracting or it will be effectively rounded up.
-  local -Pi _fit_=$(( max( _avail_list_lines_, 0 ) * _nmatches_per_line_ ))
-  local -Pi _trim_=$(( max( 0, _new_nmatches_ - _fit_ ) ))
+  local -Pi _nmatches_that_fit_=$(( _avail_list_lines_ * _nmatches_per_line_ ))
 
-  if (( _trim_ )); then
-    [[ -n $_matches_array_ ]] &&
-        shift -p $(( min( _trim_, ${(PA)#_matches_array_} ) )) $_matches_array_
-    [[ -n $_displ_array_ ]] &&
-        shift -p $(( min( _trim_, ${(PA)#_displ_array_} ) )) $_displ_array_
-    typeset -gH _autocomplete__partial_list=$curtag
+  local -Pi _nmatches_to_remove_=$(( $#_matches_ - _nmatches_that_fit_ ))
 
-    # If we have to trim off matches, that means we've run out of screen space.
-    # So, disable all further completion.
-    comptags() {
-      return 1
-    }
-  fi
+  (( _nmatches_to_remove_ > 0 )) &&
+      shift -p $_nmatches_to_remove_ _matches_ $_displ_name_
 
-  if [[ -z $_Dopt_ ]]; then
-    _autocomplete.compadd_opts_len "$@"
-    .autocomplete.compadd $_dopt_ "$@[1,?]" -a -- $_matches_array_
-    _ret_=$?
-  fi
+  _autocomplete.compadd_opts_len "$@"
+  .autocomplete.compadd $_dopt_ -a "$@[1,?]" _matches_
 
-  return _ret_
 } 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.compadd )
+
+.autocomplete.async.compadd.disable() {
+  # Disable all further completions.
+  typeset -gH _autocomplete__partial_list=$curtag
+  comptags() { false }
+}
 
 typeset -gHa _autocomplete__log_functions=( $log_functions[@] )
