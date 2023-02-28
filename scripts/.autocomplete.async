@@ -317,13 +317,13 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
         builtin zformat "$@"
         typeset -gHa _autocomplete__comp_mesg=( "$gopt[@]" -x "$format" )
       }
-      autocomplete:old:_message "$@"
+      autocomplete:_message:old "$@"
       unfunction zformat
       functions[compadd]="$functions[.autocomplete.compadd]"
     }
 
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-    autocomplete:new:_main_complete
+    autocomplete:_main_complete:new
   } always {
     typeset -gHi _autocomplete__list_lines=$compstate[list_lines]
   }
@@ -433,7 +433,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
     if [[ -n $curcontext ]]; then
-      autocomplete:new:_main_complete
+      autocomplete:_main_complete:new
     else
       local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete
@@ -468,12 +468,19 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     () {
       emulate -L zsh
       setopt $_autocomplete__func_opts[@]
-      functions[compadd]=$functions[.autocomplete.async.compadd]
+
+      [[ -v functions[compadd] ]] &&
+          functions[autocomplete:async:compadd:old]="$functions[compadd]"
+      functions[compadd]="$functions[.autocomplete.async.compadd]"
       # functions -T compadd .autocomplete.compadd #_describe
     } "$@"
-    autocomplete:new:_main_complete "$@"
+    autocomplete:_main_complete:new "$@"
   } always {
     unfunction compadd comptags 2> /dev/null
+    if [[ -v functions[autocomplete:async:compadd:old] ]]; then
+      functions[compadd]="$functions[autocomplete:async:compadd:old]"
+      unfunction autocomplete:async:compadd:old
+    fi
   }
 }
 

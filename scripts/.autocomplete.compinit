@@ -93,12 +93,8 @@ EOF
   ) &|
 
   # Workaround: Some other plugins rely on patching _main_complete, which can interfere with our completion.
-  functions[autocomplete:tmp]="$functions[_main_complete]"
   .autocomplete.patch _main_complete
-  functions[_main_complete]="$functions[autocomplete:tmp]"
-  unfunction autocomplete:tmp
-
-  autocomplete:new:_main_complete() {
+  autocomplete:_main_complete:new() {
     local -i _autocomplete__reserved_lines=0
     local -Pi ret=1
     unset _autocomplete__partial_list _autocomplete__unambiguous
@@ -108,11 +104,27 @@ EOF
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
 
-    [[ -v functions[compadd] ]] ||
-        functions[compadd]=$functions[.autocomplete.compadd]
+    {
+      () {
+        emulate -L zsh
+        setopt $_autocomplete__func_opts[@]
 
-    local +h -a comppostfuncs=( autocomplete:new:_main_complete.post "$comppostfuncs[@]" )
-    autocomplete:old:_main_complete "$@"
+        if ! (( funcstack[(I).autocomplete.async.list-choices.main-complete] )); then
+          [[ -v functions[compadd] ]] &&
+              functions[autocomplete:compadd:old]="$functions[compadd]"
+          functions[compadd]="$functions[.autocomplete.compadd]"
+        fi
+      } "$@"
+
+      local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
+      autocomplete:_main_complete:old "$@"
+    } always {
+      unfunction compadd 2> /dev/null
+      if [[ -v functions[autocomplete:compadd:old] ]]; then
+        functions[compadd]="$functions[autocomplete:compadd:old]"
+        unfunction autocomplete:compadd:old
+      fi
+    }
   }
 
   # Add support for coloring file types to _expand.
@@ -127,7 +139,7 @@ EOF
     fi
   }
 
-  autocomplete:new:_main_complete.post() {
+  autocomplete:_main_complete:new:post() {
     [[ $WIDGET != _complete_help ]] &&
         unfunction compadd 2> /dev/null
     _autocomplete.unambiguous
@@ -141,11 +153,11 @@ EOF
       compstate[pattern_insert]=   # compstate[insert]=unambiguous won't work without this.
       compstate[pattern_match]=\*  # Append * to the pattern.
 
-      autocomplete:old:_expand "$@"
+      autocomplete:_expand:old "$@"
       return
     fi
 
-    autocomplete:old:_expand "$@"
+    autocomplete:_expand:old "$@"
   }
 
   .autocomplete.patch _complete
@@ -154,7 +166,7 @@ EOF
 
     PREFIX=$PREFIX$SUFFIX
     SUFFIX=
-    autocomplete:old:_complete "$@" ||
+    autocomplete:_complete:old "$@" ||
         _autocomplete.ancestor_dirs "$@" ||
             _autocomplete.recent_paths "$@"
 
@@ -175,7 +187,7 @@ EOF
     local -Pi ret=1
     {
       [[ -v functions[compadd] ]] &&
-        functions[.autocomplete.__tmp__]=$functions[compadd]
+          functions[autocomplete:_approximate:compadd:old]=$functions[compadd]
 
       compadd() {
         local -P ppre="$argv[(I)-p]"
@@ -192,15 +204,13 @@ EOF
         builtin compadd "$@"
       }
 
-      autocomplete:old:_approximate "$@"
+      autocomplete:_approximate:old "$@"
       ret=$?
       _lastdescr=( ${_lastdescr[@]:#corrections} )
     } always {
-      [[ -v functions[compadd] ]] &&
-          unfunction compadd
-      if [[ -v functions[.autocomplete.__tmp__] ]]; then
-        functions[compadd]=$functions[.autocomplete.__tmp__]
-        unfunction .autocomplete.__tmp__
+      if [[ -v functions[autocomplete:_approximate:compadd:old] ]]; then
+        functions[compadd]=$functions[autocomplete:_approximate:compadd:old]
+        unfunction autocomplete:_approximate:compadd:old
       fi
     }
     return ret
@@ -229,9 +239,9 @@ EOF
           "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
       displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
       displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
-      autocomplete:old:_wanted "$@" -d displays -a params
+      autocomplete:_wanted:old "$@" -d displays -a params
     else
-      autocomplete:old:_wanted "$@"
+      autocomplete:_wanted:old "$@"
     fi
   }
 }

@@ -6,7 +6,7 @@ $0() {
 
   local +h -a comppostfuncs=( ${(%):-%N}.post "$comppostfuncs[@]" )
   compstate[old_list]=
-  autocomplete:new:_main_complete _autocomplete.history_lines
+  autocomplete:_main_complete:new _autocomplete.history_lines
 
   unset curcontext
   (( _lastcomp[nmatches] ))

@@ -9,10 +9,10 @@ if [[ -z $compstate[old_list] ]] ||
     [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
     { [[ -n $_autocomplete__unambiguous ]] &&
         builtin zstyle -t ":autocomplete:${WIDGET}:" insert-unambiguous }; then
-  autocomplete:new:_main_complete
+  autocomplete:_main_complete:new
 else
   compstate[old_list]=keep
-  autocomplete:new:_main_complete -
+  autocomplete:_main_complete:new -
 fi
 
 (( _lastcomp[nmatches] )) && [[ -n $compstate[insert] ]] &&

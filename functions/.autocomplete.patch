@@ -1,6 +1,8 @@
 #!/bin/zsh
 zmodload -F zsh/parameter p:functions
 
-unfunction $1 2> /dev/null
-builtin autoload +X -Uz $1
-functions[autocomplete:old:$1]=$functions[$1]
+functions[autocomplete:${1}:old]="$(
+    unfunction $1 2> /dev/null
+    builtin autoload +X -Uz $1
+    print -r -- "$functions[$1]"
+)"
