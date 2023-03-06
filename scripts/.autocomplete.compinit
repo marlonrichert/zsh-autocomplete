@@ -1,6 +1,7 @@
 #!/bin/zsh
 zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
+builtin autoload -Uz is-at-least
 
 typeset -gHa _autocomplete__compdef=()
 compdef() {
@@ -217,31 +218,32 @@ EOF
   }
 
   # Let parameter completion list each parameter's value.
-  # TODO: Might be added to a future version of zsh.
-  .autocomplete.patch _wanted
-  _wanted() {
-    if [[ $funcstack == *_parameters* ]] &&
-        builtin zstyle -T ":completion:${curcontext}:parameters" verbose; then
-      local -a params=( $@[(re)-,-1] )
-      shift -p $#params
-      shift params
-      _description "$@[1,3]"
-      builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
-      local -a displays=()
+  if ! is-at-least 5.9; then
+    .autocomplete.patch _wanted
+    _wanted() {
+      if [[ $funcstack == *_parameters* ]] &&
+          builtin zstyle -T ":completion:${curcontext}:parameters" extra-verbose; then
+        local -a params=( $@[(re)-,-1] )
+        shift -p $#params
+        shift params
+        _description "$@[1,3]"
+        builtin compadd "$expl[@]" "$@[5,-1]" -D params -a params
+        local -a displays=()
 
-      local sep=
-      builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
-          sep=--
+        local sep=
+        builtin zstyle -s ":completion:${curcontext}:parameters" list-separator sep ||
+            sep=--
 
-      local -Pi MBEGIN= MEND=
-      local -P MATCH=
-      zformat -a displays " $sep " \
-          "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
-      displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
-      displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
-      autocomplete:_wanted:old "$@" -d displays -a params
-    else
-      autocomplete:_wanted:old "$@"
-    fi
-  }
+        local -Pi MBEGIN= MEND=
+        local -P MATCH=
+        zformat -a displays " $sep " \
+            "${(@)params[@]:/(#m)*/${MATCH}:${${(kv)${(P)MATCH}}[1,COLUMNS]}}"
+        displays=( "${(@)displays[@]//(#m)[^[:print:]]##/${(q+)MATCH}}" )
+        displays=( "${(@)displays[@]:/(#m)*/$MATCH[1,COLUMNS]}" )
+        autocomplete:_wanted:old "$@" -d displays -a params
+      else
+        autocomplete:_wanted:old "$@"
+      fi
+    }
+  fi
 }
