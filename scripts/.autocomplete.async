@@ -123,10 +123,12 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  [[ -v functions[_zsh_highlight] ]] &&
+  # #549: Work around bug in zdharma/fast-syntax-highlighting.
+  [[ -v _FAST_MAIN_CACHE ]] &&
       _zsh_highlight
-  [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
-      _zsh_autosuggest_highlight_apply
+
+  typeset -g _autocomplete__region_highlight=( "$region_highlight[@]" )
+
   if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
     unset POSTDISPLAY
     _zsh_autosuggest_fetch
@@ -368,8 +370,10 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
   [[ -n $curcontext ]] &&
       setopt $_autocomplete__ctxt_opts[@]
   if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log; then
-    [[ -v functions[_zsh_highlight] ]] &&
-        _zsh_highlight
+
+    typeset -g region_highlight=( "$_autocomplete__region_highlight[@]" )
+
+    # Need to call this here, because on line-pre-redraw, $POSTDISPLAY is empty.
     [[ -v functions[_zsh_autosuggest_highlight_apply] ]] &&
         _zsh_autosuggest_highlight_apply
 
@@ -523,7 +527,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         _displ_=( ${(@PA)_displ_name_} )
 
         if [[ -n $_displ_ ]]; then
-          local -PaU _uniques_=( ${_displ_[@]#*:} )
+            local -PaU _uniques_=( ${_displ_[@]#*:} )
 
           _autocomplete__max_lines=$(( _avail_list_lines_ - $#_uniques_[@] ))
           if (( _autocomplete__max_lines <= 0 )); then
