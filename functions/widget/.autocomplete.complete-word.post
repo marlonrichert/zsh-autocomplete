@@ -34,12 +34,12 @@ if (( nmatches > 1 )); then
   [[ $WIDGET == (|*-)search(|-*) ]] &&
       MENUMODE=search-forward
   [[ $WIDGETSTYLE == (|*-)select(|-*) ]] &&
-      typeset -gHi MENUSELECT=0
+      typeset -gi MENUSELECT=0
   [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
       compstate[insert]='menu:'
 
   # Determine which terminal line we'll be on (for async completion).
-  typeset -gHi _autocomplete__buffer_start_line=$((
+  typeset -gi _autocomplete__buffer_start_line=$((
       max(
           BUFFERLINES,
           min(

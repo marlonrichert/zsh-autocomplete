@@ -3,9 +3,9 @@ zmodload -Fa zsh/files b:zf_rm
 zmodload -F zsh/parameter p:funcstack p:functions
 builtin autoload -Uz is-at-least
 
-typeset -gHa _autocomplete__compdef=()
+typeset -ga _autocomplete__compdef=()
 compdef() {
-  typeset -gHa _autocomplete__compdef=( $_autocomplete__compdef[@] "${(j: :)${(@q+)@}}" )
+  typeset -ga _autocomplete__compdef=( $_autocomplete__compdef[@] "${(j: :)${(@q+)@}}" )
 }
 
 [[ -v functions[_bash_complete] ]] ||
@@ -30,7 +30,7 @@ compdef() {
       omzdump=( ${(f)"$( < $ZSH_COMPDUMP )"} )
 
   typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
-  typeset -gH \
+  typeset -g \
       _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump}}
 
   if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete.command ]]; then

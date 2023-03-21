@@ -7,14 +7,14 @@ zmodload -Fa zsh/zutil b:zstyle
 builtin autoload +X -Uz add-zsh-hook zmathfunc
 zmathfunc
 
-typeset -gHa _autocomplete__func_opts=(
+typeset -ga _autocomplete__func_opts=(
   localoptions extendedglob clobber
   NO_aliases localloops pipefail NO_shortloops NO_unset warncreateglobal
 )
 setopt $_autocomplete__func_opts[@]
 
-typeset -gHa _autocomplete__comp_opts=( localoptions NO_banghist )
-typeset -gHa _autocomplete__ctxt_opts=( completealiases completeinword )
+typeset -ga _autocomplete__comp_opts=( localoptions NO_banghist )
+typeset -ga _autocomplete__ctxt_opts=( completealiases completeinword )
 
 .autocomplete.__init__.precmd() {
   # Workaround for https://github.com/zdharma/zinit/issues/366
@@ -87,11 +87,11 @@ local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
 (( $#older_than_a_week[@] )) &&
     zf_rm -f -- $older_than_a_week[@]
 local -P date=${(%):-%D{%F}}
-typeset -gH _autocomplete__log=$logdir/$date.log
-typeset -gH _autocomplete__log_async=$logdir/$date.async.log
-typeset -gH _autocomplete__log_pty=$logdir/$date.pty.log
+typeset -g _autocomplete__log=$logdir/$date.log
+typeset -g _autocomplete__log_async=$logdir/$date.async.log
+typeset -g _autocomplete__log_pty=$logdir/$date.pty.log
 
-typeset -gH _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
+typeset -g _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
 
 local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
