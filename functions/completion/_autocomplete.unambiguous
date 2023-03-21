@@ -23,7 +23,7 @@ _tags ||
 _requested $tag ||
     return
 
-typeset -gH _autocomplete__unambiguous="$compstate[unambiguous]"
+typeset -g _autocomplete__unambiguous="$compstate[unambiguous]"
 
 local -Pi nxt= prv=1
 local -P subs= cols=
