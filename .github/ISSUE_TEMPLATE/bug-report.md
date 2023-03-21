@@ -10,12 +10,11 @@ assignees: ''
 - [ ] I have carefully read all of the instructions in this issue template.
 - [ ] I have carried them out to the letter.
 
-Failure to do so can and will result in your issue being closed without warning.
+Failure to do so can result in your issue being closed.
 
 ## Environment
 ```zsh
-print $VENDOR $OSTYPE $SHELL $ZSH_ARGZERO $ZSH_PATCHLEVEL
-print -l $_autocomplete__funcfiletrace
+typeset -p1 VENDOR OSTYPE SHELL ZSH_ARGZERO ZSH_PATCHLEVEL _autocomplete__funcfiletrace
 git -C ~zsh-autocomplete log --oneline -n1
 ```
 
@@ -24,7 +23,7 @@ git -C ~zsh-autocomplete log --oneline -n1
 
 - [ ] I have filled out the fields above.
 - [ ] I have ran the commands in the code block above.
-- [ ] I have pasted their output into the same block. 
+- [ ] I have pasted their output into the same block.
 
 ## Steps to reproduce
 ```zsh
