@@ -196,7 +196,7 @@ EOF
         [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 && "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] &&
             return
 
-        if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
+        if [[ "$PREFIX" = \~* && ( $ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
           PREFIX="~(#a$_comp_correct)$PREFIX[2,-1]"
         else
           PREFIX="(#a$_comp_correct)$PREFIX"
