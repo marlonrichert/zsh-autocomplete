@@ -48,7 +48,6 @@ _autocomplete.history_lines() {
 
   local -aU displays=( "${(f)out}" )
 
-set -x
   local -P numpat='[[:blank:]]#(<->)[*[:blank:]][[:blank:]]'
   local -P groups="${(l:$(( 2 * $#words[CURRENT] ))::=0:):-}"
   _comp_colors=(
@@ -58,7 +57,7 @@ set -x
       "=(#b)${numpat}*=0=2"
       ${(M)_comp_colors:#ma=*}
   )
-set +x
+
   local -Pi list_lines=0
   if ! builtin zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines; then
     list_lines=16
