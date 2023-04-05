@@ -57,6 +57,7 @@ instead.
 | `main` | `emacs` | `vicmd` | `viins` | Action
 | -----: | ------: | ------: | ------: | -----:
 | | <kbd>Tab</kbd> | | <kbd>Tab</kbd> | Insert top completion
+| <kbd>Shift</kbd><kbd>Tab</kbd> | | | | Insert substring occuring in all listed completions
 | <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | |  Cursor up _-or-_ [History menu](#history-menu)
 | <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | | Cursor down _-or-_ Completion menu
 | <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Shift</kbd><kbd>N</kbd> | | History menu (always)

@@ -11,6 +11,10 @@ zmodload -F zsh/terminfo p:terminfo
   .autocomplete.key-binding.rebind main  expand-or-complete-prefix complete-word '\t'
   .autocomplete.key-binding.rebind main  menu-expand-or-complete   complete-word '\t'
 
+  local backtab=$terminfo[kcbt]
+  .autocomplete.key-binding.bound main "$backtab" undefined-key &&
+      .autocomplete.key-binding.bind main insert-unambiguous-or-complete "$backtab"
+
   .autocomplete.key-binding.bound main '\t' complete-word &&
       .autocomplete.key-binding.bind-menu accept-line '\t'
 
@@ -45,7 +49,7 @@ zmodload -F zsh/terminfo p:terminfo
 }
 
 .autocomplete.key-binding.bound() {
-  [[ $( builtin bindkey -M "$1" "$2" ) == \"[^[:space:]]##\"" $3" ]]
+  [[ $( builtin bindkey -M "$1" "$2" ) == \"[^[:space:]]##\"\ $3 ]]
 }
 
 .autocomplete.key-binding.rebind() {
