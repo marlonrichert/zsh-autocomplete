@@ -388,7 +388,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 
 .autocomplete.async.sufficient-input() {
   local min_input=
-  if ! builtin zstyle -s :autocomplete:$curcontext min-input min_input; then
+  if ! builtin zstyle -s ":autocomplete:${curcontext}:" min-input min_input; then
     if [[ $curcontext == *history-* ]]; then
       min_input=0
     else
@@ -397,7 +397,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   fi
 
   local ignored=
-  builtin zstyle -s :autocomplete:$curcontext ignored-input ignored
+  builtin zstyle -s ":autocomplete:${curcontext}:" ignored-input ignored
 
   if (( ${#words[@]} == 1 && ${#words[CURRENT]} < min_input )) ||
       [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
