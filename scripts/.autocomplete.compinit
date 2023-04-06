@@ -31,7 +31,7 @@ compdef() {
 
   typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
   typeset -g \
-      _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump}}
+      _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-~/.cache}/zsh/compdump}}
 
   if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete.command ]]; then
     zf_rm -f $_comp_dumpfile
