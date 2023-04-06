@@ -61,12 +61,11 @@ _autocomplete.history_lines() {
   local -Pi list_lines=0
   if ! builtin zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines; then
     list_lines=16
+    [[ $curcontext == *history-search-* ]] &&
+        list_lines=$(( 16 * list_lines ))
   fi
-  if [[ $curcontext == *history-search-* ]]; then
-    list_lines=$(( 16 * list_lines ))
-  else
-    list_lines=$(( min( list_lines, LINES - BUFFERLINES - 1 ) ))
-  fi
+  [[ $curcontext != *history-search-* ]] &&
+      list_lines=$(( min( list_lines, LINES - BUFFERLINES - 1 ) ))
 
   if [[ -o histfindnodups ]]; then
     local -Pa uniques=()
