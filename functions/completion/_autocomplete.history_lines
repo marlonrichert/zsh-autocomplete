@@ -40,13 +40,13 @@ _autocomplete.history_lines() {
   [[ $curcontext == *history-search-backward* ]] &&
       zle -R 'Loading...'
 
-  local -P out="$( fc -lrm "$lbuffer$query$rbuffer" -1 1 2> /dev/null )"
+  local -P output="$( fc -lrm "$lbuffer$query$rbuffer" -1 1 2> /dev/null )"
 
   # No results
-  [[ -n $out ]] ||
+  [[ -n $output ]] ||
       return
 
-  local -aU displays=( "${(f)out}" )
+  local -aU displays=( "${(f)output}" )
 
   local -P numpat='[[:blank:]]#(<->)[*[:blank:]][[:blank:]]'
   local -P groups="${(l:$(( 2 * $#words[CURRENT] ))::=0:):-}"
@@ -68,13 +68,16 @@ _autocomplete.history_lines() {
       list_lines=$(( min( list_lines, LINES - BUFFERLINES - 1 ) ))
 
   if [[ -o histfindnodups ]]; then
-    local -Pa uniques=()
-    while (( $#displays[@] && $#uniques[@] < list_lines )); do
-      (( uniques[(I)$~numpat${output[1]##$~numpat}] )) ||
-          uniques+=( "$output[1]" )
-      shift displays
+    local -PaU uniques=()
+    local -Pa lines=()
+    local -Pi i=0 size=0
+    for (( i = $#displays[@] ; i > 0 && size < list_lines ; i-- )); do
+      uniques+=( ${displays[i]##$~numpat} )
+      [[ $#uniques -gt $size ]] &&
+          lines+=( "$displays[i]" )
+      size=$#uniques
     done
-    displays=( "$uniques[@]" )
+    displays=( "${(aO)lines[@]}" )
   else
     [[ $#displays[@] -gt $list_lines ]] &&
         shift $(( $#displays[@] - list_lines )) displays
