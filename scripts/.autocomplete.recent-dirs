@@ -7,14 +7,10 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
     setopt autopushd pushdignoredups  # Set *global* shell options.
     builtin autoload -RUz chpwd_recent_filehandler
 
-    if ! builtin zstyle -s :chpwd: recent-dirs-file _; then
-      local -P old=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
-      local -P new=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/chpwd-recent-dirs
-      builtin zstyle ':chpwd:*' recent-dirs-file $new
-      [[ -e $old && ! -e $new ]] &&
-          zf_mv "$old" "$new"
-    fi
-    builtin zstyle -s :chpwd: recent-dirs-max _ ||
+    local __=''
+    builtin zstyle -s :chpwd: recent-dirs-file __ ||
+        builtin zstyle ':chpwd:*' recent-dirs-file ${XDG_DATA_HOME:-~/.local/share}/zsh/chpwd-recent-dirs
+    builtin zstyle -s :chpwd: recent-dirs-max __ ||
         builtin zstyle ':chpwd:*' recent-dirs-max 0
 
     if ! (( $#dirstack[@] )); then
