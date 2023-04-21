@@ -400,7 +400,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   builtin zstyle -s ":autocomplete:${curcontext}:" ignored-input ignored
 
   if (( ${#words[@]} == 1 && ${#words[CURRENT]} < min_input )) ||
-      [[ -n $words[CURRENT] && $words[CURRENT] == $~ignored ]]; then
+      [[ -n $ignored && $words[CURRENT] == $~ignored ]]; then
     compstate[list]=
     false
   else
