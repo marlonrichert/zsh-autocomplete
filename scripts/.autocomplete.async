@@ -428,7 +428,6 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   local -P _mesg_=$3
   shift 3
 
-  local +h -a comppostfuncs=( .autocomplete.async.list-choices.post "$comppostfuncs[@]" )
   if [[ -n $compstate[old_list] ]] && .autocomplete.async.same-state; then
     compstate[old_list]=keep
   elif [[ $_list_lines_ == 1 && -n $1 ]]; then
@@ -452,16 +451,18 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   typeset -gi _autocomplete__current=$CURRENT
   typeset -g _autocomplete__mesg=$_mesg_
 
+  # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after completing subscripts.
+  unset MENUSELECT MENUMODE
+  compstate[insert]=
+  _lastcomp[insert]=
+  if [[ -v _autocomplete__partial_list ]]; then
+    builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
+    _lastcomp[list_lines]=$compstate[list_lines]
+  fi
+
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.list-choices.completion-widget )
-
-.autocomplete.async.list-choices.post() {
-  [[ -v _autocomplete__partial_list ]] &&
-      builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
-  compstate[insert]=
-  unset MENUSELECT MENUMODE
-}
 
 .autocomplete.async.list-choices.main-complete() {
   {
