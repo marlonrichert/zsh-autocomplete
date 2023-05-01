@@ -1,29 +1,29 @@
 #autoload
 
 _autocomplete.history_lines() {
+  local -a match=() mbegin=() mend=()
 
   # Don't run more than once.
-  [[ $_matcher_num -eq 1  ]] ||
-      return
+  (( _matcher_num > 1 )) &&
+      return 1
 
   local -P lbuffer='' rbuffer=''
-  [[ $CURRENT -gt 1 ]] &&
+
+  (( CURRENT > 1 )) &&
       lbuffer="${(j.[[:blank:]]##.)${(@b)words[1,CURRENT-1]}}[[:blank:]]##"
-  [[ $CURRENT -lt $#words[@] ]] &&
+  (( CURRENT < $#words[@] )) &&
       rbuffer="[[:blank:]]##${(j.[[:blank:]]##.)${(@b)words[CURRENT+1,-1]}}"
   lbuffer="$lbuffer${(b)QIPREFIX}"
   rbuffer="${(b)QISUFFIX}$rbuffer"
 
-  local -P query='' pre='' post=''
-  if [[ -z $words[CURRENT] ]]; then
-    query='*'
-  else
+  local -P query=''
+  if [[ -n $words[CURRENT] ]]; then
     local -Pa includes=( "${(@s..b)^words[CURRENT]}" )
     local -Pa excludes=( "(|[^${(@s..b)^words[CURRENT]}\n;]#)" )
     local -Pa tokens=( ${(@)excludes:^includes} )
     query="((#l)$tokens[2]${(j..)tokens[3,-1]})"
 
-    local -P no_delim='[^\n;]#'
+    local -P no_delim='[^\n;]#' pre='' post=''
     if [[ -z $lbuffer ]]; then
       pre='*'
     else
@@ -34,21 +34,28 @@ _autocomplete.history_lines() {
     else
       post=$no_delim
     fi
+    query="(|$pre)$query$post"
+  else
+    query='()*'
   fi
-  query="(|$pre)$query$post"
 
-  [[ $curcontext == *history-search-backward* ]] &&
+  [[ $curcontext == *-incremental-* ]]
+  local -Pi is_incremental=$(( ! ? ))
+
+  # Non-incremental search potentially adds a lot of completions, which can be quite slow.
+  (( is_incremental )) ||
       zle -R 'Loading...'
 
+  # Using fc is way faster than using $history.
   local -P output="$( fc -lrm "$lbuffer$query$rbuffer" -1 1 2> /dev/null )"
 
   # No results
-  [[ -n $output ]] ||
-      return
+  [[ -z $output ]] &&
+      return 1
 
   local -aU displays=( "${(f)output}" )
-
   local -P numpat='[[:blank:]]#(<->)[*[:blank:]][[:blank:]]'
+
   local -P groups="${(l:$(( 2 * $#words[CURRENT] ))::=0:):-}"
   _comp_colors=(
       "=(#b)${numpat}${lbuffer}(${query})${rbuffer}${rbuffer:+[[:blank:]]#}=2=2=0=0=30;103$groups"
@@ -60,62 +67,87 @@ _autocomplete.history_lines() {
 
   local -Pi list_lines=0
   if ! builtin zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines; then
-    list_lines=16
-    [[ $curcontext == *history-search-* ]] &&
-        list_lines=$(( 16 * list_lines ))
+    if (( is_incremental )); then
+      (( list_lines = 16 ))
+    else
+      (( list_lines = 256 ))
+    fi
   fi
-  [[ $curcontext != *history-search-* ]] &&
-      list_lines=$(( min( list_lines, LINES - BUFFERLINES - 1 ) ))
+
+  local -Pi excess=0 max=0
+
+  if (( is_incremental )); then
+    # Don't overflow the available space.
+    (( list_lines = min( list_lines, LINES - BUFFERLINES - 1 ) ))
+
+    # Leave some room for bubbling up more relevant results.
+    (( max = 16 * $list_lines ))
+  else
+    (( max = list_lines ))
+  fi
+
+  local -Pi index=0
 
   if [[ -o histfindnodups ]]; then
     local -PaU uniques=()
     local -Pa lines=()
-    local -Pi i=0 size=0
-    for (( i = $#displays[@] ; i > 0 && size < list_lines ; i-- )); do
-      uniques+=( ${displays[i]##$~numpat} )
-      [[ $#uniques -gt $size ]] &&
-          lines+=( "$displays[i]" )
-      size=$#uniques
+    local -Pi size=0
+    for index in {$#displays[@]..1}; do
+      uniques+=( ${displays[index]##$~numpat} )
+      (( $#uniques[@] > size )) &&
+          lines+=( "$displays[index]" )
+      (( size = $#uniques ))
     done
     displays=( "${(aO)lines[@]}" )
   else
-    [[ $#displays[@] -gt $list_lines ]] &&
-        shift $(( $#displays[@] - list_lines )) displays
+    (( excess = $#displays[@] - max ))
+    (( excess )) &&
+        shift $excess displays
   fi
 
-  if [[ $curcontext != *history-search-* ]]; then
-    if [[ -z $words ]]; then
-      displays=( ${(@aO)displays} )
+  local -P pop=''
+  if (( is_incremental )); then
+    if [[ -n $words[CURRENT] ]]; then
+      # Fuzzy sort
+      local -Pi num=0
+      for index in {1..$#displays[@]}; do
+        num=${(SM)${(M)displays[index]##$~numpat}##<->}
+        displays[index]=${history[$num]:/(#b)$~lbuffer$~query$~rbuffer/$((
+                HISTNO + num - 2 * $#match[2] - mbegin[2]
+            ))}$'\0'$displays[index]
+      done
+      displays=( ${${(@nO)displays}[@]##<->$'\0'} )
     else
-      local -a match=() mbegin=() mend=()
-      local MATCH= MBEGIN= MEND=
-      displays=(
-          ${(@nO)displays[@]:/(#b)($~numpat$~lbuffer$~query*)/$((
-            match[2] - 2 * $#match[1] - 4 * mbegin[4] - 16 * $#match[4]
-          ))$'\0'$match[1]}
-      )
-      displays=( ${displays[@]#<->$'\0'} )
+      displays=( ${(@aO)displays} )
     fi
+    pop=-p
   fi
 
+  (( excess = $#displays[@] - list_lines ))
+  (( excess )) &&
+      shift $pop $excess displays
+
+  # To avoid wrapping, each completion should be one char less than terminal width.
   displays=( ${(@r:COLUMNS-1:)displays} )
 
   local -Pa matches=()
-  local -Pi index=0
   for index in "${(MS)displays[@]##<->}"; do
     matches+=( "${${history[$index]##$~lbuffer}%%$~rbuffer}" )
   done
 
   local -Pa suf=()
-  local -a expl=()
-  local _comp_no_ignore=1
-  if [[ $#words[@] -eq $CURRENT && $WIDGETSTYLE == *-select* ]]; then
-    suf=( -S ';' -R _autocomplete.history_lines.suffix )
-  else
-    suf=( -qS ' ' )
+  if (( $#words[@] == 1 )); then
+    if [[ $WIDGETSTYLE == *-select* ]]; then
+      # Enable mult-select.
+      suf=( -S ';' -R _autocomplete.history_lines.suffix )
+    else
+      suf=( -qS ' ' )
+    fi
   fi
 
   _comp_tags=history-lines
+  local _comp_no_ignore=1
+  local -a expl=()
   _description -2V $_comp_tags expl ''
   builtin compadd $suf -QU -ld displays "$expl[@]" -a matches
 }
