@@ -152,6 +152,13 @@ Try the steps in the
 The following are the most commonly requested ways to configure Autocomplete's
 behavior.  Add these to your `.zshrc` file to use them.
 
+### Pass arguments to `compinit`
+
+If necessary, you can let Autocomplete pass arguments to `compinit` as follows:
+```sh
+zstyle '*:compinit' arguments -D -i -u -C -w
+```
+
 ### Reassign <kbd>Tab</kbd>
 You can reassign <kbd>Tab</kbd> to do something else than the default.  This
 includes letting another plugin set it.  Here are two examples of what you can

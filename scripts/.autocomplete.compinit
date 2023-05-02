@@ -58,7 +58,9 @@ compdef() {
     bindkey() { : }
     {
       builtin autoload +X -Uz compinit
-      compinit -d $_comp_dumpfile
+      local -a compargs=()
+      zstyle -a ':autocomplete::compinit' arguments compargs
+      compinit -d "$_comp_dumpfile" "$compargs[@]"
     } always {
       unfunction bindkey
     }
