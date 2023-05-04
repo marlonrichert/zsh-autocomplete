@@ -4,8 +4,8 @@ zmodload -F zsh/terminfo p:terminfo
 local +h curcontext=${curcontext:-${WIDGET}:::}
 local +h -a comppostfuncs=( .autocomplete.complete-word.post "$comppostfuncs[@]" )
 
-if [[ $_lastcomp[tags] == history-lines && -z $compstate[old_list] ]]; then
-    autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
+if [[ -z $compstate[old_list] && $curcontext == history-incremental-search* ]]; then
+  autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
 elif [[ -z $compstate[old_list] ]] ||
     [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
     _autocomplete.should_insert_unambiguous; then
