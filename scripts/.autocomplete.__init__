@@ -85,11 +85,13 @@ local -P old_logdir=$xdg_data_home/zsh-autocomplete/log
     zf_rm -fr -- $old_logdir
 
 local -P logdir=${XDG_STATE_HOME:-$HOME/.local/state}/zsh-autocomplete/log
-local -P bug=$logdir
-while [[ -e $bug && ! -d $bug ]]; do
-  rm -f $bug
-  bug=${bug:h}
+
+local -P bug=
+for bug in ${logdir} ${logdir:h}; do
+  [[ -d $bug ]] ||
+      zf_rm -f $bug
 done
+
 zf_mkdir -p -- $logdir
 local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
 (( $#older_than_a_week[@] )) &&
