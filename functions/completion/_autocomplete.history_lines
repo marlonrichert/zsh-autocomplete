@@ -101,7 +101,7 @@ _autocomplete.history_lines() {
     displays=( "${(aO)lines[@]}" )
   else
     (( excess = $#displays[@] - max ))
-    (( excess )) &&
+    (( excess > 0 )) &&
         shift $excess displays
   fi
 
@@ -124,7 +124,7 @@ _autocomplete.history_lines() {
   fi
 
   (( excess = $#displays[@] - list_lines ))
-  (( excess )) &&
+  (( excess > 0 )) &&
       shift $pop $excess displays
 
   # To avoid wrapping, each completion should be one char less than terminal width.
