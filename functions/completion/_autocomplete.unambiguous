@@ -25,15 +25,6 @@ _requested $tag ||
 
 typeset -g _autocomplete__unambiguous="$compstate[unambiguous]"
 
-local -Pi nxt= prv=1
-local -P subs= cols=
-for nxt in ${(s.:.)compstate[unambiguous_positions]}; do
-  subs+='('${(b)compstate[unambiguous][prv,nxt]}')*'
-  cols+='=30;103'  # black foreground, bright yellow background
-  (( prv = ++nxt ))
-done
-
-ZLS_COLORS="=(#bi)*$subs=$cols:$ZLS_COLORS"
-builtin compadd -J "$tag" -x $'%{\e[0;2m%}common substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+builtin compadd -J "$tag" -x $'%{\e[0;2m%}%Bcommon substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
 
 false
