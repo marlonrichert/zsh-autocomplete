@@ -246,23 +246,23 @@ zstyle ':autocomplete:*' ignored-input '..##'
 ```
 
 ## Limit the number of lines shown
-Normally, Autocomplete will try to one half of the terminal's height with
-results, be it completions, the history menu or history search.  You can change
-this number of lines overall or for each of these individually:
-```zsh
-# Set the value for all.
-zstyle -e ':autocomplete:*' list-lines 'reply=( $(( LINES / 3 )) )'
+By default, Autocomplete let the history menu fill half of the screen, and limits autocompletion and history search
+to maximum of 16 lines.  You can change these limits as follows:
 
-# Override autocompletion.
+```zsh
+# Autocompletion
 zstyle -e ':autocomplete:list-choices:*' list-lines 'reply=( $(( LINES / 3 )) )'
 
-# Override history menu.
-zstyle ':autocomplete:history-search-backward:*' list-lines 16
-
 # Override history search.
-zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 16
+zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 8
+
+# History menu.
+zstyle ':autocomplete:history-search-backward:*' list-lines 256
 ```
-`zstle -e` creates a dynamic value.
+
+Note that for autocompletion and history search, the maximum number of lines is additionally capped to the number of
+lines that fit on screen.  However, there is no such limit for the history menu.  If that generates more lines than fit
+on screen, you can simply scroll upwards to see more.
 
 ### Reset history key bindings to Zsh default
 Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:

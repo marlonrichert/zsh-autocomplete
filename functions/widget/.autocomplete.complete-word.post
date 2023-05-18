@@ -37,17 +37,6 @@ if (( nmatches > 1 )); then
       typeset -gi MENUSELECT=0
   [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
       compstate[insert]='menu:'
-
-  # Determine which terminal line we'll be on (for async completion).
-  typeset -gi _autocomplete__buffer_start_line=$((
-      max(
-          BUFFERLINES,
-          min(
-              _autocomplete__buffer_start_line,
-              LINES - compstate[list_lines]
-          )
-      )
-  ))
 fi
 
 if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then

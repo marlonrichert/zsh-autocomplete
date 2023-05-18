@@ -64,28 +64,17 @@ _autocomplete.history_lines() {
       ${(M)_comp_colors:#ma=*}
   )
 
-  local -Pi list_lines=0
-  if ! builtin zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines; then
+  local -Pi excess= index= max= list_lines=
     if (( is_incremental )); then
-      (( list_lines = 16 ))
+    .autocomplete.async.list-choices.max-lines 16
+    (( list_lines = _autocomplete__max_lines ))
+    (( max = 16 * list_lines ))  # Buffer for bubbling up more relevant results.
     else
-      (( list_lines = 256 ))
-    fi
+    zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines ||
+        (( list_lines = $LINES / 2 ))
+    (( max = $list_lines ))
   fi
 
-  local -Pi excess=0 max=0
-
-  if (( is_incremental )); then
-    # Don't overflow the available space.
-    (( list_lines = min( list_lines, LINES - BUFFERLINES - 1 ) ))
-
-    # Leave some room for bubbling up more relevant results.
-    (( max = 16 * $list_lines ))
-  else
-    (( max = list_lines ))
-  fi
-
-  local -Pi index=0
 
   if [[ -o histfindnodups ]]; then
     local -PaU uniques=()
@@ -96,6 +85,8 @@ _autocomplete.history_lines() {
       (( $#uniques[@] > size )) &&
           lines+=( "$displays[index]" )
       (( size = $#uniques ))
+      (( size < max )) ||
+          break
     done
     displays=( "${(aO)lines[@]}" )
   else

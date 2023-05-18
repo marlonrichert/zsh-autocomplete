@@ -9,7 +9,6 @@ builtin autoload -RUz \
     add-zle-hook-widget \
     is-at-least
 
-typeset -gi _autocomplete__buffer_start_line=1
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 local -Pa log_functions=()
 
@@ -19,6 +18,7 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
           history-incremental-search-backward
+          .autocomplete.async.complete.fd-widget
       )
 
   local -PF delay=
@@ -33,7 +33,6 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   builtin zle -N .autocomplete.async.complete.fd-widget
   builtin zle -C ._list_choices list-choices .autocomplete.async.list-choices.completion-widget
 
-  add-zle-hook-widget line-init .autocomplete.async.read-cursor-position
   add-zle-hook-widget line-init .autocomplete.async.reset-context
   add-zle-hook-widget line-init .autocomplete.async.complete
 
@@ -43,53 +42,6 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   add-zle-hook-widget isearch-exit .autocomplete.async.isearch-exit
 
   add-zsh-hook zshexit .autocomplete.async.stop
-}
-
-.autocomplete.async.read-cursor-position() {
-  emulate -L zsh
-  # Cannot set strict shell options here, because other programs' async
-  # callbacks can interrupt the code and then get executed in the same context.
-  # See https://github.com/marlonrichert/zsh-autocomplete/issues/342
-
-  (( KEYS_QUEUED_COUNT || PENDING )) &&
-      return
-
-  # $MC_SID is set when we're in a subshell started by Midnight Commander.
-  # See https://github.com/marlonrichert/zsh-autocomplete/issues/269
-  if [[ -v MC_SID || ! ( -v terminfo[u6] && -v terminfo[u7] ) ]]; then
-    local -i max_lines=
-    builtin zstyle -s ":autocomplete:list-choices::::" list-lines max_lines ||
-        (( max_lines = LINES / 2 ))
-    typeset -gi _autocomplete__buffer_start_line=$(( min( max( LINES - max_lines, 1 ), LINES ) ))
-    return 0
-  fi
-
-  # Cursor position report (u6) always contains two %d markers.
-  local -Pa CPR=( "${(s:%d:)$( echoti u6 )}" )
-
-  # If there is a %i before the first %d, then decrement both %d values by 1.
-  local -Pi i=${${${(M)CPR[1]%'%i'}:+1}:-0}
-  CPR[1]=${CPR[1]%'%i'}
-
-  local REPLY=
-  local -P Y=
-  echoti u7  # Send cursor position request.
-
-  # Parse the cursor position report.
-  read -rsk $#CPR[1]  # Discard the preamble.
-  while [[ $REPLY != $CPR[2] ]]; do
-    read -rsk
-    Y+=$REPLY
-  done
-  Y="${Y%$CPR[2]}"  # Discard the separator.
-  Y=${(M)Y%%<->}    # Keep trailing digits only (to work around input pollution).
-
-  # Flush the rest.
-  while [[ $REPLY != $CPR[3] ]]; do
-    read -rsk
-  done
-
-  typeset -gi _autocomplete__buffer_start_line=$(( min( max( Y - i, 1 ), LINES ) ))
 }
 
 .autocomplete.async.history-incremental-search() {
@@ -320,13 +272,7 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
     }
 
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
-
-    if [[ $curcontext == *history-* ]]; then
-      autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
-    else
-      local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete
-    fi
   } always {
     typeset -gi _autocomplete__list_lines=$compstate[list_lines]
   }
@@ -438,13 +384,8 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     typeset -gF _autocomplete__async_avg_duration=$((
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
-    if [[ $curcontext == *history-* ]]; then
-      autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
-    else
-      local curcontext=list-choices:::
       .autocomplete.async.list-choices.main-complete
     fi
-  fi
 
   typeset -ga _autocomplete__comp_mesg=( "$@" )
   typeset -ga _autocomplete__words=( "$words[@]" )
@@ -463,24 +404,38 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.list-choices.completion-widget )
+# functions -t .autocomplete.async.list-choices.completion-widget
+
+.autocomplete.async.list-choices.max-lines() {
+  local -Pi max_lines=0
+  builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
+      max_lines=$1
+  _autocomplete__max_lines=$(( min( max_lines, LINES - BUFFERLINES - 1 ) ))
+}
 
 .autocomplete.async.list-choices.main-complete() {
-  {
-    local -i max_lines=
-    builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
-        (( max_lines = LINES / 2 ))
-    max_lines=$(( min( LINES - ( 1 + BUFFERLINES ), max_lines ) ))
-    local -Pi lines_below_buffer=$(( LINES - ( _autocomplete__buffer_start_line + BUFFERLINES ) ))
-    local -i _autocomplete__max_lines=$(( max( max_lines, lines_below_buffer ) ))
+  local -i _autocomplete__max_lines=0
+  if [[ $curcontext == *history-* ]]; then
     () {
       emulate -L zsh
       setopt $_autocomplete__func_opts[@]
 
+      autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
+    } "$@"
+  else
+  {
+    () {
+      emulate -L zsh
+      setopt $_autocomplete__func_opts[@]
+
+        local curcontext=list-choices:::
       [[ -v functions[compadd] ]] &&
           functions[autocomplete:async:compadd:old]="$functions[compadd]"
       functions[compadd]="$functions[.autocomplete.async.compadd]"
-      # functions -T compadd .autocomplete.compadd #_describe
+#       functions -t compadd .autocomplete.compadd #_describe
     } "$@"
+
+      .autocomplete.async.list-choices.max-lines 16
     autocomplete:_main_complete:new "$@"
   } always {
     unfunction compadd comptags 2> /dev/null
@@ -489,8 +444,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       unfunction autocomplete:async:compadd:old
     fi
   }
+  fi
 }
-# functions -T .autocomplete.async.list-choices.main-complete
 
 .autocomplete.async.compadd() {
   local -Pi _ret_=1
