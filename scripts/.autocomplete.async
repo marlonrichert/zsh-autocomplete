@@ -81,16 +81,16 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 
   typeset -g _autocomplete__region_highlight=( "$region_highlight[@]" )
 
+  .autocomplete.async.stop
+
   if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
     unset POSTDISPLAY
-    _zsh_autosuggest_fetch
   fi
 
-  # This means we're in the completion menu.
-  [[ $LASTWIDGET == .autocomplete.async.complete.fd-widget ]] &&
+  # Don't get triggered by asynchronous widgets.
+  if [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete.async.complete.fd-widget) ]]; then
       return
-
-  .autocomplete.async.stop
+  fi
 
   if (( REGION_ACTIVE )) ||
       [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
@@ -98,7 +98,8 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
     return 0
   fi
 
-  [[ $LASTWIDGET == (_complete_help|(|.)(describe-key-briefly|what-cursor-position|where-is)) ]] &&
+  [[ $LASTWIDGET ==
+        (_complete_help|(|.)(describe-key-briefly|(|.)(|reverse-)menu-complete|what-cursor-position|where-is)) ]] &&
       return
 
   [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
