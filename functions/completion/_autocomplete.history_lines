@@ -1,7 +1,6 @@
 #autoload
 
 _autocomplete.history_lines() {
-  local -a match=() mbegin=() mend=()
 
   # Don't run more than once.
   (( _matcher_num > 1 )) &&
@@ -105,22 +104,26 @@ _autocomplete.history_lines() {
         shift $excess displays
   fi
 
-  local -P pop=''
+  local -P pop=
   if (( is_incremental )); then
-    if [[ -n $words[CURRENT] ]]; then
-      # Fuzzy sort
+    pop=-p
+
+    if [[ -z $words[CURRENT] ]]; then
+      displays=( ${(@aO)displays} )
+
+    else
+      local -a match=() mbegin=() mend=()
       local -Pi num=0
+
+      # Fuzzy sort
       for index in {1..$#displays[@]}; do
         num=${(SM)${(M)displays[index]##$~numpat}##<->}
-        displays[index]=${history[$num]:/(#b)$~lbuffer$~query$~rbuffer/$((
-                HISTNO + num - 2 * $#match[2] - mbegin[2]
-            ))}$'\0'$displays[index]
+        displays[index]=${history[$num]:/(#b)$~lbuffer($~query)$~rbuffer/$((
+            HISTNO + num - 64 * $#match[3] - 16 * $#match[1] - 4 * mbegin[3]
+        ))}$'\0'$displays[index]
       done
       displays=( ${${(@nO)displays}[@]##<->$'\0'} )
-    else
-      displays=( ${(@aO)displays} )
     fi
-    pop=-p
   fi
 
   (( excess = $#displays[@] - list_lines ))
