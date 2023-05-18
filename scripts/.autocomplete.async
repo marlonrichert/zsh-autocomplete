@@ -89,7 +89,7 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 
   # Don't get triggered by asynchronous widgets.
   if [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete.async.complete.fd-widget) ]]; then
-      return
+    return
   fi
 
   if (( REGION_ACTIVE )) ||
@@ -127,7 +127,8 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
 .autocomplete.async.stop() {
   local fd=$_autocomplete__async_complete_fd
   unset _autocomplete__async_complete_fd
-  unset _autocomplete__mesg _autocomplete__comp_mesg _autocomplete__words _autocomplete__current
+  unset _autocomplete__mesg _autocomplete__comp_mesg
+  unset _autocomplete__current _autocomplete__curcontext _autocomplete__words
   if [[ $fd == <-> ]]; then
     builtin zle -F $fd 2> /dev/null
     exec {fd}<&-
@@ -356,11 +357,13 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 }
 
 .autocomplete.async.same-state() {
-  [[ $_autocomplete__words == $words && $_autocomplete__current == $CURRENT ]]
+  [[ $_autocomplete__curcontext == $curcontext && $_autocomplete__current == $CURRENT &&
+      $_autocomplete__words == $words ]]
 }
 
 .autocomplete.async.list-choices.completion-widget() {
-  unset _autocomplete__mesg _autocomplete__comp_mesg _autocomplete__words _autocomplete__current
+  unset _autocomplete__mesg _autocomplete__comp_mesg
+  unset _autocomplete__curcontext _autocomplete__current _autocomplete__words
 
   if [[ $1 != <->.<-> || $2 != <-> ]]; then
     compstate[list]=
@@ -386,11 +389,12 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
       .autocomplete.async.list-choices.main-complete
-    fi
+  fi
 
   typeset -ga _autocomplete__comp_mesg=( "$@" )
   typeset -ga _autocomplete__words=( "$words[@]" )
   typeset -gi _autocomplete__current=$CURRENT
+  typeset -g _autocomplete__curcontext=$curcontext
   typeset -g _autocomplete__mesg=$_mesg_
 
   # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after completing subscripts.
@@ -424,27 +428,27 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       autocomplete:_main_complete:new - history-lines _autocomplete.history_lines
     } "$@"
   else
-  {
-    () {
-      emulate -L zsh
-      setopt $_autocomplete__func_opts[@]
+    {
+      () {
+        emulate -L zsh
+        setopt $_autocomplete__func_opts[@]
 
         local curcontext=list-choices:::
-      [[ -v functions[compadd] ]] &&
-          functions[autocomplete:async:compadd:old]="$functions[compadd]"
-      functions[compadd]="$functions[.autocomplete.async.compadd]"
+        [[ -v functions[compadd] ]] &&
+            functions[autocomplete:async:compadd:old]="$functions[compadd]"
+        functions[compadd]="$functions[.autocomplete.async.compadd]"
 #       functions -t compadd .autocomplete.compadd #_describe
-    } "$@"
+      } "$@"
 
       .autocomplete.async.list-choices.max-lines 16
-    autocomplete:_main_complete:new "$@"
-  } always {
-    unfunction compadd comptags 2> /dev/null
-    if [[ -v functions[autocomplete:async:compadd:old] ]]; then
-      functions[compadd]="$functions[autocomplete:async:compadd:old]"
-      unfunction autocomplete:async:compadd:old
-    fi
-  }
+      autocomplete:_main_complete:new "$@"
+    } always {
+      unfunction compadd comptags 2> /dev/null
+      if [[ -v functions[autocomplete:async:compadd:old] ]]; then
+        functions[compadd]="$functions[autocomplete:async:compadd:old]"
+        unfunction autocomplete:async:compadd:old
+      fi
+    }
   fi
 }
 
@@ -472,7 +476,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
     if [[ -n $_opts_[-E] ]]; then
       typeset -p _tmpm _tmpd >&2
-        .autocomplete.compadd "$@"
+      .autocomplete.compadd "$@"
       return
 
     elif [[ -n $_opts_[-D] ]]; then
@@ -483,7 +487,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         set -A $_displ_name_
         return 1
 
-    else
+      else
         .autocomplete.compadd "$@"
         _ret_=$?
 
@@ -491,7 +495,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         _matches_=( ${(@PA)_matches_name_} )
 
         if (( $#_matches_[@] )); then
-            local -PaU _uniques_=( ${_displ_[@]#*:} )
+          local -PaU _uniques_=( ${_displ_[@]#*:} )
 
           local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - $#_uniques_[@] ) ))
           case $_lines_too_many in
@@ -504,7 +508,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
             .autocomplete.async.compadd.disable
           ;;
           esac
-      fi
+        fi
 
         return _ret_
       fi
