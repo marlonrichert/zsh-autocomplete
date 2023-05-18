@@ -449,12 +449,13 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
 .autocomplete.async.compadd() {
   local -Pi _ret_=1
+  local -P _displ_name_= _matches_name_=
 
   local -A _opts_=()
-  local -a _displ_=() _dopt_=() _groupname_=()
-  zparseopts -A _opts_ -E -- D: O: X: x: d+:=_dopt_ l
+  local -a _displ_=() _dopt_=() _groupname_=() _matches_=()
+  zparseopts -A _opts_ -E -- D: E: O: X: x: d+:=_dopt_ l
 
-  if [[ -v _opts_[-x] && $# == 2 ]]; then
+  if [[ -v _opts_[-x] && $# -eq 2 ]]; then
     .autocomplete.compadd "$@"
     return
   fi
@@ -468,36 +469,44 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
   if (( funcstack[(I)_describe] )); then
 
-    if [[ -z $_opts_[-D] ]]; then
+    if [[ -n $_opts_[-E] ]]; then
+      typeset -p _tmpm _tmpd >&2
         .autocomplete.compadd "$@"
+      return
 
-        return  #!
+    elif [[ -n $_opts_[-D] ]]; then
+      _displ_name_=$_opts_[-D]
+      _matches_name_=$_opts_[-O]
+
+      if [[ -v _autocomplete__partial_list ]]; then
+        set -A $_displ_name_
+        return 1
 
     else
-      _displ_name_=$_opts_[-D]
-
-      if ! [[ -v _autocomplete__partial_list ]]; then
         .autocomplete.compadd "$@"
         _ret_=$?
 
         _displ_=( ${(@PA)_displ_name_} )
+        _matches_=( ${(@PA)_matches_name_} )
 
-        if [[ -n $_displ_ ]]; then
+        if (( $#_matches_[@] )); then
             local -PaU _uniques_=( ${_displ_[@]#*:} )
 
-          _autocomplete__max_lines=$(( _avail_list_lines_ - $#_uniques_[@] ))
-          if (( _autocomplete__max_lines <= 0 )); then
-            set -A $_displ_name_ "${(@)${(@o)_displ_}[1,_avail_list_lines_]}"
-
+          local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - $#_uniques_[@] ) ))
+          case $_lines_too_many in
+          ( <1-> )
+            shift -p $_lines_too_many $_displ_name_
+            shift -p $_lines_too_many $_matches_name_
+          ;|
+          ( <0-> )
+            (( _autocomplete__max_lines -= _lines_too_many ))
             .autocomplete.async.compadd.disable
-          fi
-        fi
-      else
-        set -A $_displ_name_
-        _ret_=1
+          ;;
+          esac
       fi
 
-      return _ret_  #!
+        return _ret_
+      fi
     fi
   fi
 
@@ -526,8 +535,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
   typeset -p1 _dopt_ >&2
 
-  local -a _matches_=()
-  local -P _displ_name_=$_dopt_[2]
+  _displ_name_=$_dopt_[2]
   [[ -n $_displ_name_ ]] &&
       local -a _Dopt_=( -D $_displ_name_ )
 
@@ -565,8 +573,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   _autocomplete.compadd_opts_len "$@"
   .autocomplete.compadd $_dopt_ -a "$@[1,?]" _matches_
 
-} 2>>| $_autocomplete__log
-log_functions+=( .autocomplete.async.compadd )
+}
 
 .autocomplete.async.compadd.disable() {
   # Disable all further completions.
