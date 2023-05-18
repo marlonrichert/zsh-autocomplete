@@ -9,6 +9,7 @@ if [[ -z $compstate[old_list] && $curcontext == history-incremental-search* ]]; 
 elif [[ -z $compstate[old_list] ]] ||
     [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
     _autocomplete.should_insert_unambiguous; then
+  compstate[old_list]=
   autocomplete:_main_complete:new
 else
   compstate[old_list]=keep

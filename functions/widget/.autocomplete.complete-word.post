@@ -31,12 +31,20 @@ else
 fi
 
 if (( nmatches > 1 )); then
-  [[ $WIDGET == (|*-)search(|-*) ]] &&
-      MENUMODE=search-forward
-  [[ $WIDGETSTYLE == (|*-)select(|-*) ]] &&
-      typeset -gi MENUSELECT=0
-  [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
-      compstate[insert]='menu:'
+  if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
+    compstate[insert]='menu:'
+    if (( nmatches <= LINES - BUFFERLINES - 1 )); then
+      compstate[list]='list packed rows'
+    else
+      builtin zle -Rc
+    fi
+  fi
+  if [[ $WIDGET == (|*-)search(|-*) ]]; then
+    MENUMODE=search-forward
+  fi
+  if [[ $WIDGETSTYLE == (|*-)select(|-*) ]]; then
+    typeset -gi MENUSELECT=0
+  fi
 fi
 
 if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
