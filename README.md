@@ -123,7 +123,7 @@ To uninstall, remove `znap source marlonrichert/zsh-autocomplete` from your
 
 To update, do:
 ```zsh
-% git -C ~zsh-autocomplete pull
+% git -C ~autocomplete pull
 ```
 
 To uninstall, simply undo the installation steps above in reverse order:

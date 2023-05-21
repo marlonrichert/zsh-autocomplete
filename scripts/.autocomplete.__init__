@@ -61,11 +61,11 @@ if ! [[ -n $basedir && -d $basedir ]]; then
   print -u2 -- 'autocomplete: Failed to find plugin dir. Aborting.'
   return 66
 fi
-hash -d zsh-autocomplete=$basedir
-typeset -gU FPATH fpath=( ~zsh-autocomplete/functions/completion $fpath[@] )
+hash -d autocomplete=$basedir zsh-autocomplete=$basedir
+typeset -gU FPATH fpath=( ~autocomplete/functions/completion $fpath[@] )
 
 local -Pa funcs=(
-    ~zsh-autocomplete/functions{,/widget}/.autocomplete.*~*.zwc(N-.:P)
+    ~autocomplete/functions{,/widget}/.autocomplete.*~*.zwc(N-.:P)
 )
 if ! (( $#funcs )); then
   print -u2 -- 'autocomplete: Failed to find function files. Aborting.'
@@ -93,13 +93,16 @@ for bug in ${logdir} ${logdir:h}; do
 done
 
 zf_mkdir -p -- $logdir
+hash -d autocomplete-log=$logdir
+
 local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
 (( $#older_than_a_week[@] )) &&
     zf_rm -f -- $older_than_a_week[@]
-local -P date=${(%):-%D{%F}}
-typeset -g _autocomplete__log=$logdir/$date.log
-typeset -g _autocomplete__log_async=$logdir/$date.async.log
-typeset -g _autocomplete__log_pty=$logdir/$date.pty.log
+
+local -P log= date=${(%):-%D{%F}}
+for log in '' _async _pty; do
+  typeset -g _autocomplete__log${log}=${logdir}/${date}${log}.log
+done
 
 typeset -g _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
 
@@ -110,7 +113,7 @@ local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 local -P mod=
 for mod in compinit config widget key-binding recent-dirs async; do
   if builtin zstyle -T ":autocomplete:$mod" enabled; then
-    builtin autoload +X -Uz ~zsh-autocomplete/scripts/.autocomplete.$mod
+    builtin autoload +X -Uz ~autocomplete/scripts/.autocomplete.$mod
     {
       .autocomplete.$mod "$@"
     } always {
