@@ -409,7 +409,6 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log
 log_functions+=( .autocomplete.async.list-choices.completion-widget )
-# functions -t .autocomplete.async.list-choices.completion-widget
 
 .autocomplete.async.list-choices.max-lines() {
   local -Pi max_lines=0
@@ -419,7 +418,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 }
 
 .autocomplete.async.list-choices.main-complete() {
-  local -i _autocomplete__max_lines=0
+  local -i _autocomplete__max_lines=0 _autocomplete__described_lines=0
   if [[ $curcontext == *history-* ]]; then
     () {
       emulate -L zsh
@@ -437,7 +436,8 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         [[ -v functions[compadd] ]] &&
             functions[autocomplete:async:compadd:old]="$functions[compadd]"
         functions[compadd]="$functions[.autocomplete.async.compadd]"
-#       functions -t compadd .autocomplete.compadd #_describe
+        [[ -v DEBUG ]] &&
+            functions -T compadd .autocomplete.compadd _describe
       } "$@"
 
       .autocomplete.async.list-choices.max-lines 16
@@ -461,29 +461,23 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   zparseopts -A _opts_ -E -- D: E: O: X: x: d+:=_dopt_ l
 
   if [[ -v _opts_[-x] && $# -eq 2 ]]; then
+    # Adding a message only.
     .autocomplete.compadd "$@"
     return
   fi
 
+  # -X and -x are titles.
   local -Pi _avail_list_lines_=$((
-      max(
-          0,
-          _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines]
-      )
+      max( 0, _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines] )
   ))
 
   if (( funcstack[(I)_describe] )); then
 
-    if [[ -n $_opts_[-E] ]]; then
-      typeset -p _tmpm _tmpd >&2
-      .autocomplete.compadd "$@"
-      return
-
-    elif [[ -n $_opts_[-D] ]]; then
+    if [[ -n $_opts_[-D] ]]; then
       _displ_name_=$_opts_[-D]
       _matches_name_=$_opts_[-O]
 
-      if [[ -v _autocomplete__partial_list ]]; then
+      if (( _autocomplete__described_lines >= _autocomplete__max_lines )); then
         set -A $_displ_name_
         return 1
 
@@ -494,27 +488,31 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         _displ_=( ${(@PA)_displ_name_} )
         _matches_=( ${(@PA)_matches_name_} )
 
-        if (( $#_matches_[@] )); then
+        if (( $#_displ_[@] )); then
           local -PaU _uniques_=( ${_displ_[@]#*:} )
-
           local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - $#_uniques_[@] ) ))
-          case $_lines_too_many in
-          ( <1-> )
-            shift -p $_lines_too_many $_displ_name_
-            shift -p $_lines_too_many $_matches_name_
-          ;|
-          ( <0-> )
-            (( _autocomplete__max_lines -= _lines_too_many ))
-            .autocomplete.async.compadd.disable
-          ;;
-          esac
+
+          (( _lines_too_many > 0 )) &&
+              shift -p $_lines_too_many $_displ_name_ $_matches_name_
+
+          (( _autocomplete__described_lines += ${(@PA)#_displ_name_} ))
         fi
 
         return _ret_
       fi
+
+    elif [[ -n $_opts_[-E] ]]; then
+      # End of describe loop. It will now add matches in a special way. Can't interfere with this or it will break.
+      (( _autocomplete__described_lines = 0 ))  # Done with this _describe loop.
+      .autocomplete.compadd "$@"
+      return
     fi
+
+    # If neither of those are true, then _describe is doing normal completion.
+    (( _autocomplete__described_lines = 0 ))
   fi
 
+  # Deleting or collecting completions, but not actually adding them.
   if [[ -n $_opts_[-D]$_opts_[-O] ]]; then
     .autocomplete.compadd "$@"
     return
@@ -524,9 +522,9 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       return 1
 
   local -Pi _resulting_list_lines="$(
-              .autocomplete.compadd "$@"
-              print -nr -- $compstate[list_lines]
-          )"
+      .autocomplete.compadd "$@"
+      print -nr -- $compstate[list_lines]
+  )"
   local -Pi _new_list_lines_=$(( _resulting_list_lines - $compstate[list_lines] ))
   local -Pi _remaining_list_lines=$(( _avail_list_lines_ - _new_list_lines_ ))
 
@@ -538,13 +536,11 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     return
   fi
 
-  typeset -p1 _dopt_ >&2
-
   _displ_name_=$_dopt_[2]
   [[ -n $_displ_name_ ]] &&
       local -a _Dopt_=( -D $_displ_name_ )
 
-  # Collect all matching completions and remove the display strings of those that don't match.
+  # Collect all matching completions and, if present, remove the display strings of those that don't match.
   .autocomplete.compadd -O _matches_ $_Dopt_ "$@"
 
   if [[ -z $_displ_name_ ]]; then
@@ -556,20 +552,17 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
   local -Pi _nmatches_per_line_=$(( 1.0 * $#_matches_ / _new_list_lines_ ))
 
   if (( _nmatches_per_line_ < 1 )); then
-    # If we need more than one line per match, then make each match fit on one line.
+    # If we need more than one line per match, then make each match fit exactly one line.
     _nmatches_per_line_=1
-
     _dopt_=( -l "$_dopt_[@]" )
 
-    # WORKAROUND: Display strings that are exactly $COLUMNS wide are mistakenly
-    # counted as spanning two lines, causing the dreaded
-    # `zsh: do you wish to see all XX possibilities (YY lines)?`
+    # WORKAROUND: Display strings that are exactly $COLUMNS wide are mistakenly counted as spanning two lines, causing
+    # the dreaded `zsh: do you wish to see all XX possibilities (YY lines)?`
     set -A $_displ_name_ ${(@r:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
   fi
 
   # Need to round this down _before_ subtracting or it will be effectively rounded up.
   local -Pi _nmatches_that_fit_=$(( _avail_list_lines_ * _nmatches_per_line_ ))
-
   local -Pi _nmatches_to_remove_=$(( $#_matches_ - _nmatches_that_fit_ ))
 
   (( _nmatches_to_remove_ > 0 )) &&
