@@ -105,13 +105,6 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
       builtin zle -Rc
 
-  if [[ $_lastcomp[insert] == *unambiguous ]]; then
-    local -a nolast=()
-    is-at-least 5.9 &&
-        nolast=( -f nolast )
-    builtin zle .auto-suffix-retain $nolast  # Make the cursor stay in the right place.
-  fi
-
   .autocomplete.async.start
   return 0
 }
@@ -385,6 +378,8 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   elif [[ $_list_lines_ == 1 && -n $_mesg_ ]]; then
     builtin compadd -x "$_mesg_"
   else
+    compstate[insert]=
+    compstate[pattern_insert]=
     typeset -gF _autocomplete__async_avg_duration=$((
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
@@ -401,6 +396,8 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
   unset MENUSELECT MENUMODE
   compstate[insert]=
   _lastcomp[insert]=
+  compstate[pattern_insert]=
+  _lastcomp[pattern_insert]=
   if [[ -v _autocomplete__partial_list ]]; then
     builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
     _lastcomp[list_lines]=$compstate[list_lines]

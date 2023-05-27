@@ -5,7 +5,11 @@ unset MENUMODE MENUSELECT
 compstate[insert]=
 compstate[list]=
 compstate[restore]=
-compstate[to_end]=${${_completer:/prefix/}:+always}
+if [[ $_completer == _prefix ]]; then
+  compstate[to_end]=
+else
+  compstate[to_end]='always'
+fi
 
 if _autocomplete.should_insert_unambiguous; then
 
