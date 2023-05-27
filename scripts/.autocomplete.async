@@ -490,7 +490,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
         if (( $#_displ_[@] )); then
           local -PaU _uniques_=( ${_displ_[@]#*:} )
-          local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - $#_uniques_[@] ) ))
+          local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - _autocomplete__described_lines - $#_uniques_[@] ) ))
 
           (( _lines_too_many > 0 )) &&
               shift -p $_lines_too_many $_displ_name_ $_matches_name_
