@@ -178,44 +178,44 @@ EOF
     (( compstate[nmatches] > nmatches ))
   }
 
+
+  ##
+  # WORKAROUND: _approximate won't do corrections if there already is a function called 'compadd'.
+  #
+
   .autocomplete.patch _approximate
   _approximate() {
-    [[ -z $words[CURRENT] || -v compstate[quote] ]] &&
-        return 1
-    [[ -o banghist && $words[CURRENT] == [$histchars]* ]] &&
-        return 1
-    _autocomplete.is_glob &&
-        return 1
-
-    local -Pi ret=1
     {
       [[ -v functions[compadd] ]] &&
-          functions[autocomplete:_approximate:compadd:old]=$functions[compadd]
+          functions[autocomplete:compadd:old]="$functions[compadd]"
+      functions[compadd]="$functions[autocomplete:approximate:compadd]"
 
-      compadd() {
-        local -P ppre="$argv[(I)-p]"
-
-        [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 && "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] &&
-            return
-
-        if [[ "$PREFIX" = \~* && ( $ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
-          PREFIX="~(#a$_comp_correct)$PREFIX[2,-1]"
-        else
-          PREFIX="(#a$_comp_correct)$PREFIX"
-        fi
-
-        builtin compadd "$@"
-      }
-
-      autocomplete:_approximate:old "$@"
-      ret=$?
-      _lastdescr=( ${_lastdescr[@]:#corrections} )
+      autocomplete:_approximate:old
     } always {
-      if [[ -v functions[autocomplete:_approximate:compadd:old] ]]; then
-        functions[compadd]=$functions[autocomplete:_approximate:compadd:old]
-        unfunction autocomplete:_approximate:compadd:old
+      unfunction compadd 2> /dev/null
+      if [[ -v functions[autocomplete:compadd:old] ]]; then
+        functions[compadd]="$functions[autocomplete:compadd:old]"
+        unfunction autocomplete:compadd:old
       fi
     }
-    return ret
+  }
+
+  autocomplete:approximate:compadd() {
+    local ppre="$argv[(I)-p]"
+
+    [[ ${argv[(I)-[a-zA-Z]#U[a-zA-Z]#]} -eq 0 &&
+       "${#:-$PREFIX$SUFFIX}" -le _comp_correct ]] && return
+
+    if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
+      PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
+        else
+      PREFIX="(#a${_comp_correct})$PREFIX"
+        fi
+
+    if [[ -v functions[autocomplete:compadd:old] ]]; then
+      autocomplete:compadd:old "$@"
+    else
+        builtin compadd "$@"
+      fi
   }
 }
