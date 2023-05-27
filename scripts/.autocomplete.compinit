@@ -107,39 +107,8 @@ EOF
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
 
-    {
-      () {
-        emulate -L zsh
-        setopt $_autocomplete__func_opts[@]
-
-        if ! (( funcstack[(I).autocomplete.async.list-choices.main-complete] )); then
-          [[ -v functions[compadd] ]] &&
-              functions[autocomplete:compadd:old]="$functions[compadd]"
-          functions[compadd]="$functions[.autocomplete.compadd]"
-        fi
-      } "$@"
-
-      local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
-      autocomplete:_main_complete:old "$@"
-    } always {
-      unfunction compadd 2> /dev/null
-      if [[ -v functions[autocomplete:compadd:old] ]]; then
-        functions[compadd]="$functions[autocomplete:compadd:old]"
-        unfunction autocomplete:compadd:old
-      fi
-    }
-  }
-
-  # Add support for coloring file types to _expand.
-  # TODO: Might be added a future version of zsh.
-  .autocomplete.compadd() {
-    if [[ $_completer == expand* ]]; then
-      [[ $@[-1] == space && $#space[@] -eq 1 ]] &&
-          space=( ${(q+)${(Q)space}} )
-      builtin compadd -fW "${${${words[CURRENT]:#[~/]*}:+$PWD/}:-/}" "$@"
-    else
-      builtin compadd "$@"
-    fi
+    local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
+    autocomplete:_main_complete:old "$@"
   }
 
   autocomplete:_main_complete:new:post() {
@@ -173,8 +142,7 @@ EOF
         _autocomplete.ancestor_dirs "$@" ||
             _autocomplete.recent_paths "$@"
 
-    # Work around the fact that some completion functions mistakenly don't
-    # return 0 when they have succeeded.
+    # WORKAROUND: Some completion functions mistakenly don't return 0 when they have succeeded.
     (( compstate[nmatches] > nmatches ))
   }
 
@@ -208,14 +176,14 @@ EOF
 
     if [[ "$PREFIX" = \~* && ( ppre -eq 0 || "$argv[ppre+1]" != \~* ) ]]; then
       PREFIX="~(#a${_comp_correct})${PREFIX[2,-1]}"
-        else
+    else
       PREFIX="(#a${_comp_correct})$PREFIX"
-        fi
+    fi
 
     if [[ -v functions[autocomplete:compadd:old] ]]; then
       autocomplete:compadd:old "$@"
     else
-        builtin compadd "$@"
-      fi
+      builtin compadd "$@"
+    fi
   }
 }

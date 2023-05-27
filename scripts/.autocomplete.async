@@ -75,7 +75,7 @@ builtin zle -N history-incremental-search-backward .autocomplete.async.history-i
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  # #549: Work around bug in zdharma/fast-syntax-highlighting.
+  # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
   [[ -v _FAST_MAIN_CACHE ]] &&
       _zsh_highlight
 
@@ -263,7 +263,6 @@ log_functions+=( .autocomplete.async.pty.zle-widget.inner )
       }
       autocomplete:_message:old "$@"
       unfunction zformat
-      functions[compadd]="$functions[.autocomplete.compadd]"
     }
 
     local +h -a comppostfuncs=( .autocomplete.async.pty.message )
@@ -289,6 +288,9 @@ log_functions+=( .autocomplete.async.pty.completion-widget.inner )
   local -i fd=$1
   {
     builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
+
+    [[ -v DEBUG ]] &&
+      set -x -o localoptions
 
     # Ensure our input will not be stopped.
     unset _autocomplete__async_complete_fd
@@ -355,6 +357,9 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
 }
 
 .autocomplete.async.list-choices.completion-widget() {
+  [[ -v DEBUG ]] &&
+    set -x -o localoptions
+
   unset _autocomplete__mesg _autocomplete__comp_mesg
   unset _autocomplete__curcontext _autocomplete__current _autocomplete__words
 
@@ -383,7 +388,7 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     typeset -gF _autocomplete__async_avg_duration=$((
         .1 * _seconds_ + .9 * _autocomplete__async_avg_duration
     ))
-      .autocomplete.async.list-choices.main-complete
+    .autocomplete.async.list-choices.main-complete
   fi
 
   typeset -ga _autocomplete__comp_mesg=( "$@" )
@@ -402,6 +407,9 @@ log_functions+=( .autocomplete.async.complete.fd-widget.inner )
     builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
     _lastcomp[list_lines]=$compstate[list_lines]
   fi
+
+  [[ -v DEBUG ]] &&
+      typeset -m _lastcomp >&2
 
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log
@@ -433,8 +441,9 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         [[ -v functions[compadd] ]] &&
             functions[autocomplete:async:compadd:old]="$functions[compadd]"
         functions[compadd]="$functions[.autocomplete.async.compadd]"
+
         [[ -v DEBUG ]] &&
-            functions -T compadd .autocomplete.compadd _describe
+            functions -T compadd _describe
       } "$@"
 
       .autocomplete.async.list-choices.max-lines 16
@@ -459,7 +468,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
   if [[ -v _opts_[-x] && $# -eq 2 ]]; then
     # Adding a message only.
-    .autocomplete.compadd "$@"
+    builtin compadd "$@"
     return
   fi
 
@@ -479,7 +488,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
         return 1
 
       else
-        .autocomplete.compadd "$@"
+        builtin compadd "$@"
         _ret_=$?
 
         _displ_=( ${(@PA)_displ_name_} )
@@ -501,7 +510,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
     elif [[ -n $_opts_[-E] ]]; then
       # End of describe loop. It will now add matches in a special way. Can't interfere with this or it will break.
       (( _autocomplete__described_lines = 0 ))  # Done with this _describe loop.
-      .autocomplete.compadd "$@"
+      builtin compadd "$@"
       return
     fi
 
@@ -511,7 +520,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
 
   # Deleting or collecting completions, but not actually adding them.
   if [[ -n $_opts_[-D]$_opts_[-O] ]]; then
-    .autocomplete.compadd "$@"
+    builtin compadd "$@"
     return
   fi
 
@@ -519,7 +528,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       return 1
 
   local -Pi _resulting_list_lines="$(
-      .autocomplete.compadd "$@"
+      builtin compadd "$@"
       print -nr -- $compstate[list_lines]
   )"
   local -Pi _new_list_lines_=$(( _resulting_list_lines - $compstate[list_lines] ))
@@ -529,7 +538,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       .autocomplete.async.compadd.disable
 
   if (( _remaining_list_lines >= 0 )); then
-    .autocomplete.compadd "$@"
+    builtin compadd "$@"
     return
   fi
 
@@ -538,7 +547,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       local -a _Dopt_=( -D $_displ_name_ )
 
   # Collect all matching completions and, if present, remove the display strings of those that don't match.
-  .autocomplete.compadd -O _matches_ $_Dopt_ "$@"
+  builtin compadd -O _matches_ $_Dopt_ "$@"
 
   if [[ -z $_displ_name_ ]]; then
     _displ_=( "$_matches_[@]" )
@@ -566,8 +575,7 @@ log_functions+=( .autocomplete.async.list-choices.completion-widget )
       shift -p $_nmatches_to_remove_ _matches_ $_displ_name_
 
   _autocomplete.compadd_opts_len "$@"
-  .autocomplete.compadd $_dopt_ -a "$@[1,?]" _matches_
-
+  builtin compadd $_dopt_ -a "$@[1,?]" _matches_
 }
 
 .autocomplete.async.compadd.disable() {
