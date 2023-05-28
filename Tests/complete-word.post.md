@@ -1,6 +1,6 @@
 Setup:
 ```zsh
-% source .clitest/__init__.zsh
+% source Tests/__init__.zsh
 % typeset -gA compstate=() _lastcomp=()
 % typeset -ga comptags=()
 % zstyle ':autocomplete:*' add-space 'FOO' 'BAR'

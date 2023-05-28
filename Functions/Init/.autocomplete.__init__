@@ -56,23 +56,7 @@ typeset -ga _autocomplete__ctxt_opts=( completealiases completeinword )
   true
 }
 
-local -P basedir=${${(%):-%x}:P:h:h}
-if ! [[ -n $basedir && -d $basedir ]]; then
-  print -u2 -- 'autocomplete: Failed to find plugin dir. Aborting.'
-  return 66
-fi
-hash -d autocomplete=$basedir zsh-autocomplete=$basedir
-typeset -gU FPATH fpath=( ~autocomplete/functions/completion $fpath[@] )
-
-local -Pa funcs=(
-    ~autocomplete/functions{,/widget}/.autocomplete.*~*.zwc(N-.:P)
-)
-if ! (( $#funcs )); then
-  print -u2 -- 'autocomplete: Failed to find function files. Aborting.'
-  return 66
-fi
-unfunction $funcs[@]:t 2> /dev/null
-builtin autoload -UWz $funcs[@]
+typeset -gU FPATH fpath=( ~autocomplete/Completions $fpath[@] )
 
 local -P xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 
@@ -112,14 +96,9 @@ local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 
 local -P mod=
 for mod in compinit config widget key-binding recent-dirs async; do
-  if builtin zstyle -T ":autocomplete:$mod" enabled; then
-    builtin autoload +X -Uz ~autocomplete/scripts/.autocomplete.$mod
-    {
+  builtin zstyle -T ":autocomplete:$mod" enabled &&
       .autocomplete.$mod "$@"
-    } always {
-      unfunction .autocomplete.$mod
-    }
-  fi
+  unfunction .autocomplete.$mod
 done
 
 add-zsh-hook precmd .autocomplete.__init__.precmd
