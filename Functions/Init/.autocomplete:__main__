@@ -18,46 +18,6 @@ typeset -ga _autocomplete__ctxt_opts=( completealiases completeinword )
 
 typeset -ga _autocomplete__mods=( compinit config widgets key-bindings recent-dirs async )
 
-${0}:precmd() {
-  # Workaround for https://github.com/zdharma/zinit/issues/366
-  # NOTE: Needs to come before _everything_ else!
-  [[ -v functions[.zinit-shade-off] ]] &&
-      .zinit-shade-off "${___mode:-load}"
-  [[ -v functions[.zinit-tmp-subst-off] ]] &&
-      .zinit-tmp-subst-off "${___mode:-load}"
-
-  add-zsh-hook -d precmd $0
-  unfunction $0
-
-  () {
-    emulate -L zsh
-    setopt $_autocomplete__func_opts[@]
-
-    # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
-    if builtin zstyle -L zle-hook types > /dev/null; then
-      local -P hook=
-      for hook in \
-          zle-{isearch-{exit,update},line-{pre-redraw,init,finish},history-line-set,keymap-select}
-      do
-        [[ -v widgets[$hook] &&
-              $widgets[$hook] == user:_zsh_highlight_widget_orig-s*-r<->-$hook ]] &&
-            builtin zle -N $hook azhw:$hook
-      done
-    fi
-  }
-
-  local -P mod=
-  for mod in $_autocomplete__mods; do
-    mod=.autocomplete:${mod}:precmd
-    if [[ -v functions[$mod] ]]; then
-      $mod
-      unfunction $mod
-    fi
-  done
-
-  true
-}
-
 typeset -gU FPATH fpath=( ~autocomplete/Completions $fpath[@] )
 
 local -P xdg_data_home=${XDG_DATA_HOME:-$HOME/.local/share}
@@ -104,3 +64,42 @@ for mod in $_autocomplete__mods; do
 done
 
 add-zsh-hook precmd ${0}:precmd
+${0}:precmd() {
+  # Workaround for https://github.com/zdharma/zinit/issues/366
+  # NOTE: Needs to come before _everything_ else!
+  [[ -v functions[.zinit-shade-off] ]] &&
+      .zinit-shade-off "${___mode:-load}"
+  [[ -v functions[.zinit-tmp-subst-off] ]] &&
+      .zinit-tmp-subst-off "${___mode:-load}"
+
+  add-zsh-hook -d precmd $0
+  unfunction $0
+
+  () {
+    emulate -L zsh
+    setopt $_autocomplete__func_opts[@]
+
+    # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
+    if builtin zstyle -L zle-hook types > /dev/null; then
+      local -P hook=
+      for hook in \
+          zle-{isearch-{exit,update},line-{pre-redraw,init,finish},history-line-set,keymap-select}
+      do
+        [[ -v widgets[$hook] &&
+              $widgets[$hook] == user:_zsh_highlight_widget_orig-s*-r<->-$hook ]] &&
+            builtin zle -N $hook azhw:$hook
+      done
+    fi
+  }
+
+  local -P mod=
+  for mod in $_autocomplete__mods; do
+    mod=.autocomplete:${mod}:precmd
+    if [[ -v functions[$mod] ]]; then
+      $mod
+      unfunction $mod
+    fi
+  done
+
+  true
+}

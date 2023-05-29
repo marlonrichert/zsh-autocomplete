@@ -4,21 +4,6 @@ zmodload -Fa zsh/zutil b:zstyle
 typeset -g ZLE_REMOVE_SUFFIX_CHARS=$' /;\n\r\t'
 typeset -g ZLE_SPACE_SUFFIX_CHARS='|&<>-+'
 
-.autocomplete:config:precmd() {
-  typeset -g _comp_setup="$_comp_setup"';
-      [[ $_comp_caller_options[globdots] == yes ]] && setopt globdots'
-
-  # Remove incompatible settings.
-  local -P key= setting=
-  for key in menu list-prompt; do
-    for setting in ${(f)"$( zstyle -L '*' $key )"}; do
-      eval "${setting/zstyle(| -e)/zstyle -d}"
-    done
-  done
-  builtin zstyle ':completion:*:*:*:*:default' menu no no-select
-  unset LISTPROMPT
-}
-
 builtin zstyle ':completion:*' use-cache yes
 builtin zstyle -e ':completion:*' cache-path autocomplete:config:cache-path
 autocomplete:config:cache-path() {
@@ -133,3 +118,18 @@ builtin zstyle ':completion:*' separate-sections yes
 # Needed for _gnu_generic to prevent descriptions from getting cropped.
 is-at-least 5.9 ||
     builtin zstyle ':completion:*' command '- COLUMNS=999'
+
+.autocomplete:config:precmd() {
+  typeset -g _comp_setup="$_comp_setup"';
+      [[ $_comp_caller_options[globdots] == yes ]] && setopt globdots'
+
+  # Remove incompatible settings.
+  local -P key= setting=
+  for key in menu list-prompt; do
+    for setting in ${(f)"$( zstyle -L '*' $key )"}; do
+      eval "${setting/zstyle(| -e)/zstyle -d}"
+    done
+  done
+  builtin zstyle ':completion:*:*:*:*:default' menu no no-select
+  unset LISTPROMPT
+}

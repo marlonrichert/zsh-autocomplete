@@ -4,6 +4,19 @@ typeset -ga _autocomplete__suggest_ignore_widgets=()
 typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
+${0}:c() {
+  _autocomplete__suggest_ignore_widgets+=( $1 )
+  builtin zle -C "$1" "$2" .autocomplete:${3}:completion-widget
+}
+
+${0}:z() {
+  builtin zle -N "$1" .autocomplete:${2}:zle-widget
+}
+
+${0}:z   up-line-or-search{,}
+${0}:z down-line-or-select{,}
+${0}:z history-search{-backward,}
+
 ${0}:precmd() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
@@ -31,16 +44,3 @@ ${0}:precmd() {
   unset _autocomplete__suggest_ignore_widgets
   unfunction ${0}:{c,z}
 }
-
-${0}:c() {
-  _autocomplete__suggest_ignore_widgets+=( $1 )
-  builtin zle -C "$1" "$2" .autocomplete:${3}:completion-widget
-}
-
-${0}:z() {
-  builtin zle -N "$1" .autocomplete:${2}:zle-widget
-}
-
-${0}:z   up-line-or-search{,}
-${0}:z down-line-or-select{,}
-${0}:z history-search{-backward,}
