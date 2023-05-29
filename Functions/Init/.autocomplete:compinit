@@ -17,7 +17,7 @@ compdef() {
       ${(%):-%N} "$@"
     }
 
-.autocomplete.compinit.precmd() {
+.autocomplete:compinit:precmd() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
@@ -32,27 +32,19 @@ compdef() {
   typeset -g \
       _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump}}
 
-  if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete.command ]]; then
+  if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete__command ]]; then
     zf_rm -f $_comp_dumpfile
   else
-    local -Pa compfuncfiles=( ~autocomplete/Completions/_autocomplete.*~*.zwc(N-.) )
 
-    if ! (( $#compfuncfiles )); then
-      print -u2 -- 'autocomplete: Failed to find completion function files. Aborting.'
-      return 66
+    # Check if our most recently modified completion function is newer than the comp dump file.
+    local -Pa newest=( ~autocomplete/Completions/_*~*.zwc(N-.omY1) )
+    if [[ $newest[1] -nt $_comp_dumpfile ]]; then
+      zf_rm -f $_comp_dumpfile
+      break
     fi
-
-    # Check if any of our function files are newer than the comp dump file.
-    local -P f=
-    for f in $compfuncfiles[@]; do
-      if [[ -v functions[$f:t] && $f -nt $_comp_dumpfile ]]; then
-        zf_rm -f $_comp_dumpfile
-        break
-      fi
-    done
   fi
 
-  if ! [[ -v _comp_setup && -r $_comp_dumpfile ]]; then
+  if [[ ! -v _comp_setup ]] || [[ ! -r $_comp_dumpfile ]]; then
     unfunction compdef compinit 2> /dev/null
     bindkey() { : }
     {
@@ -95,7 +87,7 @@ EOF
   ) &|
 
   # Workaround: Some other plugins rely on patching _main_complete, which can interfere with our completion.
-  .autocomplete.patch _main_complete
+  .autocomplete:patch _main_complete
   autocomplete:_main_complete:new() {
     local -i _autocomplete__reserved_lines=0
     local -Pi ret=1
@@ -113,14 +105,14 @@ EOF
   autocomplete:_main_complete:new:post() {
     [[ $WIDGET != _complete_help ]] &&
         unfunction compadd 2> /dev/null
-    _autocomplete.unambiguous
+    _autocomplete__unambiguous
     compstate[list_max]=0
     MENUSCROLL=0
   }
 
-  .autocomplete.patch _expand
+  .autocomplete:patch _expand
   _expand() {
-    if _autocomplete.is_glob; then
+    if _autocomplete__is_glob; then
       compstate[pattern_insert]=   # compstate[insert]=unambiguous won't work without this.
       compstate[pattern_match]=\*  # Append * to the pattern.
 
@@ -131,15 +123,15 @@ EOF
     autocomplete:_expand:old "$@"
   }
 
-  .autocomplete.patch _complete
+  .autocomplete:patch _complete
   _complete() {
     local -i nmatches=$compstate[nmatches]
 
     PREFIX=$PREFIX$SUFFIX
     SUFFIX=
     autocomplete:_complete:old "$@" ||
-        _autocomplete.ancestor_dirs "$@" ||
-            _autocomplete.recent_paths "$@"
+        _autocomplete__ancestor_dirs "$@" ||
+            _autocomplete__recent_paths "$@"
 
     # WORKAROUND: Some completion functions mistakenly don't return 0 when they have succeeded.
     (( compstate[nmatches] > nmatches ))
@@ -150,7 +142,7 @@ EOF
   # WORKAROUND: _approximate won't do corrections if there already is a function called 'compadd'.
   #
 
-  .autocomplete.patch _approximate
+  .autocomplete:patch _approximate
   _approximate() {
     {
       [[ -v functions[compadd] ]] &&

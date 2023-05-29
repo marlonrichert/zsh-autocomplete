@@ -1,7 +1,7 @@
 #autoload
 zmodload -F zsh/parameter p:functions
 
-_autocomplete.recent_paths() {
+_autocomplete__recent_paths() {
   (( compstate[nmatches] )) &&
       return 1
 
@@ -17,7 +17,7 @@ _autocomplete.recent_paths() {
         +autocomplete:recent-$tag "$PREFIX$SUFFIX"; then
       files=( "$reply[@]" )
       _description -V recent-$tag expl 'recent directory'
-      .autocomplete.recent_paths.add $files[@] &&
+      _autocomplete__recent_paths_add $files[@] &&
           ret=0
     fi
   done
@@ -25,13 +25,13 @@ _autocomplete.recent_paths() {
   return ret
 }
 
-.autocomplete.recent_paths.add() {
+_autocomplete__recent_paths_add() {
   local -a displ=() matches=( "$@" )
   builtin compadd "$expl[@]" -D matches -- "$@:t"
   displ=( "${(@D)matches}" )
   zformat -a displ '' $^displ':'
 
-  .autocomplete.recent_paths.trim
+  _autocomplete__recent_paths_trim
 
   local -Pi ret=1
 
@@ -48,7 +48,7 @@ _autocomplete.recent_paths() {
 }
 
 # Workaround to prevent the prompt from jumping
-.autocomplete.recent_paths.trim() {
+_autocomplete__recent_paths_trim() {
   local -P total="${(j:/  :)displ}/  "
   while (( $#total > COLUMNS )); do
     shift -p -- displ matches
@@ -56,4 +56,4 @@ _autocomplete.recent_paths() {
   done
 }
 
-_autocomplete.recent_paths "$@"
+_autocomplete__recent_paths "$@"

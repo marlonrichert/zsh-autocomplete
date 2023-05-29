@@ -4,7 +4,7 @@ zmodload -Fa zsh/zutil b:zstyle
 typeset -g ZLE_REMOVE_SUFFIX_CHARS=$' /;\n\r\t'
 typeset -g ZLE_SPACE_SUFFIX_CHARS='|&<>-+'
 
-.autocomplete.config.precmd() {
+.autocomplete:config:precmd() {
   typeset -g _comp_setup="$_comp_setup"';
       [[ $_comp_caller_options[globdots] == yes ]] && setopt globdots'
 
@@ -29,7 +29,7 @@ builtin zstyle ':completion:*' completer _expand _complete _prefix _ignored _cor
 
 builtin zstyle    ':completion:*:expand:*' tag-order '! expansions original' -
 builtin zstyle    ':completion:*:expand:*' accept-exact continue
-builtin zstyle -e ':completion:*:expand:*' glob _autocomplete.is_glob
+builtin zstyle -e ':completion:*:expand:*' glob _autocomplete__is_glob
 builtin zstyle    ':completion:*:expand:*' keep-prefix no  # Needed for file type highlighting
 builtin zstyle    ':completion:*:expand:*' add-space subst
 builtin zstyle -e ':completion:*:expand:*' substitute autocomplete:config:substitute:expand

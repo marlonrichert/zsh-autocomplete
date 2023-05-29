@@ -2,7 +2,7 @@
 zmodload -Fa zsh/files b:zf_mv b:zf_mkdir
 zmodload -F zsh/parameter p:commands p:dirstack p:functions
 
-.autocomplete.recent-dirs.precmd() {
+.autocomplete:recent-dirs:precmd() {
   if [[ ! -v functions[+autocomplete:recent-directories] ]]; then
     setopt autopushd pushdignoredups  # Set *global* shell options.
     builtin autoload -RUz chpwd_recent_filehandler

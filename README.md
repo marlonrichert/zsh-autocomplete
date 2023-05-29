@@ -16,7 +16,7 @@ features.
 
 ### Optimized completion config
 Zsh's completion system is powerful, but hard to configure.  So, let
-Autocomplete [do it for you](scripts/.autocomplete.config), while providing a
+Autocomplete [do it for you](Functions/Init/.autocomplete:config), while providing a
 manageable list of [configuration settings](#configuration) for changing the
 defaults.
 
@@ -231,16 +231,20 @@ will do so if you add a backend for it:
 ```
 
 ### Start each new line in history search mode
+This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd> at the start of each new command line:
 ```zsh
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
 
 ### Wait with autocompletion until typing stops for a certain amount of seconds
+Normally, Autocomplete starts fetching completions immediately whenever the command line changes.  You can optionally
+delay this until you've stopped typing for a certain amount of time:
 ```zsh
-zstyle ':autocomplete:*' min-delay 0.05  # seconds (float)
+zstyle ':autocomplete:*' delay 0.05  # seconds (float)
 ```
 
-### Don't show completion for current word, if it consists of two or more dots
+### Don't show completions if the current word matches a pattern
+For example, this will stop completions from showing whenver the current word consists of two or more dots:
 ```zsh
 zstyle ':autocomplete:*' ignored-input '..##'
 ```

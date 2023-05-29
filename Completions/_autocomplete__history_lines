@@ -1,6 +1,6 @@
 #autoload
 
-_autocomplete.history_lines() {
+_autocomplete__history_lines() {
 
   # Don't run more than once.
   (( _matcher_num > 1 )) &&
@@ -66,7 +66,7 @@ _autocomplete.history_lines() {
 
   local -Pi excess= index= max= list_lines=
     if (( is_incremental )); then
-    .autocomplete.async.list-choices.max-lines 16
+    .autocomplete:async:list-choices:max-lines 16
     (( list_lines = _autocomplete__max_lines ))
     (( max = 16 * list_lines ))  # Buffer for bubbling up more relevant results.
     else
@@ -133,7 +133,7 @@ _autocomplete.history_lines() {
   if (( $#words[@] == 1 )); then
     if [[ $WIDGETSTYLE == *-select* ]]; then
       # Enable mult-select.
-      suf=( -S ';' -R _autocomplete.history_lines.suffix )
+      suf=( -S ';' -R _autocomplete__history_lines_suffix )
     else
       suf=( -qS ' ' )
     fi
@@ -146,9 +146,9 @@ _autocomplete.history_lines() {
   builtin compadd $suf -QU -ld displays "$expl[@]" -a matches
 }
 
-_autocomplete.history_lines.suffix() {
+_autocomplete__history_lines_suffix() {
   [[ $KEYS[-1] != $'\C-@' ]] &&
       LBUFFER=$LBUFFER[1,-1-$1]
 }
 
-_autocomplete.history_lines "$@"
+_autocomplete__history_lines "$@"

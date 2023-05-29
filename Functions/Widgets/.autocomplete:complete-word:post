@@ -11,7 +11,7 @@ else
   compstate[to_end]='always'
 fi
 
-if _autocomplete.should_insert_unambiguous; then
+if _autocomplete__should_insert_unambiguous; then
 
   [[ $WIDGETSTYLE == (|*-)menu(|-*) ]] &&
       compstate[insert]='automenu-'

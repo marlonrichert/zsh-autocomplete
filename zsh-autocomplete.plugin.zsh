@@ -15,6 +15,6 @@
 
   local basedir=${${(%):-%x}:P:h}
   hash -d autocomplete=$basedir zsh-autocomplete=$basedir
-  builtin autoload +X -Uz ~autocomplete/Functions/**/.autocomplete.*~*.zwc(D-.)
-  .autocomplete.__init__ "$@"
+  builtin autoload +X -Uz ~autocomplete/Functions/**/.autocomplete:*~*.zwc(D-:)
+  .autocomplete:__main__ "$@"
 }

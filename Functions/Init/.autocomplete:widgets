@@ -4,21 +4,23 @@ typeset -ga _autocomplete__suggest_ignore_widgets=()
 typeset -g ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
-.autocomplete.widget.precmd() {
+${0}:precmd() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
+
+  0=${0%:*}
 
   # Create all completion widgets here, to avoid getting them wrapped by
   # Autosuggest or Syntax Highlighting.
 
   local -P tab_style=
   for tab_style in complete-word menu-complete menu-select; do
-    .autocomplete.widget.c "$tab_style" "$tab_style" complete-word
+    ${0}:c "$tab_style" "$tab_style" complete-word
   done
-  .autocomplete.widget.c {,}reverse-menu-complete            complete-word
-  .autocomplete.widget.c insert-unambiguous-or-complete   {,}complete-word
-  .autocomplete.widget.c menu-search             menu-select complete-word
-  .autocomplete.widget.c history-search-backward menu-select history-search
+  ${0}:c {,}reverse-menu-complete            complete-word
+  ${0}:c insert-unambiguous-or-complete   {,}complete-word
+  ${0}:c menu-search             menu-select complete-word
+  ${0}:c history-search-backward menu-select history-search
 
   # Autosuggestions otherwise makes $WIDGETSTYLE disappear
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
@@ -27,18 +29,18 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
       )
 
   unset _autocomplete__suggest_ignore_widgets
-  unfunction .autocomplete.widget.c .autocomplete.widget.z
+  unfunction ${0}:{c,z}
 }
 
-.autocomplete.widget.c() {
+${0}:c() {
   _autocomplete__suggest_ignore_widgets+=( $1 )
-  builtin zle -C "$1" "$2" .autocomplete.$3.completion-widget
+  builtin zle -C "$1" "$2" .autocomplete:${3}:completion-widget
 }
 
-.autocomplete.widget.z() {
-  builtin zle -N "$1" .autocomplete.$2.zle-widget
+${0}:z() {
+  builtin zle -N "$1" .autocomplete:${2}:zle-widget
 }
 
-.autocomplete.widget.z   up-line-or-search{,}
-.autocomplete.widget.z down-line-or-select{,}
-.autocomplete.widget.z history-search{-backward,}
+${0}:z   up-line-or-search{,}
+${0}:z down-line-or-select{,}
+${0}:z history-search{-backward,}
