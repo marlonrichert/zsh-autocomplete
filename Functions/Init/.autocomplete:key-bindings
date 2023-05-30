@@ -98,7 +98,7 @@ ${0}:precmd() {
   ${0}:rebind emacs history-incremental-search-backward{,}         '^R'
   ${0}:bind-menu    history-incremental-search-backward            '^R'
   ${0}:rebind emacs history-incremental-search-forward menu-search '^S'
-  ${0}:bind-menu    history-incremental-search-backward            '^S'
+  ${0}:bind-menu    history-incremental-search-forward             '^S'
 
   ${0}:rebind vicmd {vi-history,history-incremental}-search-backward '/'
   ${0}:rebind vicmd  vi-history-search-forward         menu-search   '?'
