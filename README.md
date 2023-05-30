@@ -237,10 +237,9 @@ zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
 
 ### Wait with autocompletion until typing stops for a certain amount of seconds
-Normally, Autocomplete starts fetching completions immediately whenever the command line changes.  You can optionally
-delay this until you've stopped typing for a certain amount of time:
+Normally, Autocomplete fetches completions after you stop typing for about 0.05 seconds. You can change this as follows:
 ```zsh
-zstyle ':autocomplete:*' delay 0.05  # seconds (float)
+zstyle ':autocomplete:*' delay 0.1  # seconds (float)
 ```
 
 ### Don't show completions if the current word matches a pattern
