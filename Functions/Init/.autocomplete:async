@@ -179,8 +179,10 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
       local -a reply=()
       local text=
 
-      # WORKAROUND: #441 Directly using $(( [#10] 100 * max( 0, seconds - SECONDS ) ) )) leads to 0 in Zsh 5.9, as the
-      # result of max() gets converted to an integer _before_ being multiplied.
+      # WORKAROUND: #441 Directly using
+      # $(( [#10] 100 * max( 0, seconds - SECONDS ) ) ))
+      # leads to 0 in Zsh 5.9, as the result of max() gets converted to an
+      # integer _before_ being multiplied.
       builtin zstyle -s :autocomplete: timeout seconds ||
           seconds=0.5
       local -i timeout=$(( 100 * max( 0, seconds - SECONDS ) ))
@@ -188,11 +190,14 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
           zpty -r AUTOCOMPLETE text $'*\C-B'
 
     } always {
-      zpty -w AUTOCOMPLETE $'\C-C\C-D'  # Tell the shell to stop what it's doing and exit.
+      # Press ^C twice: Once to abort completion, then once to abort the command
+      # line. Then exit the shell with ^D.
+      zpty -w AUTOCOMPLETE $'\C-C\C-C\C-D'
       zpty -d AUTOCOMPLETE
     }
   } always {
-    # Always produce output, so we always reach the callback, so we can close the fd.
+    # Always produce output, so we always reach the callback, so we can close
+    # the fd.
     print -rNC1 -- "$SECONDS" "${text%$'\0\C-B'}"
   }
 }
