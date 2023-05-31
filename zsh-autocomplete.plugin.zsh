@@ -10,11 +10,18 @@
       .zinit-tmp-subst-off "${___mode:-load}"
 
   zmodload zsh/param/private
-  setopt completeinword NO_flowcontrol NO_listbeep NO_singlelinezle
+
+  typeset -ga _autocomplete__func_opts=(
+    localoptions extendedglob clobber
+    NO_aliases localloops pipefail NO_shortloops NO_unset warncreateglobal
+  )
+  setopt $_autocomplete__func_opts[@]
+
   typeset -ga _autocomplete__funcfiletrace=( $funcfiletrace )
 
   local basedir=${${(%):-%x}:P:h}
   hash -d autocomplete=$basedir zsh-autocomplete=$basedir
+
   builtin autoload +X -Uz ~autocomplete/Functions/**/.autocomplete:*~*.zwc(D-:)
   .autocomplete:__main__ "$@"
 }
