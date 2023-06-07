@@ -59,6 +59,9 @@ done
 
 add-zsh-hook precmd ${0}:precmd
 ${0}:precmd() {
+  # WORKAROUND: For hook functions in Zsh 5.8, $0 can be something else than the function name.
+  0=${(%):-%N}
+
   add-zsh-hook -d precmd $0
   unfunction $0
 
