@@ -10,9 +10,6 @@ builtin autoload -RUz \
     is-at-least
 
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
-local -Pa log_functions=()
-
-builtin zle -N history-incremental-search-backward .autocomplete:async:history-incremental-search
 
 .autocomplete:async:precmd() {
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
@@ -23,20 +20,21 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
 
   # Start names with `.` to avoid getting wrapped by syntax highlighting.
   builtin zle -N .autocomplete:async:pty:zle-widget
-  builtin zle -C .autocomplete:async:pty:completion-widget list-choices \
-      .autocomplete:async:pty:completion-widget
+  builtin zle -C .autocomplete:async:pty:completion-widget list-choices .autocomplete:async:pty:completion-widget
+
   builtin zle -N .autocomplete:async:complete:fd-widget
+  builtin zle -N .autocomplete:async:wait:fd-widget
+
   builtin zle -C ._list_choices list-choices .autocomplete:async:list-choices:completion-widget
 
-  add-zle-hook-widget line-init .autocomplete:async:reset-context
-  add-zle-hook-widget line-init .autocomplete:async:complete
+  builtin zle -N history-incremental-search-backward .autocomplete:async:history-incremental-search
 
+  add-zle-hook-widget line-init .autocomplete:async:reset-context
   add-zle-hook-widget line-pre-redraw .autocomplete:async:complete
   add-zle-hook-widget line-finish .autocomplete:async:clear
+
   add-zle-hook-widget isearch-update .autocomplete:async:isearch-update
   add-zle-hook-widget isearch-exit .autocomplete:async:isearch-exit
-
-  add-zsh-hook zshexit .autocomplete:async:stop
 }
 
 .autocomplete:async:history-incremental-search() {
@@ -45,15 +43,16 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   else
     typeset -g curcontext=${WIDGET}:::
   fi
-  .autocomplete:async:start
+  .autocomplete:async:complete
 }
 
 .autocomplete:async:reset-context() {
-  .autocomplete:async:stop
+  .autocomplete:async:reset-state
 
-  local context
-  builtin zstyle -s :autocomplete: default-context context
-  typeset -g curcontext=$context
+  typeset -g curcontext=
+  builtin zstyle -s :autocomplete: default-context curcontext
+
+  .autocomplete:async:complete
   return 0
 }
 
@@ -66,75 +65,136 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   unset _autocomplete__isearch
 }
 
-.autocomplete:async:complete() {
-  .autocomplete:zle-flags $LASTWIDGET
+.autocomplete:async:save-state() {
+  typeset -g \
+      _autocomplete__curcontext=$context \
+      _autocomplete__lbuffer="$LBUFFER" \
+      _autocomplete__rbuffer="$RBUFFER"
+}
 
-  [[ -v DEBUG ]] &&
-    set -x -o localoptions
+.autocomplete:async:same-state() {
+  [[ -v _autocomplete__curcontext && $_autocomplete__curcontext == $context &&
+      -v _autocomplete__lbuffer && $_autocomplete__lbuffer == $LBUFFER &&
+      -v _autocomplete__rbuffer && $_autocomplete__rbuffer == $RBUFFER ]]
+}
+
+.autocomplete:async:reset-state() {
+  unset \
+      _autocomplete__curcontext \
+      _autocomplete__lbuffer \
+      _autocomplete__rbuffer
+}
+
+.autocomplete:async:complete() {
+  .autocomplete:zle-flags $LASTWIDGET ||
+      return 0
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
+  {
+    if [[ -v DEBUG ]]; then
+      set -x -o localoptions
+      local +h PS4=$_autocomplete__ps4
+    fi
 
-  # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
-  [[ -v _FAST_MAIN_CACHE ]] &&
-      _zsh_highlight
+    # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
+    [[ -v _FAST_MAIN_CACHE ]] &&
+        _zsh_highlight
 
-  typeset -g _autocomplete__region_highlight=( "$region_highlight[@]" )
+    typeset -g _autocomplete__region_highlight=( "$region_highlight[@]" )
 
-  if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
-    unset POSTDISPLAY
-  fi
+    if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
+      unset POSTDISPLAY
+    fi
 
-  [[ -v _autocomplete__lbuffer || -v _autocomplete__rbuffer ]] &&
+    # Completion already started
+    [[ -v _autocomplete__lbuffer || -v _autocomplete__rbuffer ]] &&
+        return 0
+
+    # Don't get triggered by asynchronous widgets.
+    if [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete:async:*:fd-widget) ]]; then
       return 0
+    fi
 
-  # Don't get triggered by asynchronous widgets.
-  if [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete:async:complete:fd-widget) ]]; then
-    return 0
-  fi
-
-  if (( REGION_ACTIVE )) ||
-      [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
-    builtin zle -Rc
-    return 0
-  fi
-
-  [[ $LASTWIDGET ==
-        (_complete_help|(|.)(describe-key-briefly|(|.)(|reverse-)menu-complete|what-cursor-position|where-is)) ]] &&
-      return
-
-  [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
+    if (( REGION_ACTIVE )) ||
+        [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
       builtin zle -Rc
+      return 0
+    fi
 
-  .autocomplete:async:start
+    [[ $LASTWIDGET ==
+          (_complete_help|(|.)(describe-key-briefly|(|.)(|reverse-)menu-complete|what-cursor-position|where-is)) ]] &&
+        return
+
+    [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
+        builtin zle -Rc
+
+    .autocomplete:async:wait
+
+    set +x
+  } 2>>| $_autocomplete__log
+
   return 0
 }
 
 .autocomplete:async:clear() {
-  builtin zle -Rc
-  unset _autocomplete__isearch
+  unset curcontext _autocomplete__isearch
   .autocomplete:async:reset-context
+  builtin zle -Rc
   return 0
 }
 
-.autocomplete:async:stop() {
-  unset _autocomplete__mesg _autocomplete__comp_mesg
-  unset _autocomplete__current _autocomplete__curcontext _autocomplete__words
-  unset _autocomplete__lbuffer _autocomplete__rbuffer
-  local fd=$1
-  if [[ $fd == <-> ]]; then
+.autocomplete:async:wait() {
+  local fd=
+
+  .autocomplete:async:save-state
+
+  sysopen -r -o cloexec -u fd <(
+    local -F seconds=
+    if builtin zstyle -s :autocomplete: delay seconds ||
+        builtin zstyle -s :autocomplete: min-delay seconds; then
+      (( seconds = max( 0.0, seconds ) ))
+    else
+      (( seconds = KEYTIMEOUT / 1000.0 ))
+    fi
+    zselect -t $(( [#10] 100 * seconds ))
+    print
+  )
+  builtin zle -Fw "$fd" .autocomplete:async:wait:fd-widget
+
+  return 0
+}
+
+.autocomplete:async:wait:fd-widget() {
+  {
+    local -i fd=$1
+    builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
     exec {fd}<&-
-  fi
+    .autocomplete:zle-flags
+
+    {
+      if [[ -v DEBUG ]]; then
+        set -x -o localoptions
+        local +h PS4=$_autocomplete__ps4
+      fi
+
+      if .autocomplete:async:same-state; then
+        .autocomplete:async:start
+      else
+        .autocomplete:async:wait
+      fi
+      set +x
+    } 2>>| $_autocomplete__log
+  }
+  return 0
 }
 
 .autocomplete:async:start() {
-  typeset -g _autocomplete__lbuffer="$LBUFFER" _autocomplete__rbuffer="$RBUFFER"
+  .autocomplete:async:save-state
 
   local fd=
   sysopen -r -o cloexec -u fd <(
-    setopt promptsubst
-    PS4=$_autocomplete__ps4
-    .autocomplete:async:start:inner
+    .autocomplete:async:start:inner 2>>| $_autocomplete__log
   )
   builtin zle -Fw "$fd" .autocomplete:async:complete:fd-widget
 
@@ -144,15 +204,11 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
 }
 
 .autocomplete:async:start:inner() {
-  [[ -v DEBUG ]] &&
-    set -x -o localoptions
   {
-    local -F seconds=
-
-    builtin zstyle -s :autocomplete: delay seconds ||
-        builtin zstyle -s :autocomplete: min-delay seconds ||
-        (( seconds = 0.05 ))
-    zselect -t $(( [#10] 100 * seconds ))
+    if [[ -v DEBUG ]]; then
+      set -x
+      PS4=$_autocomplete__ps4
+    fi
 
     typeset -F SECONDS=0
 
@@ -184,15 +240,16 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
       # leads to 0 in Zsh 5.9, as the result of max() gets converted to an
       # integer _before_ being multiplied.
       builtin zstyle -s :autocomplete: timeout seconds ||
-          seconds=0.5
+          (( seconds = 10.0 * KEYTIMEOUT / 1000.0 ))
       local -i timeout=$(( 100 * max( 0, seconds - SECONDS ) ))
-      zselect -rt $timeout "$fd" &&
-          zpty -r AUTOCOMPLETE text $'*\C-B'
-
+      if zselect -rt $timeout "$fd"; then
+        zpty -r AUTOCOMPLETE text $'*\C-B'
+      else
+        # Press ^C twice: Once to abort completion, then once to abort the command line.
+        # Then exit the shell with ^D.
+        zpty -wn AUTOCOMPLETE $'\C-C\C-C\C-D'
+      fi
     } always {
-      # Press ^C twice: Once to abort completion, then once to abort the command
-      # line. Then exit the shell with ^D.
-      zpty -w AUTOCOMPLETE $'\C-C\C-C\C-D'
       zpty -d AUTOCOMPLETE
     }
   } always {
@@ -203,6 +260,12 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
 }
 
 .autocomplete:async:pty() {
+  if [[ -v DEBUG ]]; then
+    functions -T .autocomplete:async:pty:zle-widget
+    set -x -o localoptions
+    PS4=$_autocomplete__ps4
+  fi
+
   # Make sure this shell dies after it times out.
   local -F seconds=
   builtin zstyle -s :autocomplete: timeout seconds ||
@@ -212,23 +275,20 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   builtin bindkey $'\C-@' .autocomplete:async:pty:zle-widget
   local __tmp__=
   builtin vared __tmp__
-}
+} 2>>| $_autocomplete__log
 
 .autocomplete:async:pty:no-op() {
   :
 }
 
 .autocomplete:async:pty:zle-widget() {
-  .autocomplete:async:pty:zle-widget:inner "$@"
-}
+  local -a _autocomplete__comp_mesg=()
+  local -i _autocomplete__list_lines=0
+  local _autocomplete__mesg=
 
-.autocomplete:async:pty:zle-widget:inner() {
-  [[ -v DEBUG ]] &&
-    set -x -o localoptions
-
-  # The completion widget sometimes returns without calling its function. So, we need to print all
-  # our control characters here, to ensure we don't end up waiting endlessly to read them.
   {
+    # The completion widget sometimes returns without calling its function. So, we need to print all
+    # our control characters here, to ensure we don't end up waiting endlessly to read them.
     print -n -- '\C-A'
     LBUFFER=$_autocomplete__lbuffer
     RBUFFER=$_autocomplete__rbuffer
@@ -236,94 +296,90 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
     setopt $_autocomplete__comp_opts[@]
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
-    builtin zle .autocomplete:async:pty:completion-widget -w 2>>| $_autocomplete__log_pty
+
+    [[ -v DEBUG ]] &&
+        functions -T .autocomplete:async:pty:completion-widget
+
+    builtin zle .autocomplete:async:pty:completion-widget -w 2>>| $_autocomplete__log
   } always {
     print -rNC1 -- \
-        "$_autocomplete__list_lines" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" $'\C-B'
-    builtin kill $sysparams[pid]
+        "${_autocomplete__list_lines:-0}" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" $'\C-B'
+    builtin exit
   }
-}
+} 2>>| $_autocomplete__log
 
 .autocomplete:async:pty:completion-widget() {
-  .autocomplete:async:pty:completion-widget:inner "$@"
-}
-
-.autocomplete:async:pty:completion-widget:inner() {
-  if ! .autocomplete:async:sufficient-input; then
-    typeset -gi _autocomplete__list_lines=0
-    return
-  fi
-  if .autocomplete:async:same-state; then
-    typeset -gi _autocomplete__list_lines=$_lastcomp[list_lines]
-    return
-  fi
-
-  unset _autocomplete__mesg _autocomplete__comp_mesg
   {
-    unset 'compstate[vared]'
+    if ! .autocomplete:async:sufficient-input; then
+      return
+    fi
+    {
+      unset 'compstate[vared]'
 
-    .autocomplete:patch _message
-    _message() {
-      compadd() {
-        typeset -ga _autocomplete__comp_mesg=( "$@" )
-        builtin compadd "$@"
+      .autocomplete:patch _message
+      _message() {
+        compadd() {
+          _autocomplete__comp_mesg=( "$@" )
+          builtin compadd "$@"
+        }
+        zformat() {
+          builtin zformat "$@"
+          _autocomplete__comp_mesg=( "$gopt[@]" -x "$format" )
+        }
+        autocomplete:_message:old "$@"
+        unfunction zformat
       }
-      zformat() {
-        builtin zformat "$@"
-        typeset -ga _autocomplete__comp_mesg=( "$gopt[@]" -x "$format" )
-      }
-      autocomplete:_message:old "$@"
-      unfunction zformat
+
+      local +h -a comppostfuncs=( .autocomplete:async:pty:message )
+        .autocomplete:async:list-choices:main-complete
+    } always {
+      _autocomplete__list_lines=$compstate[list_lines]
     }
-
-    local +h -a comppostfuncs=( .autocomplete:async:pty:message )
-      .autocomplete:async:list-choices:main-complete
-  } always {
-    typeset -gi _autocomplete__list_lines=$compstate[list_lines]
-  }
+  } 2>>| $_autocomplete__log
 }
 
 .autocomplete:async:pty:message() {
-  typeset -g _autocomplete__mesg=$mesg
+  _autocomplete__mesg=$mesg
   return 0
 }
 
 .autocomplete:async:complete:fd-widget() {
-  setopt promptsubst
-  local +h PS4=$_autocomplete__ps4
-  .autocomplete:async:complete:fd-widget:inner "$@"
-}
-
-.autocomplete:async:complete:fd-widget:inner() {
-  [[ -v DEBUG ]] &&
-      set -x -o localoptions
-
-  local -i fd=$1
-  builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
-
-  if ! .autocomplete:zle-flags; then
-    .autocomplete:async:stop $fd
-    return 0
-  fi
-
-  if [[ $_autocomplete__lbuffer != $LBUFFER || $_autocomplete__rbuffer != $RBUFFER ]]; then
-    .autocomplete:async:stop $fd
-    .autocomplete:async:start
-    return 0
-  fi
-
   {
-    local -a reply=()
-    IFS=$'\0' read -rAu $fd
-    shift -p reply
+    if [[ -v DEBUG ]]; then
+      local +h PS4=$_autocomplete__ps4
+      set -x -o localoptions
+      functions -T .autocomplete:async:list-choices:completion-widget
+    fi
 
-    unset _autocomplete__mesg _autocomplete__comp_mesg
+    local -i fd=$1
+    {
+      builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
-    # If a widget can't be called, zle always returns true.
-    # Thus, we return false on purpose, so we can check if our widget got called.
+      if ! .autocomplete:zle-flags; then
+        .autocomplete:async:reset-state
+        return 0
+      fi
+
+      if ! .autocomplete:async:same-state; then
+        .autocomplete:async:start
+        return 0
+      fi
+
+      .autocomplete:async:reset-state
+
+      local -a reply=()
+      IFS=$'\0' read -rAu $fd
+      shift -p reply
+    } always {
+      exec {fd}<&-
+    }
+
     setopt $_autocomplete__comp_opts[@]
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
+
+    # If a widget can't be called, zle always returns true.
+    # Thus, we return false on purpose, so we can check if our widget got called.
     if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log; then
 
       typeset -g region_highlight=( "$_autocomplete__region_highlight[@]" )
@@ -335,11 +391,10 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
       # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
       builtin zle -R
     fi
-  } always {
-    .autocomplete:async:stop  $fd
-  }
-
-  return 0
+    .autocomplete:async:reset-state
+    set +x
+    return 0
+  } 2>>| $_autocomplete__log
 }
 
 .autocomplete:async:sufficient-input() {
@@ -364,18 +419,7 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   fi
 }
 
-.autocomplete:async:same-state() {
-  [[ $_autocomplete__curcontext == $curcontext && $_autocomplete__current == $CURRENT &&
-      $_autocomplete__words == $words ]]
-}
-
 .autocomplete:async:list-choices:completion-widget() {
-  [[ -v DEBUG ]] &&
-    set -x -o localoptions
-
-  unset _autocomplete__mesg _autocomplete__comp_mesg
-  unset _autocomplete__curcontext _autocomplete__current _autocomplete__words
-
   if [[ $1 != <->.<-> || $2 != <-> ]]; then
     compstate[list]=
     return
@@ -389,9 +433,8 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   local -P _mesg_=$3
   shift 3
 
-  if [[ -n $compstate[old_list] ]] && .autocomplete:async:same-state; then
-    compstate[old_list]=keep
-  elif [[ $_list_lines_ == 1 && -n $1 ]]; then
+  compstate[old_list]=
+  if [[ $_list_lines_ == 1 && -n $1 ]]; then
     builtin compadd "$@"
   elif [[ $_list_lines_ == 1 && -n $_mesg_ ]]; then
     builtin compadd -x "$_mesg_"
@@ -400,12 +443,6 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
     compstate[pattern_insert]=
     .autocomplete:async:list-choices:main-complete
   fi
-
-  typeset -ga _autocomplete__comp_mesg=( "$@" )
-  typeset -ga _autocomplete__words=( "$words[@]" )
-  typeset -gi _autocomplete__current=$CURRENT
-  typeset -g _autocomplete__curcontext=$curcontext
-  typeset -g _autocomplete__mesg=$_mesg_
 
   # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after completing subscripts.
   unset MENUSELECT MENUMODE
@@ -422,7 +459,7 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
       typeset -m _lastcomp >&2
 
   return 2  # Don't return 1, to prevent beeping.
-}
+} 2>>| $_autocomplete__log
 
 .autocomplete:async:list-choices:max-lines() {
   local -Pi max_lines=0
@@ -434,12 +471,8 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
 .autocomplete:async:list-choices:main-complete() {
   local -i _autocomplete__max_lines=0 _autocomplete__described_lines=0
   if [[ $curcontext == *history-* ]]; then
-    () {
-      emulate -L zsh
-      setopt $_autocomplete__func_opts[@]
-
-      autocomplete:_main_complete:new - history-lines _autocomplete__history_lines
-    } "$@"
+    setopt $_autocomplete__func_opts[@]
+    autocomplete:_main_complete:new - history-lines _autocomplete__history_lines
   else
     {
       () {
@@ -451,7 +484,7 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
             functions[autocomplete:async:compadd:old]="$functions[compadd]"
         functions[compadd]="$functions[.autocomplete:async:compadd]"
 
-        [[ -v DEBUG ]] &&
+        [[ -v VERBOSE ]] &&
             functions -T compadd _describe
       } "$@"
 
@@ -592,5 +625,3 @@ builtin zle -N history-incremental-search-backward .autocomplete:async:history-i
   typeset -g _autocomplete__partial_list=$curtag
   comptags() { false }
 }
-
-typeset -ga _autocomplete__log_functions=( $log_functions[@] )

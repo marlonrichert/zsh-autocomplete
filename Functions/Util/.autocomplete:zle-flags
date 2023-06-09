@@ -15,7 +15,11 @@ typeset -g _autocomplete__last_widget=
       builtin zle -f kill
       return 0
     ;;
-    ( *yank*~vi-* | vi-*put-*after | bracketed-paste )
+    ( bracketed-paste )
+      builtin zle -f yank
+      return 0
+    ;;
+    ( *yank*~vi-* | vi-*put-*after )
       builtin zle -f yank
       return 1
     ;;

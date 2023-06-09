@@ -7,56 +7,41 @@ assignees: ''
 
 ---
 
-- [ ] I have carefully read all of the instructions in this issue template.
-- [ ] I have carried them out to the letter.
-
-Failure to do so can result in your issue being closed.
 
 ## Environment
+<!-- Run the code below and share the output. -->
 ```zsh
-typeset -p1 VENDOR OSTYPE SHELL ZSH_ARGZERO ZSH_PATCHLEVEL _autocomplete__funcfiletrace
-git -C ~autocomplete log --oneline -n1
+% typeset -p1 VENDOR OSTYPE ZSH_PATCHLEVEL _autocomplete__funcfiletrace
+<output>
+% git -C ~autocomplete log --oneline -n1
+<output>
 ```
 
-* Operating system: <!-- e.g. macOS, Ubuntu -->
-* Terminal emulator: <!-- e.g. Terminal.app, Konsole -->
+* Operating system: <!-- for example, 'macOS Ventura 13.4' or 'Ubuntu 22.04.2 LTS' -->
+* Terminal emulator: <!-- for example, 'Terminal.app' or 'Konsole' -->
 
-- [ ] I have filled out the fields above.
-- [ ] I have ran the commands in the code block above.
-- [ ] I have pasted their output into the same block.
 
 ## Steps to reproduce
+<!-- Update the code below to create a test case that demonstrates the problem
+in an isolated environment. -->
 ```zsh
-cd $(mktemp -d)
-git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
-> .zshrc <<EOF
-PS1='%# ' PS2= RPS2='%^'; setopt transientrprompt interactivecomments
-source ~/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+% cd $(mktemp -d)
+% git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+<output>
+% > .zshrc <<EOF
+setopt interactivecomments transientrprompt
+PS1='%# '
+PS2=
+RPS2='%^'
+source $PWD/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 EOF
-env -i HOME=$PWD PATH=$PATH TERM=$TERM ${TERMINFO:+TERMINFO=$TERMINFO} zsh -d
+% env -i HOME=$PWD PATH=$PATH TERM=$TERM ${TERMINFO:+TERMINFO=$TERMINFO} zsh -d
+% <inputs>
+<output>
 ```
-- [ ] I have run the code block above to create a test environment.
-- [ ] I have reproduced my problem in this environment in the most minimal way possible.
-- [ ] I have copy-pasted my entire test session into the same code block.
-- [ ] I have copy-pasted the content of the log files found in the `~autocomplete-log` dir of the above session into
-  their respective sections below.
 
 <details>
-<summary><code>YYYY-MM-DD.log</code> (click to expand)</summary>
-<pre>
-<!-- Replace this line with the contents of the above log file. -->
-</pre>
-</details>
-
-<details>
-<summary><code>YYYY-MM-DD_async.log</code> (click to expand)</summary>
-<pre>
-<!-- Replace this line with the contents of the above log file. -->
-</pre>
-</details>
-
-<details>
-<summary><code>YYYY-MM-DD_pty.log</code> (click to expand)</summary>
+<summary>Contents of <code>~autocomplete-log/YYYY-MM-DD.log</code> (click to expand)</summary>
 <pre>
 <!-- Replace this line with the contents of the above log file. -->
 </pre>

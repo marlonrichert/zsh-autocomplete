@@ -39,11 +39,7 @@ local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
 (( $#older_than_a_week[@] )) &&
     zf_rm -f -- $older_than_a_week[@]
 
-local -P log= date=${(%):-%D{%F}}
-for log in '' _async _pty; do
-  typeset -g _autocomplete__log${log}=${logdir}/${date}${log}.log
-done
-
+typeset -g _autocomplete__log=${logdir}/${(%):-%D{%F}}.log
 typeset -g _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
 
 local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
