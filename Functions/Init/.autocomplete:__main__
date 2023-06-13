@@ -40,7 +40,7 @@ local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
     zf_rm -f -- $older_than_a_week[@]
 
 typeset -g _autocomplete__log=${logdir}/${(%):-%D{%F}}.log
-typeset -g _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
+typeset -g _autocomplete__ps4=$'%D{%T.%.} %e\t%N\t%I\t%? %(1_,%_ ,)'
 
 local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
@@ -54,6 +54,10 @@ for mod in $_autocomplete__mods; do
 done
 
 add-zsh-hook precmd ${0}:precmd
+
+# Make sure we always run before Autosuggest, so we don't overwrite its default ignore list.
+typeset -gaU precmd_functions=( ${0}:precmd $precmd_functions )
+
 ${0}:precmd() {
   # WORKAROUND: For hook functions in Zsh 5.8, $0 can be something else than the function name.
   0=${(%):-%N}

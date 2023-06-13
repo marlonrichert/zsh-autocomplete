@@ -1,4 +1,6 @@
 #!/bin/zsh
+unsetopt listbeep
+
 () {
   zmodload -F zsh/parameter p:funcfiletrace
   zmodload zsh/param/private
