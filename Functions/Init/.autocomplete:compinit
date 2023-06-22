@@ -55,6 +55,7 @@ compdef() {
     } always {
       unfunction bindkey
     }
+    bindkey '^Xh' _complete_help
 
     # Prevent Oh My Zsh from deleting comp dump file.
     (( ${#omzdump[@]} > 0 )) &&
