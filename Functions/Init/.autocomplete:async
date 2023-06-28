@@ -151,13 +151,15 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
   sysopen -r -o cloexec -u fd <(
     local -F seconds=
-    if builtin zstyle -s :autocomplete: delay seconds ||
-        builtin zstyle -s :autocomplete: min-delay seconds; then
-      (( seconds = max( 0.0, seconds ) ))
-    else
-      (( seconds = KEYTIMEOUT / 1000.0 ))
-    fi
-    zselect -t $(( [#10] 100 * seconds ))
+    builtin zstyle -s :autocomplete: delay seconds ||
+        builtin zstyle -s :autocomplete: min-delay seconds ||
+        (( seconds = 0.04 ))
+
+    # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
+    # of max() gets converted to an integer _before_ being multiplied.
+    local -i timeout=$(( 100 * max( 0, seconds ) ))
+    zselect -t $timeout
+
     print
   )
   builtin zle -Fw "$fd" .autocomplete:async:wait:fd-widget
@@ -235,13 +237,13 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
       local -a reply=()
       local text=
 
-      # WORKAROUND: #441 Directly using
-      # $(( [#10] 100 * max( 0, seconds - SECONDS ) ) ))
-      # leads to 0 in Zsh 5.9, as the result of max() gets converted to an
-      # integer _before_ being multiplied.
       builtin zstyle -s :autocomplete: timeout seconds ||
-          (( seconds = 10.0 * KEYTIMEOUT / 1000.0 ))
+          (( seconds = 0.4 ))
+
+      # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
+      # of max() gets converted to an integer _before_ being multiplied.
       local -i timeout=$(( 100 * max( 0, seconds - SECONDS ) ))
+
       if zselect -rt $timeout "$fd"; then
         zpty -r AUTOCOMPLETE text $'*\C-B'
       else
