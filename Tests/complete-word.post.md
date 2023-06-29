@@ -32,15 +32,15 @@ automenu-unambiguous 0
 %
 ```
 
-If we have only one match, always insert it.
+Default inserts first match.
 ```zsh
 % compstate[old_list]=keep _lastcomp[tags]=
-% compstate[nmatches]=0 _lastcomp[nmatches]=1
-% WIDGETSTYLE=menu-select WIDGET=
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE= WIDGET=
 % _autocomplete__unambiguous=
 % .autocomplete:complete-word:post
-% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
-1 0
+% print -r -- ${(q+)compstate[insert]}
+1
 %
 ```
 
@@ -48,15 +48,15 @@ Add a space for certain tags.
 ```zsh
 % compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
 % compstate[nmatches]=0 _lastcomp[nmatches]=1
-% WIDGETSTYLE=menu-select WIDGET=
+% WIDGETSTYLE= WIDGET=
 % _autocomplete__unambiguous=
 % comptags=( BAR ) .autocomplete:complete-word:post
-% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
-'1 ' 0
+% print -r -- ${(q+)compstate[insert]}
+'1 '
 %
 ```
 
-When there's more than one match, `menu-complete` inserts `menu:`.
+`menu-` widgets insert `menu:`.
 ```zsh
 % compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
 % compstate[nmatches]=0 _lastcomp[nmatches]=2
@@ -68,19 +68,7 @@ When there's more than one match, `menu-complete` inserts `menu:`.
 %
 ```
 
-Reverse inserts the last match.
-```zsh
-% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
-% compstate[nmatches]=0 _lastcomp[nmatches]=2
-% WIDGETSTYLE=reverse-menu-complete WIDGET=
-% _autocomplete__unambiguous=
-% .autocomplete:complete-word:post
-% print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
-'menu:0 ' 0
-%
-```
-
-`select` adds `MENUSELECT`
+`menu-select` widgets add `MENUSELECT`
 ```zsh
 % compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
 % compstate[nmatches]=0 _lastcomp[nmatches]=2
@@ -92,7 +80,7 @@ Reverse inserts the last match.
 %
 ```
 
-`search` adds `MENUMODE=search-forward`.
+`menu-select` widgets with `search` in name add `MENUMODE=search-forward`.
 ```zsh
 % compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
 % compstate[nmatches]=0 _lastcomp[nmatches]=2
@@ -101,5 +89,17 @@ Reverse inserts the last match.
 % .autocomplete:complete-word:post
 % print -r -- ${(q+)compstate[insert]} $+MENUSELECT $MENUMODE
 'menu:1 ' 1 search-forward
+%
+```
+
+Reverse inserts the last match.
+```zsh
+% compstate[old_list]=keep _lastcomp[tags]='BAR BAZ'
+% compstate[nmatches]=0 _lastcomp[nmatches]=2
+% WIDGETSTYLE=reverse-menu-complete WIDGET=
+% _autocomplete__unambiguous=
+% .autocomplete:complete-word:post
+% print -r -- ${(q+)compstate[insert]}
+'menu:0 '
 %
 ```
