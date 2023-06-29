@@ -257,7 +257,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   } always {
     # Always produce output, so we always reach the callback, so we can close
     # the fd.
-    print -rNC1 -- "$SECONDS" "${text%$'\0\C-B'}"
+    print -rNC1 -- "${text%$'\C-B'}"
   }
 }
 
@@ -287,7 +287,6 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   local -a _autocomplete__comp_mesg=()
   local -i _autocomplete__list_lines=0
   local _autocomplete__mesg=
-
   {
     # The completion widget sometimes returns without calling its function. So, we need to print all
     # our control characters here, to ensure we don't end up waiting endlessly to read them.
@@ -304,8 +303,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
     builtin zle .autocomplete:async:pty:completion-widget -w 2>>| $_autocomplete__log
   } always {
-    print -rNC1 -- \
-        "${_autocomplete__list_lines:-0}" "$_autocomplete__mesg" "$_autocomplete__comp_mesg[@]" $'\C-B'
+    print -rNC1 -- ${_autocomplete__list_lines:-0}$'\C-B'
     builtin exit
   }
 } 2>>| $_autocomplete__log
@@ -317,32 +315,11 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     fi
     {
       unset 'compstate[vared]'
-
-      .autocomplete:patch _message
-      _message() {
-        compadd() {
-          _autocomplete__comp_mesg=( "$@" )
-          builtin compadd "$@"
-        }
-        zformat() {
-          builtin zformat "$@"
-          _autocomplete__comp_mesg=( "$gopt[@]" -x "$format" )
-        }
-        autocomplete:_message:old "$@"
-        unfunction zformat
-      }
-
-      local +h -a comppostfuncs=( .autocomplete:async:pty:message )
-        .autocomplete:async:list-choices:main-complete
+      .autocomplete:async:list-choices:main-complete
     } always {
       _autocomplete__list_lines=$compstate[list_lines]
     }
   } 2>>| $_autocomplete__log
-}
-
-.autocomplete:async:pty:message() {
-  _autocomplete__mesg=$mesg
-  return 0
 }
 
 .autocomplete:async:complete:fd-widget() {
@@ -422,7 +399,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete:async:list-choices:completion-widget() {
-  if [[ $1 != <->.<-> || $2 != <-> ]]; then
+  if [[ $1 != <1-> ]]; then
     compstate[list]=
     return
   fi
@@ -430,21 +407,10 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
   .autocomplete:async:sufficient-input ||
       return 2
 
-  local -PF _seconds_=$1
-  local -Pi _list_lines_=$2
-  local -P _mesg_=$3
-  shift 3
-
+  compstate[insert]=
   compstate[old_list]=
-  if [[ $_list_lines_ == 1 && -n $1 ]]; then
-    builtin compadd "$@"
-  elif [[ $_list_lines_ == 1 && -n $_mesg_ ]]; then
-    builtin compadd -x "$_mesg_"
-  else
-    compstate[insert]=
-    compstate[pattern_insert]=
-    .autocomplete:async:list-choices:main-complete
-  fi
+  compstate[pattern_insert]=
+  .autocomplete:async:list-choices:main-complete
 
   # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after completing subscripts.
   unset MENUSELECT MENUMODE
