@@ -4,9 +4,9 @@ zmodload -F zsh/parameter p:patchars
 local word=$PREFIX$SUFFIX
 if [[ $word == ${~${(q)word}} &&
     $word == (*(${(~j:|:)patchars[@]:#\~}})*|?*(${(~j:|:)patchars})*) ]]; then
-  reply=( yes )
+  typeset -ga reply=( yes )
   true
 else
-  reply=( no )
+  typeset -ga reply=( no )
   false
 fi

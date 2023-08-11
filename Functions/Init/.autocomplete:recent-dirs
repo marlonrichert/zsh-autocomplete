@@ -25,7 +25,7 @@ zmodload -F zsh/parameter p:commands p:dirstack p:functions
     add-zsh-hook chpwd +autocomplete:recent-directories:save
 
     +autocomplete:recent-directories() {
-      reply=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
+      typeset -ga reply=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
       local -P ancestor=$PWD:h
       while [[ $ancestor != / ]]; do

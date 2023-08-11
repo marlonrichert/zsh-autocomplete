@@ -7,7 +7,7 @@ typeset -g ZLE_SPACE_SUFFIX_CHARS='|&<>-+'
 builtin zstyle ':completion:*' use-cache yes
 builtin zstyle -e ':completion:*' cache-path autocomplete:config:cache-path
 autocomplete:config:cache-path() {
-  reply=( "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache" )
+  typeset -ga reply=( "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache" )
 }
 
 builtin zstyle ':completion:*' completer _expand _complete _prefix _ignored _correct _approximate
@@ -21,9 +21,9 @@ builtin zstyle -e ':completion:*:expand:*' substitute autocomplete:config:substi
 autocomplete:config:substitute:expand() {
   local -P __word__=$PREFIX$SUFFIX
   if [[ ${(Q)__word__} == *(\`*\`|\$\(*\))* ]]; then
-    reply=( false )
+    typeset -ga reply=( false )
   else
-    reply=( true )
+    typeset -ga reply=( true )
   fi
 }
 
@@ -31,9 +31,9 @@ autocomplete:config:substitute:expand() {
 builtin zstyle -e ':completion:*:-command-:*' tag-order autocomplete:config:tag-order:command
 autocomplete:config:tag-order:command() {
   if [[ $PREFIX == (|.|*/*) ]]; then
-    reply=( 'suffix-aliases (|*-)directories executables (|*-)files' - )
+    typeset -ga reply=( 'suffix-aliases (|*-)directories executables (|*-)files' - )
   else
-    reply=( aliases suffix-aliases functions 'reserved-words builtins' )
+    typeset -ga reply=( aliases suffix-aliases functions 'reserved-words builtins' )
     if [[ -n $path[(r).] ]]; then
       reply+=( '(|*-)directories executables (|*-)files' commands )
     else
@@ -91,7 +91,7 @@ builtin zstyle    ':completion:*'               file-patterns '*(-/):directories
 builtin zstyle -e ':completion:*:-command-:*'   file-patterns autocomplete:config:file-patterns:command
 autocomplete:config:file-patterns:command() {
   [[ $PREFIX$SUFFIX != */* ]] &&
-      reply=( '*(-/):directories:directory ./*(-*^/):executables:"executable file"' )
+      typeset -ga reply=( '*(-/):directories:directory ./*(-*^/):executables:"executable file"' )
 }
 builtin zstyle    ':completion:*:(.|source):*'  file-patterns \
     '%p(#q-/):directories:directory %p~*.zwc(-.^*):globbed-files' '%p~*.zwc(-^/):globbed-files'
@@ -103,7 +103,7 @@ builtin zstyle ':completion:*:descriptions'   format $'%{\e[0;1;2m%}%d%{\e[0m%}'
 builtin zstyle -e ':completion:*:warnings'    format autocomplete:config:format:warnings
 autocomplete:config:format:warnings() {
   [[ $CURRENT == 1 && -z $PREFIX$SUFFIX ]] ||
-      reply=( $'%{\e[0;2m%}'"no matching %d completions"$'%{\e[0m%}' )
+      typeset -ga reply=( $'%{\e[0;2m%}'"no matching %d completions"$'%{\e[0m%}' )
 }
 builtin zstyle ':completion:*:messages'       format '%F{9}%d%f'
 builtin zstyle ':completion:*:history-lines'  format ''

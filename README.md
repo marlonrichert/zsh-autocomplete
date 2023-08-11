@@ -217,7 +217,7 @@ recent directories from any source that you like.  To do so, define a function
 like this:
 ```zsh
 +autocomplete:recent-directories() {
-   reply=( [code that generates an array of absolute paths] )
+  typeset -ga reply=( [code that generates an array of absolute paths] )
 }
 ```
 
@@ -226,7 +226,7 @@ Out of the box, Autocomplete doesn't track or offer recent files. However, it
 will do so if you add a backend for it:
 ```zsh
 +autocomplete:recent-files() {
-   reply=( [code that generates an array of absolute paths] )
+  typeset -ga reply=( [code that generates an array of absolute paths] )
 }
 ```
 
