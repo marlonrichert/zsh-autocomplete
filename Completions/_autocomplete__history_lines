@@ -110,10 +110,10 @@ _autocomplete__history_lines() {
       for index in {1..$#displays[@]}; do
         num=${(SM)${(M)displays[index]##$~numpat}##<->}
         displays[index]=${history[$num]:/(#b)$~lbuffer($~query)$~rbuffer/$((
-            HISTNO + num - 64 * $#match[3] - 16 * mbegin[3] - 4 * $#match[1]
+            HISTNO - num + 64 * $#match[3] + 16 * mbegin[3] + 4 * $#match[1]
         ))}$'\0'$displays[index]
       done
-      displays=( ${${(@nO)displays}[@]##<->$'\0'} )
+      displays=( ${${(@n)displays}[@]##<->$'\0'} )
     fi
   fi
 
