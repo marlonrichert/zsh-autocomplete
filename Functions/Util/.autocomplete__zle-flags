@@ -1,7 +1,7 @@
 #!/bin/zsh
 typeset -g _autocomplete__last_widget=
 
-.autocomplete:zle-flags() {
+.autocomplete__zle-flags() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
@@ -33,4 +33,4 @@ typeset -g _autocomplete__last_widget=
   esac
 }
 
-.autocomplete:zle-flags "$@"
+.autocomplete__zle-flags "$@"

@@ -17,7 +17,7 @@ compdef() {
       ${(%):-%N} "$@"
     }
 
-.autocomplete:compinit:precmd() {
+${0}:precmd() {
   emulate -L zsh
   setopt $_autocomplete__func_opts[@]
 
@@ -88,7 +88,7 @@ EOF
   ) &|
 
   # Workaround: Some other plugins rely on patching _main_complete, which can interfere with our completion.
-  .autocomplete:patch _main_complete
+  .autocomplete__patch _main_complete
   autocomplete:_main_complete:new() {
     local -i _autocomplete__reserved_lines=0
     local -Pi ret=1
@@ -111,7 +111,7 @@ EOF
     MENUSCROLL=0
   }
 
-  .autocomplete:patch _expand
+  .autocomplete__patch _expand
   _expand() {
     if _autocomplete__is_glob; then
       compstate[pattern_insert]=   # compstate[insert]=unambiguous won't work without this.
@@ -124,7 +124,7 @@ EOF
     autocomplete:_expand:old "$@"
   }
 
-  .autocomplete:patch _complete
+  .autocomplete__patch _complete
   _complete() {
     local -i nmatches=$compstate[nmatches]
 
@@ -143,7 +143,7 @@ EOF
   # WORKAROUND: _approximate won't do corrections if there already is a function called 'compadd'.
   #
 
-  .autocomplete:patch _approximate
+  .autocomplete__patch _approximate
   _approximate() {
     {
       [[ -v functions[compadd] ]] &&

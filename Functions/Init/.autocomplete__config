@@ -127,7 +127,7 @@ builtin zstyle ':completion:*' separate-sections yes
 is-at-least 5.9 ||
     builtin zstyle ':completion:*' command '- COLUMNS=999'
 
-.autocomplete:config:precmd() {
+${0}:precmd() {
   typeset -g _comp_setup="$_comp_setup"';
       [[ $_comp_caller_options[globdots] == yes ]] && setopt globdots'
 

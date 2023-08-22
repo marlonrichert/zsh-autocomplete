@@ -11,7 +11,7 @@ builtin autoload -RUz \
 
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
-.autocomplete:async:precmd() {
+${0}:precmd() {
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
           history-incremental-search-backward
@@ -61,7 +61,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete:async:isearch-exit() {
-  .autocomplete:zle-flags $LASTWIDGET
+  .autocomplete__zle-flags $LASTWIDGET
   unset _autocomplete__isearch
 }
 
@@ -86,7 +86,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 }
 
 .autocomplete:async:complete() {
-  .autocomplete:zle-flags $LASTWIDGET ||
+  .autocomplete__zle-flags $LASTWIDGET ||
       return 0
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
@@ -172,7 +172,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     local -i fd=$1
     builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
     exec {fd}<&-
-    .autocomplete:zle-flags
+    .autocomplete__zle-flags
 
     {
       if [[ -v DEBUG ]]; then
@@ -334,7 +334,7 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
     {
       builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
-      if ! .autocomplete:zle-flags; then
+      if ! .autocomplete__zle-flags; then
         .autocomplete:async:reset-state
         return 0
       fi

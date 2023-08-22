@@ -6,11 +6,11 @@ typeset -g ZSH_AUTOSUGGEST_ORIGINAL_WIDGET_PREFIX=.autosuggest-orig-
 
 ${0}:c() {
   _autocomplete__suggest_ignore_widgets+=( $1 )
-  builtin zle -C "$1" "$2" .autocomplete:${3}:completion-widget
+  builtin zle -C "$1" "$2" .autocomplete__${3}__completion-widget
 }
 
 ${0}:z() {
-  builtin zle -N "$1" .autocomplete:${2}:zle-widget
+  builtin zle -N "$1" .autocomplete__${2}__zle-widget
 }
 
 ${0}:z   up-line-or-search{,}

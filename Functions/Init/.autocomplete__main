@@ -49,8 +49,8 @@ local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 local -P mod=
 for mod in $_autocomplete__mods; do
   builtin zstyle -T ":autocomplete:$mod" enabled &&
-      .autocomplete:$mod "$@"
-  unfunction .autocomplete:$mod
+      .autocomplete__$mod "$@"
+  unfunction .autocomplete__$mod
 done
 
 add-zsh-hook precmd ${0}:precmd
@@ -84,7 +84,7 @@ ${0}:precmd() {
 
   local -P mod=
   for mod in $_autocomplete__mods; do
-    mod=.autocomplete:${mod}:precmd
+    mod=.autocomplete__${mod}:precmd
     if [[ -v functions[$mod] ]]; then
       $mod
       unfunction $mod
