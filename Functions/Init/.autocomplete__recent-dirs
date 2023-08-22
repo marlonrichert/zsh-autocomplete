@@ -25,17 +25,12 @@ ${0}:precmd() {
     add-zsh-hook chpwd +autocomplete:recent-directories:save
 
     +autocomplete:recent-directories() {
+      # Don't complete current dir, its children, or nonexistent ones.
       typeset -ga reply=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
-      local -P ancestor=$PWD:h
-      while [[ $ancestor != / ]]; do
-        reply=( ${reply[@]:#$ancestor} )
-        ancestor=$ancestor:h
-      done
-
-      local exact=$reply[(r)*/$PREFIX$SUFFIX]
-      [[ -n $exact ]] &&
-          reply=( $exact ${reply[@]:#$exact} )
+      local -i exact=$reply[(i)*/$PREFIX$SUFFIX]
+      (( exact )) &&
+          reply=( $reply[exact] $reply[1,exact-1] $reply[exact+1,-1] )
 
       (( $#reply[@] ))
     }
