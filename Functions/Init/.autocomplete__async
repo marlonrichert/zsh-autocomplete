@@ -92,11 +92,6 @@ ${0}:precmd() {
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
   {
-    if [[ -v DEBUG ]]; then
-      set -x -o localoptions
-      local +h PS4=$_autocomplete__ps4
-    fi
-
     # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
     [[ -v _FAST_MAIN_CACHE ]] &&
         _zsh_highlight
@@ -175,11 +170,6 @@ ${0}:precmd() {
     .autocomplete__zle-flags
 
     {
-      if [[ -v DEBUG ]]; then
-        set -x -o localoptions
-        local +h PS4=$_autocomplete__ps4
-      fi
-
       if .autocomplete:async:same-state; then
         .autocomplete:async:start
       else
@@ -207,11 +197,6 @@ ${0}:precmd() {
 
 .autocomplete:async:start:inner() {
   {
-    if [[ -v DEBUG ]]; then
-      set -x
-      PS4=$_autocomplete__ps4
-    fi
-
     typeset -F SECONDS=0
 
     local -P hooks=( chpwd periodic precmd preexec zshaddhistory zshexit )
@@ -262,12 +247,6 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:pty() {
-  if [[ -v DEBUG ]]; then
-    functions -T .autocomplete:async:pty:zle-widget
-    set -x -o localoptions
-    PS4=$_autocomplete__ps4
-  fi
-
   # Make sure this shell dies after it times out.
   local -F seconds=
   builtin zstyle -s :autocomplete: timeout seconds ||
@@ -298,9 +277,6 @@ ${0}:precmd() {
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
 
-    [[ -v DEBUG ]] &&
-        functions -T .autocomplete:async:pty:completion-widget
-
     builtin zle .autocomplete:async:pty:completion-widget -w 2>>| $_autocomplete__log
   } always {
     print -rNC1 -- ${_autocomplete__list_lines:-0}$'\C-B'
@@ -324,12 +300,6 @@ ${0}:precmd() {
 
 .autocomplete:async:complete:fd-widget() {
   {
-    if [[ -v DEBUG ]]; then
-      local +h PS4=$_autocomplete__ps4
-      set -x -o localoptions
-      functions -T .autocomplete:async:list-choices:completion-widget
-    fi
-
     local -i fd=$1
     {
       builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
@@ -423,9 +393,6 @@ ${0}:precmd() {
     _lastcomp[list_lines]=$compstate[list_lines]
   fi
 
-  [[ -v DEBUG ]] &&
-      typeset -m _lastcomp >&2
-
   return 2  # Don't return 1, to prevent beeping.
 } 2>>| $_autocomplete__log
 
@@ -437,7 +404,7 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:list-choices:main-complete() {
-  local -i _autocomplete__max_lines=0 _autocomplete__described_lines=0
+  local -i _autocomplete__max_lines=0
   if [[ $curcontext == *history-* ]]; then
     setopt $_autocomplete__func_opts[@]
     autocomplete:_main_complete:new - history-lines _autocomplete__history_lines
@@ -448,24 +415,41 @@ ${0}:precmd() {
         setopt $_autocomplete__func_opts[@]
 
         local curcontext=list-choices:::
-        [[ -v functions[compadd] ]] &&
-            functions[autocomplete:async:compadd:old]="$functions[compadd]"
-        functions[compadd]="$functions[.autocomplete:async:compadd]"
 
-        [[ -v VERBOSE ]] &&
-            functions -T compadd _describe
+        .autocomplete:async:shadow compadd
+
+        autoload -Uz +X _describe
+        .autocomplete:async:shadow _describe
+
+        # functions -T compadd _describe
       } "$@"
 
       .autocomplete:async:list-choices:max-lines 16
       autocomplete:_main_complete:new "$@"
     } always {
       unfunction compadd comptags 2> /dev/null
-      if [[ -v functions[autocomplete:async:compadd:old] ]]; then
-        functions[compadd]="$functions[autocomplete:async:compadd:old]"
-        unfunction autocomplete:async:compadd:old
-      fi
+      .autocomplete:async:unshadow compadd
+      .autocomplete:async:unshadow _describe
     }
   fi
+}
+
+.autocomplete:async:shadow() {
+  [[ -v functions[$1] ]] &&
+      functions[autocomplete:async:${1}:old]="$functions[$1]"
+  functions[$1]="$functions[.autocomplete:async:$1]"
+}
+
+.autocomplete:async:unshadow() {
+  if [[ -v functions[autocomplete:async:${1}:old] ]]; then
+    functions[$1]="$functions[autocomplete:async:${1}:old]"
+    unfunction autocomplete:async:${1}:old
+  fi
+}
+
+.autocomplete:async:_describe() {
+  local -i _autocomplete__described_lines=0
+  autocomplete:async:_describe:old "$@"
 }
 
 .autocomplete:async:compadd() {
@@ -487,45 +471,34 @@ ${0}:precmd() {
       max( 0, _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines] )
   ))
 
-  if (( funcstack[(I)_describe] )); then
-
+  if [[ -v _autocomplete__described_lines && -n $_grp ]]; then
     if [[ -n $_opts_[-D] ]]; then
       _displ_name_=$_opts_[-D]
       _matches_name_=$_opts_[-O]
 
-      if (( _autocomplete__described_lines >= _autocomplete__max_lines )); then
+      if [[ -v _autocomplete__partial_list ]]; then
         set -A $_displ_name_
         return 1
-
-      else
-        builtin compadd "$@"
-        _ret_=$?
-
-        _displ_=( ${(@PA)_displ_name_} )
-        _matches_=( ${(@PA)_matches_name_} )
-
-        if (( $#_displ_[@] )); then
-          local -PaU _uniques_=( ${_displ_[@]#*:} )
-          local -P _lines_too_many=$(( -1 * ( _avail_list_lines_ - _autocomplete__described_lines - $#_uniques_[@] ) ))
-
-          (( _lines_too_many > 0 )) &&
-              shift -p $_lines_too_many $_displ_name_ $_matches_name_
-
-          (( _autocomplete__described_lines += ${(@PA)#_displ_name_} ))
-        fi
-
-        return _ret_
       fi
 
-    elif [[ -n $_opts_[-E] ]]; then
-      # End of describe loop. It will now add matches in a special way. Can't interfere with this or it will break.
-      (( _autocomplete__described_lines = 0 ))  # Done with this _describe loop.
       builtin compadd "$@"
-      return
+      _ret_=$?
+
+      local -i _len_=${(PA)#_displ_name_}
+      local -i _max_=$(( _avail_list_lines_ - _autocomplete__described_lines ))
+
+      if (( ${#${(u)${(PA)_displ_name_}[@]#*:}} > _max_ )); then
+        shift -p $(( _len_ - _max_ )) $_displ_name_ $_matches_name_
+        .autocomplete:async:compadd:disable
+      else
+        (( _autocomplete__described_lines += _len_ ))
+      fi
+
+      return _ret_
     fi
 
-    # If neither of those are true, then _describe is doing normal completion.
-    (( _autocomplete__described_lines = 0 ))
+    builtin compadd "$@"
+    return
   fi
 
   # Deleting or collecting completions, but not actually adding them.
