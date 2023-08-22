@@ -10,7 +10,34 @@ autocomplete:config:cache-path() {
   typeset -ga reply=( "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache" )
 }
 
-builtin zstyle ':completion:*' completer _expand _complete _prefix _ignored _correct _approximate
+builtin zstyle ':completion:*' completer \
+    _expand _correct _complete _approximate _complete:-fuzzy _prefix _ignored
+
+# Order of matchers matters: m should come before r, which should come before l.
+# Otherwise, the results are not as expected.
+local lower_to_upper='m:{[:lower:]-}={[:upper:]_}'
+local any_before_dot='r:|[.]=**'
+local any_before_any='r:|?=**'
+local nonseparators_after_any_before_separator='r:?||[-_ \]=*'
+local any_before_word='l:|=*'
+local separator_after_any='l:?|=[-_ \]'
+builtin zstyle ':completion:*' matcher-list \
+    "$lower_to_upper $any_before_dot"
+builtin zstyle ':completion:*-fuzzy:*' matcher-list \
+    "$lower_to_upper $any_before_dot $any_before_word" \
+    "+$nonseparators_after_any_before_separator $separator_after_any" \
+    "$lower_to_upper $any_before_any"
+
+local minus_at_beginning_to_plus='b:-=+'
+builtin zstyle ':completion:*:options' matcher $minus_at_beginning_to_plus
+
+builtin zstyle ':completion:*' prefix-needed yes
+builtin zstyle ':completion:*:functions'  ignored-patterns '*.*' '*:*' '+*'
+builtin zstyle ':completion:*:users'      ignored-patterns '_*'
+builtin zstyle ':completion:*:widgets'    ignored-patterns '*.*' '*:*'
+builtin zstyle ':completion:*' single-ignored ''
+
+builtin zstyle ':completion:*:expand-alias:*' complete yes
 
 builtin zstyle    ':completion:*:expand:*' tag-order '! expansions original' -
 builtin zstyle    ':completion:*:expand:*' accept-exact continue
@@ -26,7 +53,6 @@ autocomplete:config:substitute:expand() {
     typeset -ga reply=( true )
   fi
 }
-
 
 builtin zstyle -e ':completion:*:-command-:*' tag-order autocomplete:config:tag-order:command
 autocomplete:config:tag-order:command() {
@@ -55,24 +81,6 @@ builtin zstyle ':completion:*:fc:*' tag-order options -
 builtin zstyle ':completion:*:git-*:(|*-)argument-*:*' tag-order \
     '! (|cached-)files *-remote remote-* (|*-)tags' \
     '! *-remote remote-* tags'
-
-# Order of matchers matters: m should come before r, which should come before l.
-# Otherwise, the results are not as expected.
-builtin zstyle ':completion:*' matcher-list \
-    'm:{[:lower:]-}={[:upper:]_} r:|[.]=**' \
-    '+l:|=*' \
-    'm:{[:lower:]-}={[:upper:]_} r:|[.]=** l:?|=[-_\\ ] r:?||[-_]=*' \
-    'm:{[:lower:]-}={[:upper:]_} r:|?=**'
-
-builtin zstyle ':completion:*:options' matcher 'b:-=+'
-
-builtin zstyle ':completion:*' prefix-needed yes
-builtin zstyle ':completion:*:functions'  ignored-patterns '*.*' '*:*' '+*'
-builtin zstyle ':completion:*:users'      ignored-patterns '_*'
-builtin zstyle ':completion:*:widgets'    ignored-patterns '*.*' '*:*'
-builtin zstyle ':completion:*' single-ignored ''
-
-builtin zstyle ':completion:*:expand-alias:*' complete yes
 
 # Complete only the tail of a path.
 builtin zstyle ':completion:*' ignore-parents 'parent pwd directory'
