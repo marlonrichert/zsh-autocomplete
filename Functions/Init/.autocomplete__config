@@ -11,7 +11,7 @@ autocomplete:config:cache-path() {
 }
 
 builtin zstyle ':completion:*' completer \
-    _expand _correct _complete _approximate _complete:-fuzzy _prefix _ignored
+    _expand _complete _correct _approximate _complete:-fuzzy _prefix _ignored
 
 builtin zstyle -e ':completion:*' max-errors autocomplete:config:max-errors
 autocomplete:config:max-errors() {
