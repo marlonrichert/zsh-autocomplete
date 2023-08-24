@@ -144,6 +144,12 @@ If you're using Ubuntu, you additionally need to add the following to your
 skip_global_compinit=1
 ```
 
+### Note for NixOS
+Both the NixOS and the Home Manager modules for Zsh enable completion by 
+default. The option is named the same thing in both: 
+`programs.zsh.enableCompletion`. Make sure that you explicitly disable this
+in whichever module you're using - possibly both.
+
 ## Troubleshooting
 Try the steps in the
 [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
