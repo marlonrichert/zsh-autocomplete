@@ -291,13 +291,11 @@ Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:
 }
 ```
 
-#### Reset <kbd>Ctrl</kbd><kbd>R</kbd> and <kbd>Ctrl</kbd><kbd>S</kbd>
+#### Preserve Zsh-default keybindings
+To prevent Autocomplete from overriding a default keybinding, add a `.` in front of the widget's name. For example:
 ```
-   zle -A {.,}history-incremental-search-backward
-   zle -A {.,}vi-history-search-backward
-   bindkey -M emacs '^S' history-incremental-search-forward
-   bindkey -M vicmd '/' vi-history-search-forward
-}
+bindkey '^R' .history-incremental-search-backward
+bindkey '^S' .history-incremental-search-forward
 ```
 
 ## Author
