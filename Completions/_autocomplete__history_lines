@@ -148,7 +148,7 @@ _autocomplete__history_lines() {
 
 _autocomplete__history_lines_suffix() {
   [[ $KEYS[-1] != $'\C-@' ]] &&
-      LBUFFER=$LBUFFER[1,-1-$1]
+      BUFFER=$BUFFER[1,-1-$1]
 }
 
 _autocomplete__history_lines "$@"
