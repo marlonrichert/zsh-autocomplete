@@ -13,10 +13,10 @@ _autocomplete__recent_paths() {
   local -P tag=
   for tag in directories files; do
     if [[ -v functions[+autocomplete:recent-$tag] &&
-            $_comp_tags == (|* )(|(all|local)-)$tag(| *) ]] &&
+            $_comp_tags == (|* )(|(all|local|globbed)-)$tag(| *) ]] &&
         +autocomplete:recent-$tag "$PREFIX$SUFFIX"; then
       files=( "$reply[@]" )
-      _description -V recent-$tag expl 'recent directory'
+      _description -V recent-$tag expl "recent $tag"
       _autocomplete__recent_paths_add $files[@] &&
           ret=0
     fi
