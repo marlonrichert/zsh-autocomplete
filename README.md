@@ -16,7 +16,7 @@ features.
 
 ### Optimized completion config
 Zsh's completion system is powerful, but hard to configure.  So, let
-Autocomplete [do it for you](Functions/Init/.autocomplete:config), while providing a
+Autocomplete [do it for you](Functions/Init/.autocomplete__config), while providing a
 manageable list of [configuration settings](#configuration) for changing the
 defaults.
 
