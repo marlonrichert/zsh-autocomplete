@@ -107,19 +107,32 @@ To uninstall, remove `znap source marlonrichert/zsh-autocomplete` from your
 % znap uninstall
 ```
 
+### Homebrew installation
+  If you use homebrew you can install by running:
+  ```zsh
+  % brew install zsh-autocomplete`
+  ```
+  
+  Add at or near the top of your `.zshrc` file (_before_ any calls to
+      `compdef`):
+      ```zsh
+      source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+      ```
+
+
 ### Manual installation
  1. Clone the repo:
     ```zsh
     % cd ~/Repos  # ...or wherever you keep your Git repos/Zsh plugins
     % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
     ```
- 1.  Add at or near the top of your `.zshrc` file (_before_ any calls to
+ 2.  Add at or near the top of your `.zshrc` file (_before_ any calls to
     `compdef`):
     ```zsh
-    source ~/Repos/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+    source ~/Repos/zsh-autocomplete/zsh-autocomplete.plugin.zsh`
     ```
- 1. Remove any calls to `compinit` from your `.zshrc` file.
- 1. Restart your shell.
+ 4. Remove any calls to `compinit` from your `.zshrc` file.
+ 5. Restart your shell.
 
 To update, do:
 ```zsh
