@@ -251,6 +251,12 @@ This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd>
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
 
+### Wait for a minimum amount of input
+To suppress autocompletion until a minimum number of characters have been typed:
+```zsh
+zstyle ':autocomplete:*' min-input 3
+```
+
 ### Wait with autocompletion until typing stops for a certain amount of seconds
 Normally, Autocomplete fetches completions after you stop typing for about 0.05 seconds. You can change this as follows:
 ```zsh
