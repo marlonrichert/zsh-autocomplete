@@ -40,7 +40,6 @@ ${0}:precmd() {
     local -Pa newest=( ~autocomplete/Completions/_*~*.zwc(N-.omY1) )
     if [[ $newest[1] -nt $_comp_dumpfile ]]; then
       zf_rm -f $_comp_dumpfile
-      break
     fi
   fi
 
