@@ -49,7 +49,7 @@ else
   fi
 
   local -a spacetags=()
-  builtin zstyle -a :autocomplete: add-space spacetags ||
+  builtin zstyle -a ":autocomplete:$WIDGET:" add-space spacetags ||
       spacetags=( executables aliases functions builtins reserved-words commands )
 
   [[ -n ${comptags:*spacetags} ]] &&
