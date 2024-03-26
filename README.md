@@ -57,6 +57,17 @@ Finally, restart your shell. Here's two ways to do so:
   % exec zsh
   ```
 
+### Updating
+If you installed manually, run:
+```sh
+% git -C ~autocomplete pull
+```
+Otherwise, simply use your package manager or plugin manager's update mechanisms.
+
+### Uninstalling
+ 1. Revert the actions you took to [install](#installation).
+ 1. Restart your shell.
+
 ## Keyboard shortcuts
 * Depending on your terminal, not all keybindings might be available to you.
 * Instead of <kbd>Alt</kbd>, your terminal might require you to press
