@@ -28,7 +28,7 @@ ${0}:precmd() {
       # Don't complete current dir, its children, or nonexistent ones.
       typeset -ga reply=( ${^dirstack[@]:#$PWD(|/[^/]#)}(N) )
 
-      local -i exact=$reply[(i)*/$PREFIX$SUFFIX]
+      local -i exact=$reply[(I)*/$PREFIX$SUFFIX]
       (( exact )) &&
           reply=( $reply[exact] $reply[1,exact-1] $reply[exact+1,-1] )
 
