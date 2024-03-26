@@ -112,15 +112,8 @@ EOF
 
   .autocomplete__patch _expand
   _expand() {
-    if _autocomplete__is_glob; then
-      compstate[pattern_insert]=   # compstate[insert]=unambiguous won't work without this.
-      compstate[pattern_match]=\*  # Append * to the pattern.
-
-      autocomplete:_expand:old "$@"
-      return
-    fi
-
     autocomplete:_expand:old "$@"
+    return 1  # Always continue.
   }
 
   .autocomplete__patch _complete

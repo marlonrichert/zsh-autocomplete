@@ -46,7 +46,17 @@ builtin zstyle ':completion:*:expand-alias:*' complete yes
 
 builtin zstyle    ':completion:*:expand:*' tag-order '! expansions original' -
 builtin zstyle    ':completion:*:expand:*' accept-exact continue
-builtin zstyle -e ':completion:*:expand:*' glob _autocomplete__is_glob
+
+builtin zstyle -e ':completion:*:expand:*' glob autocomplete:config:glob:expand
+autocomplete:config:glob:expand() {
+  if [[ -z $QIPREFIX && "$exp" == $word ]]; then
+    # Glob only when the string isn't quoted and no substitution has occured.
+    reply=( yes )
+  else
+    reply=( no )
+  fi
+}
+
 builtin zstyle    ':completion:*:expand:*' keep-prefix no  # Needed for file type highlighting
 builtin zstyle    ':completion:*:expand:*' add-space subst
 builtin zstyle -e ':completion:*:expand:*' substitute autocomplete:config:substitute:expand
