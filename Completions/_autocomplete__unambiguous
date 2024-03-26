@@ -8,12 +8,21 @@
 [[ -v _autocomplete__partial_list ]] &&
     return 1
 
+# No need to update.
+[[ $compstate[old_list] == keep ]] &&
+    return 1
+
 # Doesn't make sense to show.
 (( compstate[nmatches] < 2 )) &&
     return 1
 
 # Nothing to insert.
-[[ $IPREFIX$PREFIX$SUFFIX$ISUFFIX == *${compstate[unambiguous]:#?}* ]] &&
+[[ -z $compstate[unambiguous] ]] &&
+    return 1
+
+# Substring is already present.
+local -P word=$IPREFIX$PREFIX$SUFFIX$ISUFFIX
+[[ -n $word && $word == *$compstate[unambiguous]* ]] &&
     return 1
 
 local -P tag=unambiguous
