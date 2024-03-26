@@ -1,52 +1,19 @@
 # Autocomplete for Zsh
-Autocomplete for Zsh adds **real-time type-ahead autocompletion** to Zsh.  Find
-as you type, then press <kbd>Tab</kbd> to insert the top completion or
-<kbd>↓</kbd>to select another completion.
+This plugin for Zsh adds real-time type-ahead autocompletion to your command line, similar to what
+you find desktop apps. While you type on the command line, available completions are listed
+automatically; no need to press any keyboard shortcuts. Press <kbd>Tab</kbd> to insert the top
+completion or <kbd>↓</kbd> to select a different one.
 
-> Enjoy using this software?
-[Become a sponsor!](https://github.com/sponsors/marlonrichert) 💝
+Additional features:
+* Out-of-the-box configuration of Zsh's completion system
+* Multi-line history search
+* Completion of recent directories
+* Useful [keyboard shortcuts](#keyboard-shortcuts)
+* Easy to [configure](#configuration)
 
-[![file-search](.img/file-search.gif)](https://asciinema.org/a/377611)
+> Enjoy using this software? [Become a sponsor!](https://github.com/sponsors/marlonrichert) 💝
 
-<sub>(The look and feel shown in images here might not be up to date.</sub>
-
-## Other Features
-Besides autocompletion, Autocomplete comes with many other useful completion
-features.
-
-### Optimized completion config
-Zsh's completion system is powerful, but hard to configure.  So, let
-Autocomplete [do it for you](Functions/Init/.autocomplete__config), while providing a
-manageable list of [configuration settings](#configuration) for changing the
-defaults.
-
-### Fuzzy multi-line history search
-Press <kbd>Ctrl</kbd><kbd>R</kbd> to do a real-time history search listing
-multiple results.
-
-[![history-search](.img/history-search.gif)](https://asciinema.org/a/379844)
-
-### History menu
-Press <kbd>↑</kbd> to open a menu with the last 16 history items.  If the
-command line is not empty, then the contents of the command line are used to
-perform a fuzzy history search.
-
-![history menu](.img/history-menu.png)
-
-### Multi-selection
-Press <kbd>Ctrl</kbd><kbd>Space</kbd> in the completion menu or the history menu
-to insert more than one item.
-
-![multi-select](.img/multi-select.png)
-
-### Recent dirs completion
-Works out of the box with zero configuration, but also lets you
-[use your favorite tool for tracking directories](#use-a-custom-backend-for-recent-directories)
-instead.
-
-![recent dirs](.img/recent-dirs.png)
-
-## Key Bindings
+## Keyboard shortcuts
 * Depending on your terminal, not all keybindings might be available to you.
 * Instead of <kbd>Alt</kbd>, your terminal might require you to press
   <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
