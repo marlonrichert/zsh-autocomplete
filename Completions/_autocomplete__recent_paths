@@ -1,59 +1,26 @@
 #autoload
 zmodload -F zsh/parameter p:functions
 
-_autocomplete__recent_paths() {
-  (( compstate[nmatches] )) &&
-      return 1
+local -aU files=()
+local -a expl=() displ=()
+local -Pi ret=1 i=0
+local -P singular= plural=
 
-  [[ $_comp_tags != (|* )(|local-)directories(| *) ]] &&
-      return 1
+for singular plural in directory directories file files; do
+  if [[ -v functions[+autocomplete:recent-$plural] &&
+        $_comp_tags == (|* )(|(all|local|globbed)-)$plural(| *) ]] &&
+      +autocomplete:recent-$plural "$PREFIX$SUFFIX"; then
+    files=( "$reply[@]" )
+    _description -V recent-$plural expl "recent $singular"
+    compadd "$expl[@]" -D files -- "${files[@]:t}"
 
-  local -PaU files=()
-  local -Pi ret=1
-  local -P tag=
-  for tag in directories files; do
-    if [[ -v functions[+autocomplete:recent-$tag] &&
-            $_comp_tags == (|* )(|(all|local|globbed)-)$tag(| *) ]] &&
-        +autocomplete:recent-$tag "$PREFIX$SUFFIX"; then
-      files=( "$reply[@]" )
-      _description -V recent-$tag expl "recent $tag"
-      _autocomplete__recent_paths_add $files[@] &&
+    for i in {1..$#files}; do
+      displ=( "${${(D)files[i]:h}%/}/$files[i]:t" )
+      compadd "$expl[@]" -d displ -P "${${displ[1]:h}%/}/" -fW "${${files[i]:h}%/}/" \
+          -- "$files[i]:t" &&
           ret=0
-    fi
-  done
+    done
+  fi
+done
 
-  return ret
-}
-
-_autocomplete__recent_paths_add() {
-  local -a displ=() matches=( "$@" )
-  builtin compadd "$expl[@]" -D matches -- "$@:t"
-  displ=( "${(@D)matches}" )
-  zformat -a displ '' $^displ':'
-
-  _autocomplete__recent_paths_trim
-
-  local -Pi ret=1
-
-  # Work around `setopt autonamedirs` by not assigning absolute paths to scalars.
-  while (( $#matches )); do
-    (( $#displ[1] > 1 )) &&
-        compadd "$expl[@]" -d displ -P "${${(D)matches[1]:h}%/}/" -fW "${${matches[1]:h}%/}/" \
-              -- "$matches[1]:t" &&
-            ret=0
-    shift -- displ matches
-  done
-
-  return ret
-}
-
-# Workaround to prevent the prompt from jumping
-_autocomplete__recent_paths_trim() {
-  local -P total="${(j:/  :)displ}/  "
-  while (( $#total > COLUMNS )); do
-    shift -p -- displ matches
-    total="${(j:/  :)displ}/  "
-  done
-}
-
-_autocomplete__recent_paths "$@"
+return ret
