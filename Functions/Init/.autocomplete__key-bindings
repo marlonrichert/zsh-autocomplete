@@ -1,108 +1,59 @@
 #!/bin/zsh
 zmodload zsh/complist
-zmodload -F zsh/parameter p:funcstack p:functions
 zmodload -F zsh/terminfo p:terminfo
 
 local -Pa prefix=( '\e'{\[,O} )
-typeset -ga _autocomplete__key_up=( ${^prefix}A )
-typeset -ga _autocomplete__key_down=( ${^prefix}B )
-typeset -ga _autocomplete__key_alt_up=( '\e'$^_autocomplete__key_up '\e[1;3A' )
-typeset -ga _autocomplete__key_alt_down=( '\e'$^_autocomplete__key_down '\e[1;3B' )
+local -Pa key_up=(   ${^prefix}A )
+local -Pa key_down=( ${^prefix}B )
+local -Pa key_alt_up=(   '\e'$^key_up   '\e[1;3A' )
+local -Pa key_alt_down=( '\e'$^key_down '\e[1;3B' )
+
+local -A main=() emacs=() vicmd=() menukeys=()
 
 ${0}:bind() {
-  local -P keymap=$1 widget=$2
-  shift 2
-  builtin bindkey -M "$keymap" "${@:^^widget}"
-}
+  local -P key= widget=$1 menuwidget=$2
 
-${0}:bind-menu() {
-  0=${0%:*}
-  ${0}:bind isearch "$@"
-  ${0}:bind menuselect "$@"
-}
+     emacs[$3]=$widget
+  menukeys[$3]=$menuwidget
 
-${0}:bound() {
-  [[ $( builtin bindkey -M "$1" "$3" ) == \"[^[:space:]]##\"\ $2 ]]
-}
+  vicmd[$4]=$widget
+  key="^[$4"
+  menukeys[$key]=$menuwidget
 
-${0}:rebind() {
-  0=${0%:*}
-
-  local -P keymap=$1 old=$2 new=$3 key=
-  shift 3
+  shift 4
   for key; do
-    ${0}:bound "$keymap" "$old" "$key" &&
-        builtin bindkey -M "$keymap" "$key" "$new"
+        main[$key]=$widget
+    menukeys[$key]=$menuwidget
   done
 }
 
-${0}:unbind() {
-  0=${0%:*}
-  ${0}:bound "$1" "$2" "$3" &&
-      builtin bindkey -M "$1" -r "$2"
-}
+${0}:bind   up-line-or-search   up-history '^P' 'k' $key_up[@]
+${0}:bind down-line-or-select down-history '^N' 'j' $key_down[@]
 
-${0}:bind main    up-line-or-search $_autocomplete__key_up[@]
-${0}:bind-menu    up-history        $_autocomplete__key_up[@]
-${0}:bind main  down-line-or-select $_autocomplete__key_down[@]
-${0}:bind-menu  down-history        $_autocomplete__key_down[@]
-
-${0}:rebind emacs   up-line-or-{history,search} '^P'
-${0}:bind-menu      up-history                  '^P'
-${0}:rebind emacs down-line-or-{history,select} '^N'
-${0}:bind-menu    down-history                  '^N'
-
-${0}:rebind vicmd   up-line-or-{history,search} 'k'
-${0}:rebind vicmd down-line-or-{history,select} 'j'
-
-local -Pa menukeys=(
+menukeys+=(
                 '^@' accept-and-hold
-                '^_' .undo
+               '^[v' accept-and-hold
+                '^_' undo
+               '^[u' undo
     "$terminfo[kpp]" backward-word
     "$terminfo[knp]"  forward-word
-               '^[v' backward-word
-                '^V'  forward-word
 )
-builtin bindkey -M isearch    "$menukeys[@]"
-builtin bindkey -M menuselect "$menukeys[@]"
 
-${0}:precmd() {
-  emulate -L zsh
-  setopt $_autocomplete__func_opts[@]
+local backtab=$terminfo[kcbt]
+main+=(
+          '\t' complete-word
+    "$backtab" insert-unambiguous-or-complete
+)
 
-  0=${0%:*}
+${0}:bind history-search-backward vi-backward-blank-word '\ep' '^P' $key_alt_up[@]
+${0}:bind history-search-forward   vi-forward-blank-word '\en' '^N' $key_alt_down[@]
 
-  ${0}:rebind main  expand-or-complete        complete-word '\t'
-  ${0}:rebind main  expand-or-complete-prefix complete-word '\t'
-  ${0}:rebind main  menu-expand-or-complete   complete-word '\t'
+${0}:bind history-incremental-search-backward history-incremental-search-backward '^R' '/'
+${0}:bind                         menu-search history-incremental-search-forward  '^S' '?'
 
-  local backtab=$terminfo[kcbt]
-  ${0}:rebind main undefined-key insert-unambiguous-or-complete "$backtab"
+bindkey -M       main "${(kv@)main}"
+bindkey -M      emacs "${(kv@)emacs}"
+bindkey -M      vicmd "${(kv@)vicmd}"
+bindkey -M menuselect "${(kv@)menukeys}"
 
-  ${0}:bound main complete-word '\t' &&
-      ${0}:bind-menu accept-line '\t'
-
-  ${0}:bind main  history-search-backward $_autocomplete__key_alt_up[@]
-  ${0}:bind-menu  vi-backward-blank-word  $_autocomplete__key_alt_up[@]
-  ${0}:bind main  menu-select             $_autocomplete__key_alt_down[@]
-  ${0}:bind-menu  vi-forward-blank-word   $_autocomplete__key_alt_down[@]
-
-  ${0}:rebind emacs history-search-backward history-search-backward '\ep'
-  ${0}:bind-menu                            vi-backward-blank-word  '\ep'
-  ${0}:rebind emacs history-search-forward  menu-select             '\en'
-  ${0}:bind-menu                            vi-forward-blank-word   '\en'
-
-  ${0}:rebind vicmd vi-rev-repeat-search    history-search-backward 'N'
-  ${0}:rebind vicmd vi-repeat-search        menu-select             'n'
-
-  ${0}:rebind emacs history-incremental-search-backward{,}         '^R'
-  ${0}:bind-menu    history-incremental-search-backward            '^R'
-  ${0}:rebind emacs history-incremental-search-forward menu-search '^S'
-  ${0}:bind-menu    history-incremental-search-forward             '^S'
-
-  ${0}:rebind vicmd {vi-history,history-incremental}-search-backward '/'
-  ${0}:rebind vicmd  vi-history-search-forward         menu-search   '?'
-
-  unset -m '_autocomplete__key_*'
-  unfunction ${0}:{{,re,un}bind,bound}
-}
+unfunction ${0}:bind

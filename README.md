@@ -69,65 +69,101 @@ Otherwise, simply use your package manager or plugin manager's update mechanisms
  1. Restart your shell.
 
 ## Keyboard shortcuts
+| `main` | `emacs` | `vicmd` | On the command line | In the menus
+| ---: | ---: | ---: | :--- | :---
+| <kbd>Enter</kbd><br><kbd>Return</kbd> | | | | Exit menu text search or exit  menu
+| <kbd>Tab</kbd> | | | Insert first listed menu item | Exit menu text search or exit menu
+| <kbd>Shift</kbd><kbd>Tab</kbd> | | | Insert substring occuring in all listed completions | Exit menu text search or exit menu
+| <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | Cursor down or enter completion menu | Change selection
+| <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | Cursor up or enter [history menu](#history-menu) | Change selection
+| <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | Enter completion menu | Next section
+| <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | Enter history menu | Previous section
+| <kbd>PgDn</kbd> | | | | Page down
+| <kbd>PgUp</kbd> | | | | Page up
+| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | Toggle history search mode | Start menu text search or go to previous match
+| | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | Start menu text search | Start menu text search or go to next match
+| | <kbd>Ctrl</kbd><kbd>Space</kbd> | <kbd>V</kbd> | Toggle selection mode | Add another item
+| | <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | <kbd>U</kbd> | | Undo last item
+| | <kbd>Ctrl</kbd><kbd>G</kbd> | | | Undo all added items
+
+Note:
+* Plugins or other scripts that you load _after_ loading Autocomplete may override these bindings.
+  If you find that some shortcuts don't work as expected, then you can fix them by running
+  [`bindkey` commands](#reassign-keys) at the end of your `.zshrc` file.
 * Depending on your terminal, not all keybindings might be available to you.
 * Instead of <kbd>Alt</kbd>, your terminal might require you to press
   <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
-* In most terminals, <kbd>Enter</kbd> is interchangeable with <kbd>Return</kbd>,
-  but in some terminals, it is not.
-
-### On the command line
-| `main` | `emacs` | `vicmd` | `viins` | Action
-| -----: | ------: | ------: | ------: | -----:
-| | <kbd>Tab</kbd> | | <kbd>Tab</kbd> | Insert top completion
-| <kbd>Shift</kbd><kbd>Tab</kbd> | | | | Insert substring occurring in all listed completions
-| <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | |  Cursor up _-or-_ [History menu](#history-menu)
-| <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | | Cursor down _-or-_ Completion menu
-| <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Shift</kbd><kbd>N</kbd> | | History menu (always)
-| <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>N</kbd> | | Completion menu (always)
-| | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | | Search through _all_ menu text
-| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | | Toggle [history search mode](#real-time-history-search) on/off
-
-### In the menus
-| Key(s) | Action |
-| -----: | ------
-| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Change selection
-| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group (completion only)
-| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group (completion only)
-| <kbd>PgUp</kbd><br><kbd>Alt</kbd><kbd>V</kbd> | Page up
-| <kbd>PgDn</kbd><br><kbd>Ctrl</kbd><kbd>V</kbd> | Page down
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Enter search mode _-or-_ Go to next match
-| <kbd>Ctrl</kbd><kbd>R</kbd> | Enter search mode _-or-_ Go to previous match
-| <kbd>Tab</kbd><br><kbd>Enter</kbd> | Exit search mode _-or-_ Exit menu
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Add another completion
-| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Remove last completion
-| <kbd>Ctrl</kbd><kbd>G</kbd> | Remove all completions
-| Other keys | Depends on the keymap from which you opened the menu. See the Zsh manual on [menu selection](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection).
+* `main` is whichever keymap was aliased to `main` when Autocomplete was sourced.
+  * By default, this is `emacs`.
+  * If you run `bindkey -v`, then this becomes `viins`.
+* In the menus, the bindings listed under `vicmd` require you to press <kbd>Alt</kbd> for each,
+  instead of just once.
+* The bindings listed under `emacs` and `vicmd` are always both active in the menus, no matter which
+  keymap you actually use. This is a limitation of Zsh.
+* What any other keys do while you're in a menu depends on the keymap from which you opened the
+  menu. See the Zsh manual section on [menu
+  selection](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection) for more info.
 
 ## Configuration
-The following are the most commonly requested ways to configure Autocomplete's
-behavior.  Add these to your `.zshrc` file to use them.
+The following are the most commonly requested ways to configure Autocomplete's behavior. To use any
+of these, add the code shown to your `.zshrc` file and modify it there, then restart you shell.
+
+### Reassign keys
+You can use [Zsh's `bindkey`
+command](https://zsh.sourceforge.io/Doc/Release/Zsh-Line-Editor.html#Zle-Builtins), _after_ loading
+Autocomplete, to customize your keybindings. Below are some examples of what you can do with this.
+
+#### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> cycle completions on the command line
+This makes <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd>, when pressed on the command line,
+cycle through listed completions, without changing what's listed in the menu:
+```sh
+bindkey              '^I'         menu-complete
+bindkey "$terminfo[kcbt]" reverse-menu-complete
+```
+
+#### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> go to the menu
+This makes <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd>, when pressed on the command line,
+enter the menu instead of inserting a completion:
+```sh
+bindkey              '^I' menu-select
+bindkey "$terminfo[kcbt]" menu-select
+```
+
+#### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> change the selection in the menu
+This makes <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> move the selection in the menu right
+and left, respectively, instead of exiting the menu or exiting menu search:
+```sh
+bindkey -M menuselect              '^I'         menu-complete
+bindkey -M menuselect "$terminfo[kcbt]" reverse-menu-complete
+```
+
+#### Make <kbd>←</kbd> and <kbd>→</kbd> always move the cursor on the command line
+This makes <kbd>←</kbd> and <kbd>→</kbd> always move the cursor on the command line, even when you
+are in the menu:
+```sh
+bindkey -M menuselect  '^[[D' .backward-char  '^[OD' .backward-char
+bindkey -M menuselect  '^[[C'  .forward-char  '^[OC'  .forward-char
+```
+
+#### Make <kbd>Enter</kbd> always submit the command line
+This makes <kbd>Enter</kbd> always submit the command line, even when you are in the menu:
+```sh
+bindkey -M menuselect '^M' .accept-line
+```
+
+#### Restore Zsh-default functionality
+Autocomplete overrides the behavior of some of Zsh's built-in keyboard widgets. To use the original
+widget instead, prefix it with a `.`:
+```sh
+bindkey '^R' .history-incremental-search-backward
+bindkey '^S' .history-incremental-search-forward
+```
 
 ### Pass arguments to `compinit`
 
 If necessary, you can let Autocomplete pass arguments to `compinit` as follows:
 ```sh
 zstyle '*:compinit' arguments -D -i -u -C -w
-```
-
-### Reassign <kbd>Tab</kbd>
-You can reassign <kbd>Tab</kbd> to do something else than the default.  This
-includes letting another plugin set it.  Here are two examples of what you can
-do with this:
-
-#### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> cycle completions on the command line
-```zsh
-bindkey '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
-```
-
-#### Make <kbd>Tab</kbd> go straight to the menu and cycle there
-```zsh
-bindkey '\t' menu-select "$terminfo[kcbt]" menu-select
-bindkey -M menuselect '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
 ```
 
 ### First insert the common substring
@@ -236,31 +272,6 @@ zstyle ':autocomplete:history-search-backward:*' list-lines 256
 Note that for autocompletion and history search, the maximum number of lines is additionally capped to the number of
 lines that fit on screen.  However, there is no such limit for the history menu.  If that generates more lines than fit
 on screen, you can simply scroll upwards to see more.
-
-### Reset history key bindings to Zsh default
-Add any of the following to your `.zshrc` file _after_ sourcing Autocomplete:
-
-#### Reset <kbd>↑</kbd> and <kbd>↓</kbd>
-```zsh
-() {
-   local -a prefix=( '\e'{\[,O} )
-   local -a up=( ${^prefix}A ) down=( ${^prefix}B )
-   local key=
-   for key in $up[@]; do
-      bindkey "$key" up-line-or-history
-   done
-   for key in $down[@]; do
-      bindkey "$key" down-line-or-history
-   done
-}
-```
-
-#### Preserve Zsh-default keybindings
-To prevent Autocomplete from overriding a default keybinding, add a `.` in front of the widget's name. For example:
-```
-bindkey '^R' .history-incremental-search-backward
-bindkey '^S' .history-incremental-search-forward
-```
 
 ## Troubleshooting
 Try the steps in the
