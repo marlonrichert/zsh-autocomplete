@@ -101,7 +101,6 @@ builtin zstyle ':completion:*:git-*:(|*-)argument-*:*' tag-order \
 builtin zstyle ':completion:*' ignore-parents 'parent pwd directory'
 builtin zstyle ':completion:*:paths' expand suffix
 builtin zstyle ':completion:*:paths' list-suffixes yes
-builtin zstyle ':completion:*:paths' path-completion no
 builtin zstyle ':completion:*:paths' special-dirs no
 
 builtin zstyle ':completion:*' group-name ''
