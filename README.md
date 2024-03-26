@@ -13,41 +13,6 @@ Additional features:
 
 > Enjoy using this software? [Become a sponsor!](https://github.com/sponsors/marlonrichert) 💝
 
-## Keyboard shortcuts
-* Depending on your terminal, not all keybindings might be available to you.
-* Instead of <kbd>Alt</kbd>, your terminal might require you to press
-  <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
-* In most terminals, <kbd>Enter</kbd> is interchangeable with <kbd>Return</kbd>,
-  but in some terminals, it is not.
-
-### On the command line
-| `main` | `emacs` | `vicmd` | `viins` | Action
-| -----: | ------: | ------: | ------: | -----:
-| | <kbd>Tab</kbd> | | <kbd>Tab</kbd> | Insert top completion
-| <kbd>Shift</kbd><kbd>Tab</kbd> | | | | Insert substring occurring in all listed completions
-| <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | |  Cursor up _-or-_ [History menu](#history-menu)
-| <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | | Cursor down _-or-_ Completion menu
-| <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Shift</kbd><kbd>N</kbd> | | History menu (always)
-| <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>N</kbd> | | Completion menu (always)
-| | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | | Search through _all_ menu text
-| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | | Toggle [history search mode](#real-time-history-search) on/off
-
-### In the menus
-| Key(s) | Action |
-| -----: | ------
-| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Change selection
-| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group (completion only)
-| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group (completion only)
-| <kbd>PgUp</kbd><br><kbd>Alt</kbd><kbd>V</kbd> | Page up
-| <kbd>PgDn</kbd><br><kbd>Ctrl</kbd><kbd>V</kbd> | Page down
-| <kbd>Ctrl</kbd><kbd>S</kbd> | Enter search mode _-or-_ Go to next match
-| <kbd>Ctrl</kbd><kbd>R</kbd> | Enter search mode _-or-_ Go to previous match
-| <kbd>Tab</kbd><br><kbd>Enter</kbd> | Exit search mode _-or-_ Exit menu
-| <kbd>Ctrl</kbd><kbd>Space</kbd> | Add another completion
-| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Remove last completion
-| <kbd>Ctrl</kbd><kbd>G</kbd> | Remove all completions
-| Other keys | Depends on the keymap from which you opened the menu. See the Zsh manual on [menu selection](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection).
-
 ## Requirements
 Recommended:
 * Tested to work with [Zsh](http://zsh.sourceforge.net) 5.8 and newer.
@@ -92,9 +57,40 @@ Finally, restart your shell. Here's two ways to do so:
   % exec zsh
   ```
 
-## Troubleshooting
-Try the steps in the
-[bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
+## Keyboard shortcuts
+* Depending on your terminal, not all keybindings might be available to you.
+* Instead of <kbd>Alt</kbd>, your terminal might require you to press
+  <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
+* In most terminals, <kbd>Enter</kbd> is interchangeable with <kbd>Return</kbd>,
+  but in some terminals, it is not.
+
+### On the command line
+| `main` | `emacs` | `vicmd` | `viins` | Action
+| -----: | ------: | ------: | ------: | -----:
+| | <kbd>Tab</kbd> | | <kbd>Tab</kbd> | Insert top completion
+| <kbd>Shift</kbd><kbd>Tab</kbd> | | | | Insert substring occurring in all listed completions
+| <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | |  Cursor up _-or-_ [History menu](#history-menu)
+| <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | | Cursor down _-or-_ Completion menu
+| <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Shift</kbd><kbd>N</kbd> | | History menu (always)
+| <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>N</kbd> | | Completion menu (always)
+| | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | | Search through _all_ menu text
+| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | | Toggle [history search mode](#real-time-history-search) on/off
+
+### In the menus
+| Key(s) | Action |
+| -----: | ------
+| <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> | Change selection
+| <kbd>Alt</kbd><kbd>↑</kbd> | Backward one group (completion only)
+| <kbd>Alt</kbd><kbd>↓</kbd> | Forward one group (completion only)
+| <kbd>PgUp</kbd><br><kbd>Alt</kbd><kbd>V</kbd> | Page up
+| <kbd>PgDn</kbd><br><kbd>Ctrl</kbd><kbd>V</kbd> | Page down
+| <kbd>Ctrl</kbd><kbd>S</kbd> | Enter search mode _-or-_ Go to next match
+| <kbd>Ctrl</kbd><kbd>R</kbd> | Enter search mode _-or-_ Go to previous match
+| <kbd>Tab</kbd><br><kbd>Enter</kbd> | Exit search mode _-or-_ Exit menu
+| <kbd>Ctrl</kbd><kbd>Space</kbd> | Add another completion
+| <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | Remove last completion
+| <kbd>Ctrl</kbd><kbd>G</kbd> | Remove all completions
+| Other keys | Depends on the keymap from which you opened the menu. See the Zsh manual on [menu selection](https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#Menu-selection).
 
 ## Configuration
 The following are the most commonly requested ways to configure Autocomplete's
@@ -254,6 +250,10 @@ To prevent Autocomplete from overriding a default keybinding, add a `.` in front
 bindkey '^R' .history-incremental-search-backward
 bindkey '^S' .history-incremental-search-forward
 ```
+
+## Troubleshooting
+Try the steps in the
+[bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
 
 ## Author
 © 2020-2023 [Marlon Richert](https://github.com/marlonrichert)
