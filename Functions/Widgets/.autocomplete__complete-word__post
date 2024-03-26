@@ -4,54 +4,54 @@ local -a match=() mbegin=() mend=()  # `zstyle` for some reason assigns these.
 
 unset MENUMODE MENUSELECT
 
+if [[ $WIDGETSTYLE != (|*-)menu(|-*) ]]; then
+  compstate[list]=
+  zle -Rc
+fi
+
 if [[ $_completer == _prefix ]]; then
   compstate[to_end]=
 else
   compstate[to_end]='always'
 fi
 
+compstate[insert]=
+
 if _autocomplete__should_insert_unambiguous; then
   if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
     compstate[insert]='automenu-'
-  else
-    compstate[insert]=
   fi
   compstate[insert]+='unambiguous'
-  compstate[list]='list force'
   unset _autocomplete__unambiguous
 
-else
-  if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
-    if [[ $WIDGETSTYLE == (|*-)select(|-*) ]]; then
-      typeset -gi MENUSELECT=0
-      if [[ $WIDGET == (|*-)search(|-*) ]]; then
-        typeset -g MENUMODE=search-forward
-      fi
-    fi
-    compstate[insert]='menu:'
-    compstate[list]='list force'
-  else
-    compstate[insert]=
-    compstate[list]=
-    zle -Rc
-  fi
-  if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
-    compstate[insert]+='0'
-  else
-    compstate[insert]+='1'
-  fi
-
-  local -Pa comptags=()
-  if [[ $compstate[old_list] == keep ]]; then
-    comptags=( $=_lastcomp[tags] )
-  else
-    comptags=( $=_comp_tags )
-  fi
-
-  local -a spacetags=()
-  builtin zstyle -a ":autocomplete:$WIDGET:" add-space spacetags ||
-      spacetags=( executables aliases functions builtins reserved-words commands )
-
-  [[ -n ${comptags:*spacetags} ]] &&
-      compstate[insert]+=' '
+  return
 fi
+
+if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
+  if [[ $WIDGETSTYLE == (|*-)select(|-*) ]]; then
+    typeset -gi MENUSELECT=0
+    if [[ $WIDGET == (|*-)search(|-*) ]]; then
+        typeset -g MENUMODE=search-forward
+    fi
+  fi
+  compstate[insert]='menu:'
+fi
+if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
+  compstate[insert]+='0'
+else
+  compstate[insert]+='1'
+fi
+
+local -Pa comptags=()
+if [[ $compstate[old_list] == keep ]]; then
+  comptags=( $=_lastcomp[tags] )
+else
+  comptags=( $=_comp_tags )
+fi
+
+local -a spacetags=()
+builtin zstyle -a ":autocomplete:$WIDGET:" add-space spacetags ||
+  spacetags=( executables aliases functions builtins reserved-words commands )
+
+[[ -n ${comptags:*spacetags} ]] &&
+    compstate[insert]+=' '

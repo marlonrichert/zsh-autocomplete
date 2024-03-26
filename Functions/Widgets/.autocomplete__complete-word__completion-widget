@@ -16,5 +16,4 @@ else
   autocomplete:_main_complete:new -
 fi
 
-unset curcontext
 [[ $_lastcomp[nmatches] -gt 0 && -n $compstate[insert] ]]
