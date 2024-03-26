@@ -88,67 +88,42 @@ Recommended:
 Minimum:
 * Should theoretically work with Zsh 5.4, but I'm unable to test that.
 
-## Installing & Updating
-If you use [Znap](https://github.com/marlonrichert/zsh-snap), simply add the
-following to your `.zshrc` file:
-```zsh
-znap source marlonrichert/zsh-autocomplete
-```
-Then restart your shell.
+## Installation & setup
+First, install Autocomplete itself. Here are some way to do so:
+  * To use only releases (instead of the `main` branch), install `zsh-autocomplete` with a package
+    manager. As of this writing, this package is available through Homebrew, Nix, `pacman`, Plumage,
+    and (as `app-shells/zsh-autocomplete`) Portage.
+  * To always use the latest commit on the `main` branch, do one of the following:
+    * Use `pacman` to install `zsh-autocomplete-git`.
+    * Use a Zsh plugin manager to install `marlonrichert/zsh-autocomplete`. (If you don't have a
+      plugin manager yet, I recommend using [Znap](https://github.com/marlonrichert/zsh-snap).)
+    * Clone the repo directly:
+      ```sh
+      % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
+      ```
 
-To update, do
-```zsh
-% znap pull
-```
+After installing, make the following modifications to your shell config:
+* In your `.zshrc` file:
+  * Remove any calls to `compinit`.
+  * Add near the top, _before_ any calls to `compdef`:
+     ```sh
+     source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+     ```
+* When using **Ubuntu,** add to your `.zshenv` file:
+  ```sh
+  skip_global_compinit=1
+  ```
+* When using **Nix,** add to your `home.nix` file:
+  ```
+  programs.zsh.enableCompletion = false;
+  ```
 
-To uninstall, remove `znap source marlonrichert/zsh-autocomplete` from your
-`.zshrc` file, then run
-```zsh
-% znap uninstall
-```
-
-### Manual installation
- 1. Clone the repo:
-    ```zsh
-    % cd ~/Repos  # ...or wherever you keep your Git repos/Zsh plugins
-    % git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git
-    ```
- 1.  Add at or near the top of your `.zshrc` file (_before_ any calls to
-    `compdef`):
-    ```zsh
-    source ~/Repos/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-    ```
- 1. Remove any calls to `compinit` from your `.zshrc` file.
- 1. Restart your shell.
-
-To update, do:
-```zsh
-% git -C ~autocomplete pull
-```
-
-To uninstall, simply undo the installation steps above in reverse order:
- 1. Restore the lines you deleted in step 3.
- 1. Delete the line you added in step 2.
- 1. Delete the repo you created in step 1.
- 1. Restart your shell.
-
-### Other frameworks/plugin managers
-To install with another Zsh framework or plugin manager, please refer to your
-framework's/plugin manager's documentation for instructions.  When in doubt,
-install [manually](#manually).
-
-### Additional step for Ubuntu
-If you're using Ubuntu, you additionally need to add the following to your
-`.zshenv` file:
-```zsh
-skip_global_compinit=1
-```
-
-### Note for NixOS
-Both the NixOS and the Home Manager modules for Zsh enable completion by 
-default. The option is named the same thing in both: 
-`programs.zsh.enableCompletion`. Make sure that you explicitly disable this
-in whichever module you're using - possibly both.
+Finally, restart your shell. Here's two ways to do so:
+* Open a new tab or window in your terminal.
+* Replace the current shell with a new one:
+  ```sh
+  % exec zsh
+  ```
 
 ## Troubleshooting
 Try the steps in the
