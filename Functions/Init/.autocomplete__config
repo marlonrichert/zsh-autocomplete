@@ -74,11 +74,11 @@ autocomplete:config:tag-order:command() {
   if [[ $PREFIX == (|.|*/*) ]]; then
     typeset -ga reply=( 'suffix-aliases (|*-)directories executables (|*-)files' - )
   else
-    typeset -ga reply=( aliases suffix-aliases functions 'reserved-words builtins' )
-    if [[ -n $path[(r).] ]]; then
-      reply+=( '(|*-)directories executables (|*-)files' commands )
+    typeset -ga reply=( 'aliases suffix-aliases functions reserved-words builtins' )
+    if (( path[(I).] )); then
+      reply[1]+=' (|*-)directories executables (|*-)files commands'
     else
-      reply+=( commands '(|*-)directories executables (|*-)files' )
+      reply[1]+=' commands (|*-)directories executables (|*-)files'
     fi
   fi
 }
@@ -103,7 +103,9 @@ builtin zstyle ':completion:*:paths' expand suffix
 builtin zstyle ':completion:*:paths' list-suffixes yes
 builtin zstyle ':completion:*:paths' special-dirs no
 
-builtin zstyle ':completion:*' group-name ''
+builtin zstyle ':completion:*'             group-name ''
+builtin zstyle ':completion:*:-command-:*' group-name commands
+
 builtin zstyle ':completion:*' group-order \
     all-expansions expansions options \
     aliases suffix-aliases functions reserved-words builtins commands \
@@ -121,12 +123,18 @@ builtin zstyle    ':completion:*:(.|source):*'  file-patterns \
 # Don't combine parameters with same values.
 builtin zstyle ':completion:*:parameters' list-grouped no
 
-builtin zstyle ':completion:*:descriptions'   format $'%{\e[0;1;2m%}%d%{\e[0m%}'
+builtin zstyle -e ':completion:*:-command-:*'    format autocomplete:config:format command
+builtin zstyle -e ':completion:*:descriptions'   format autocomplete:config:format %d
+autocomplete:config:format() {
+  reply=( $'%{\e[0;1;2m%}'$1$'%{\e[0m%}' )
+}
+
 builtin zstyle -e ':completion:*:warnings'    format autocomplete:config:format:warnings
 autocomplete:config:format:warnings() {
   [[ $CURRENT == 1 && -z $PREFIX$SUFFIX ]] ||
-      typeset -ga reply=( $'%{\e[0;2m%}'"no matching %d completions"$'%{\e[0m%}' )
+      autocomplete:config:format 'no matching %d completions'
 }
+
 builtin zstyle ':completion:*:messages'       format '%F{9}%d%f'
 builtin zstyle ':completion:*:history-lines'  format ''
 
