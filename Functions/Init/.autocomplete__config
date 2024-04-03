@@ -132,8 +132,18 @@ builtin zstyle ':completion:*:parameters' list-grouped no
 
 builtin zstyle -e ':completion:*:-command-:*'    format autocomplete:config:format command
 builtin zstyle -e ':completion:*:descriptions'   format autocomplete:config:format %d
+builtin zstyle -e ':completion:*:all-expansions' format autocomplete:config:format expansion
 autocomplete:config:format() {
   reply=( $'%{\e[0;1;2m%}'$1$'%{\e[0m%}' )
+}
+
+builtin zstyle -e ':completion:*:expansions'     format autocomplete:config:format:expansions
+autocomplete:config:format:expansions() {
+  if (( $#exp[@] > 1 )); then
+    autocomplete:config:format 'globbed files'
+  else
+    autocomplete:config:format expansion
+  fi
 }
 
 builtin zstyle -e ':completion:*:warnings'    format autocomplete:config:format:warnings
