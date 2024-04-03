@@ -15,6 +15,7 @@ ${0}:precmd() {
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
           history-incremental-search-backward
+          recent-paths
           .autocomplete:async:complete:fd-widget
       )
 
@@ -27,7 +28,8 @@ ${0}:precmd() {
 
   builtin zle -C ._list_choices list-choices .autocomplete:async:list-choices:completion-widget
 
-  builtin zle -N history-incremental-search-backward .autocomplete:async:history-incremental-search
+  builtin zle -N history-incremental-search-backward .autocomplete:async:toggle-context
+  builtin zle -N recent-paths .autocomplete:async:toggle-context
 
   add-zle-hook-widget line-init .autocomplete:async:reset-context
   add-zle-hook-widget line-pre-redraw .autocomplete:async:complete
@@ -37,13 +39,13 @@ ${0}:precmd() {
   add-zle-hook-widget isearch-exit .autocomplete:async:isearch-exit
 }
 
-.autocomplete:async:history-incremental-search() {
+.autocomplete:async:toggle-context() {
   if [[ $curcontext == $WIDGET* ]]; then
     unset curcontext
   else
     typeset -g curcontext=${WIDGET}:::
   fi
-  .autocomplete:async:complete
+  zle .autocomplete:async:complete -w
 }
 
 .autocomplete:async:reset-context() {
@@ -349,7 +351,7 @@ ${0}:precmd() {
 .autocomplete:async:sufficient-input() {
   local min_input=
   if ! builtin zstyle -s ":autocomplete:${curcontext}:" min-input min_input; then
-    if [[ $curcontext == *history-* ]]; then
+    if [[ -n $curcontext ]]; then
       min_input=0
     else
       min_input=1
@@ -404,11 +406,18 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:list-choices:main-complete() {
-  local -i _autocomplete__max_lines=0
-  if [[ $curcontext == *history-* ]]; then
+  local -i _autocomplete__max_lines
+
+  case $curcontext in
+  *history-* )
     setopt $_autocomplete__func_opts[@]
     autocomplete:_main_complete:new - history-lines _autocomplete__history_lines
-  else
+  ;;
+  recent-paths:* )
+    setopt $_autocomplete__func_opts[@]
+    autocomplete:_main_complete:new - recent-paths _autocomplete__recent_paths
+  ;;
+  * )
     {
       () {
         emulate -L zsh
@@ -431,7 +440,8 @@ ${0}:precmd() {
       .autocomplete:async:unshadow compadd
       .autocomplete:async:unshadow _describe
     }
-  fi
+  ;;
+  esac
 }
 
 .autocomplete:async:shadow() {

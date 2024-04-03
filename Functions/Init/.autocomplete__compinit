@@ -122,8 +122,8 @@ EOF
 
     PREFIX=$PREFIX$SUFFIX
     SUFFIX=
-    autocomplete:_complete:old "$@" ||
-        _autocomplete__recent_paths "$@"
+    autocomplete:_complete:old "$@"
+
     # WORKAROUND: Some completion functions mistakenly don't return 0 when they have succeeded.
     (( compstate[nmatches] > nmatches ))
   }

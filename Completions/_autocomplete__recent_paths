@@ -1,5 +1,5 @@
 #autoload
-zmodload -F zsh/parameter p:functions
+zmodload -Fa zsh/parameter p:functions
 
 local -aU files=()
 local -a expl=() displ=()
@@ -7,16 +7,14 @@ local -Pi ret=1 i=0
 local -P singular= plural=
 
 for singular plural in directory directories file files; do
-  if [[ -v functions[+autocomplete:recent-$plural] &&
-        $_comp_tags == (|* )(|(all|local|globbed)-)$plural(| *) ]] &&
+  if [[ -v functions[+autocomplete:recent-$plural] ]] &&
       +autocomplete:recent-$plural "$PREFIX$SUFFIX"; then
     files=( "$reply[@]" )
     _description -V recent-$plural expl "recent $singular"
-    compadd "$expl[@]" -D files -- "${files[@]:t}"
 
     for i in {1..$#files}; do
       displ=( "${${(D)files[i]:h}%/}/$files[i]:t" )
-      compadd "$expl[@]" -d displ -P "${${displ[1]:h}%/}/" -fW "${${files[i]:h}%/}/" \
+      compadd -U "$expl[@]" -d displ -P "${${displ[1]:h}%/}/" -fW "${${files[i]:h}%/}/" \
           -- "$files[i]:t" &&
           ret=0
     done

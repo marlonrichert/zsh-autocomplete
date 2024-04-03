@@ -43,6 +43,7 @@ local backtab=$terminfo[kcbt]
 main+=(
           '\t' complete-word
     "$backtab" insert-unambiguous-or-complete
+         '^X/' recent-paths
 )
 
 ${0}:bind history-search-backward vi-backward-blank-word '\ep' '^P' $key_alt_up[@]

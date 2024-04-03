@@ -73,14 +73,15 @@ Otherwise, simply use your package manager or plugin manager's update mechanisms
 | ---: | ---: | ---: | :--- | :---
 | <kbd>Enter</kbd><br><kbd>Return</kbd> | | | | Exit menu text search or exit  menu
 | <kbd>Tab</kbd> | | | Insert first listed menu item | Exit menu text search or exit menu
-| <kbd>Shift</kbd><kbd>Tab</kbd> | | | Insert substring occuring in all listed completions | Exit menu text search or exit menu
+| <kbd>Shift</kbd><kbd>Tab</kbd> | | | Insert substring occurring in all listed completions | Exit menu text search or exit menu
 | <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | Cursor down or enter completion menu | Change selection
 | <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | Cursor up or enter [history menu](#history-menu) | Change selection
 | <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | Enter completion menu | Next section
 | <kbd>Alt</kbd><kbd>↑</kbd> | <kbd>Alt</kbd><kbd>P</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | Enter history menu | Previous section
 | <kbd>PgDn</kbd> | | | | Page down
 | <kbd>PgUp</kbd> | | | | Page up
-| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | Toggle history search mode | Start menu text search or go to previous match
+| | <kbd>Ctrl</kbd><kbd>X</kbd> <kbd>/</kbd> | | Toggle recent path search |
+| | <kbd>Ctrl</kbd><kbd>R</kbd> | <kbd>/</kbd> | Toggle history search | Start menu text search or go to previous match
 | | <kbd>Ctrl</kbd><kbd>S</kbd> | <kbd>?</kbd> | Start menu text search | Start menu text search or go to next match
 | | <kbd>Ctrl</kbd><kbd>Space</kbd> | <kbd>V</kbd> | Toggle selection mode | Add another item
 | | <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | <kbd>U</kbd> | | Undo last item
@@ -208,29 +209,7 @@ Modifying this list will change when a space is inserted.  If you change the
 list to `'*'`, a space is always inserted.  If you put no elements in the list,
 then a space is never inserted.
 
-### Use a custom backend for recent directories
-Autocomplete comes with its own backend for keeping track of and listing recent
-directories (which uses part of
-[`cdr`](https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#Recent-Directories)
-under the hood).  However, you can override this and supply Autocomplete with
-recent directories from any source that you like.  To do so, define a function
-like this:
-```zsh
-+autocomplete:recent-directories() {
-  typeset -ga reply=( [code that generates an array of absolute paths] )
-}
-```
-
-### Add a backend for recent files
-Out of the box, Autocomplete doesn't track or offer recent files. However, it
-will do so if you add a backend for it:
-```zsh
-+autocomplete:recent-files() {
-  typeset -ga reply=( [code that generates an array of absolute paths] )
-}
-```
-
-### Start each new line in history search mode
+### Start each command line in history search mode
 This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd> at the start of each new command line:
 ```zsh
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
@@ -272,6 +251,31 @@ zstyle ':autocomplete:history-search-backward:*' list-lines 256
 Note that for autocompletion and history search, the maximum number of lines is additionally capped to the number of
 lines that fit on screen.  However, there is no such limit for the history menu.  If that generates more lines than fit
 on screen, you can simply scroll upwards to see more.
+
+### Use a custom backend for recent directories
+Autocomplete comes with its own backend for keeping track of and listing recent directories (which
+uses part of
+[`cdr`](https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#Recent-Directories) under the
+hood). However, you can override this and supply Autocomplete with recent directories from any
+source that you like. To do so, define a function like this:
+
+```sh
++autocomplete:recent-directories() {
+  <code>
+  typeset -ga reply=( <any number of absolute paths> )
+}
+```
+
+#### Add a backend for recent files
+Out of the box, Autocomplete doesn't track or offer recent files. However, it will do so if you add
+a backend for it:
+
+```sh
++autocomplete:recent-files() {
+  <code>
+  typeset -ga reply=( <any number of absolute paths> )
+}
+```
 
 ## Troubleshooting
 Try the steps in the
