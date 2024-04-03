@@ -59,16 +59,16 @@ autocomplete:config:glob:expand() {
 
 builtin zstyle    ':completion:*:expand:*' keep-prefix no  # Needed for file type highlighting
 builtin zstyle    ':completion:*:expand:*' add-space subst
+
 builtin zstyle -e ':completion:*:expand:*' substitute autocomplete:config:substitute:expand
 autocomplete:config:substitute:expand() {
   local -P __word__=$PREFIX$SUFFIX
   if [[ ${(Q)__word__} == *(\`*\`|\$\(*\))* ]]; then
-    typeset -ga reply=( false )
+    typeset -ga reply=( no )
   else
-    typeset -ga reply=( true )
+    typeset -ga reply=( yes )
   fi
 }
-
 builtin zstyle -e ':completion:*:-command-:*' tag-order autocomplete:config:tag-order:command
 autocomplete:config:tag-order:command() {
   if [[ $PREFIX == (|.|*/*) ]]; then
@@ -93,9 +93,15 @@ builtin zstyle ':completion:*:cd:*' tag-order '! directory-stack' -
 # Don't show the giant list of history lines.
 builtin zstyle ':completion:*:fc:*' tag-order options -
 
-builtin zstyle ':completion:*:git-*:(|*-)argument-*:*' tag-order \
-    '! (|cached-)files *-remote remote-* (|*-)tags' \
-    '! *-remote remote-* tags'
+builtin zstyle -e ':completion:*:git-*:*' tag-order 'autocomplete:config:tag-order:git "$@"'
+autocomplete:config:tag-order:git() {
+  reply=()
+  (( compstate[nmatches] )) &&
+      reply=(
+          '! heads(|-*) *-remote remote-* blob-*'
+          -
+      )
+}
 
 # Complete only the tail of a path.
 builtin zstyle ':completion:*' ignore-parents 'parent pwd directory'
@@ -109,6 +115,7 @@ builtin zstyle ':completion:*:-command-:*' group-name commands
 builtin zstyle ':completion:*' group-order \
     all-expansions expansions options \
     aliases suffix-aliases functions reserved-words builtins commands \
+    remotes hosts recent-branches commits \
     local-directories directories executables
 
 builtin zstyle    ':completion:*'               file-patterns '*(-/):directories:directory %p(#q^-/):globbed-files'
