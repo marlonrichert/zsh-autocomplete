@@ -1,7 +1,10 @@
 #!/bin/zsh
 zmodload -F zsh/terminfo p:terminfo
 
-local +h curcontext=${curcontext:-${WIDGET}:::}
+local context=${curcontext:-${WIDGET}:::}
+unset curcontext
+local +h curcontext=$context
+
 local +h -a comppostfuncs=( .autocomplete__complete-word__post "$comppostfuncs[@]" )
 
 if [[ -z $compstate[old_list] && $curcontext == history-incremental-search* ]]; then
