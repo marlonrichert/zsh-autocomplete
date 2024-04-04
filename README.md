@@ -232,24 +232,32 @@ For example, this will stop completions from showing whenever the current word c
 zstyle ':autocomplete:*' ignored-input '..##'
 ```
 
-## Limit the number of lines shown
-By default, Autocomplete lets the history menu fill half of the screen, and limits autocompletion and history search
-to a maximum of 16 lines.  You can change these limits as follows:
+## Change the max number of lines shown
+By default, Autocomplete lets the history menu fill half of the screen, and limits all real-time
+listings to a maximum of 16 lines. You can change these limits as follows:
 
 ```zsh
-# Autocompletion
-zstyle -e ':autocomplete:list-choices:*' list-lines 'reply=( $(( LINES / 3 )) )'
+# Note: -e lets you specify a dynamically generated value.
 
-# Override history search.
+# Override default for all listings
+# $LINES is the number of lines that fit on screen.
+zstyle -e ':autocomplete:*:*' list-lines 'reply=( $(( LINES / 3 )) )'
+
+# Override for recent path search only
+zstyle ':autocomplete:recent-paths:*' list-lines 10
+
+# Override for history search only
 zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 8
 
-# History menu.
-zstyle ':autocomplete:history-search-backward:*' list-lines 256
+# Override for history menu only
+zstyle ':autocomplete:history-search-backward:*' list-lines 2000
 ```
 
-Note that for autocompletion and history search, the maximum number of lines is additionally capped to the number of
-lines that fit on screen.  However, there is no such limit for the history menu.  If that generates more lines than fit
-on screen, you can simply scroll upwards to see more.
+Note that for all real-time listings, the maximum number of lines is additionally capped to the
+number of lines that fit on screen. However, there is no such limit for the history menu. If that
+generates more lines than fit on screen, you can simply use <kbd>PgUp</kbd> and <kbd>PgDn</kbd> to
+scroll through the excess lines. (Note: On some terminals, you have to additionally hold
+<kbd>Shift</kbd> or, otherwise, it will scroll the terminal buffer instead.)
 
 ### Use a custom backend for recent directories
 Autocomplete comes with its own backend for keeping track of and listing recent directories (which

@@ -9,6 +9,8 @@ local +h -a comppostfuncs=( .autocomplete__complete-word__post "$comppostfuncs[@
 
 if [[ -z $compstate[old_list] && $curcontext == history-incremental-search* ]]; then
   autocomplete:_main_complete:new - history-lines _autocomplete__history_lines
+elif [[ -z $compstate[old_list] && $curcontext == recent-paths:* ]]; then
+  autocomplete:_main_complete:new - recent-paths _autocomplete__recent_paths
 elif [[ -z $compstate[old_list] ]] ||
     [[ -v _autocomplete__partial_list && $WIDGETSTYLE == (|*-)(list|menu)(|-*) ]] ||
     _autocomplete__should_insert_unambiguous; then

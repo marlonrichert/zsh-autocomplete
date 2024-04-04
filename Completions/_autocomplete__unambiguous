@@ -1,7 +1,6 @@
 #autoload
 
-# Does not work correctly.
-[[ $_comp_tags == history-lines ]] &&
+[[ $_comp_tags == (history-lines|* recent-*) ]] &&
     return 1
 
 # Is not going to be correct.

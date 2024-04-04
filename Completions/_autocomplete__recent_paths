@@ -1,19 +1,26 @@
 #autoload
 zmodload -Fa zsh/parameter p:functions
 
-local -aU files=()
-local -a expl=() displ=()
-local -Pi ret=1 i=0
-local -P singular= plural=
+local -aU files
+local -a expl displ
+local -iP ret i
+local -P singular plural tag
+
+ret=1
+
+.autocomplete:async:list-choices:max-lines 16
 
 for singular plural in directory directories file files; do
   if [[ -v functions[+autocomplete:recent-$plural] ]] &&
       +autocomplete:recent-$plural "$PREFIX$SUFFIX"; then
     files=( "$reply[@]" )
-    _description -V recent-$plural expl "recent $singular"
 
-    for i in {1..$#files}; do
-      displ=( "${${(D)files[i]:h}%/}/$files[i]:t" )
+    tag=recent-$plural
+    _comp_tags+=" $tag"
+    _description -V "$tag" expl "recent $singular"
+
+    for (( i = 1 ; i <= $#files, compstate[list_lines] < _autocomplete__max_lines ; i++ )); do
+      displ=( "$files[i]" )
       compadd -U "$expl[@]" -d displ -P "${${displ[1]:h}%/}/" -fW "${${files[i]:h}%/}/" \
           -- "$files[i]:t" &&
           ret=0

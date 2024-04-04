@@ -65,11 +65,11 @@ _autocomplete__history_lines() {
   )
 
   local -Pi excess= index= max= list_lines=
-    if (( is_incremental )); then
+  if (( is_incremental )); then
     .autocomplete:async:list-choices:max-lines 16
     (( list_lines = _autocomplete__max_lines ))
     (( max = 16 * list_lines ))  # Buffer for bubbling up more relevant results.
-    else
+  else
     zstyle -s ":autocomplete:${curcontext}:" list-lines list_lines ||
         (( list_lines = $LINES / 2 ))
     (( max = $list_lines ))
