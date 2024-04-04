@@ -30,7 +30,10 @@ ${0}:bind() {
 ${0}:bind   up-line-or-search   up-history '^P' 'k' $key_up[@]
 ${0}:bind down-line-or-select down-history '^N' 'j' $key_down[@]
 
+local backtab=$terminfo[kcbt]
+
 menukeys+=(
+                '\t' accept-line
                 '^@' accept-and-hold
                '^[v' accept-and-hold
                 '^_' undo
@@ -38,8 +41,9 @@ menukeys+=(
     "$terminfo[kpp]" backward-word
     "$terminfo[knp]"  forward-word
 )
+bindkey -M menuselect -s "$backtab" "^_$backtab"
 
-local backtab=$terminfo[kcbt]
+
 main+=(
           '\t' complete-word
     "$backtab" insert-unambiguous-or-complete

@@ -132,7 +132,7 @@ bindkey "$terminfo[kcbt]" menu-select
 
 #### Make <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> change the selection in the menu
 This makes <kbd>Tab</kbd> and <kbd>Shift</kbd><kbd>Tab</kbd> move the selection in the menu right
-and left, respectively, instead of exiting the menu or exiting menu search:
+and left, respectively, instead of exiting the menu:
 ```sh
 bindkey -M menuselect              '^I'         menu-complete
 bindkey -M menuselect "$terminfo[kcbt]" reverse-menu-complete
@@ -161,7 +161,6 @@ bindkey '^S' .history-incremental-search-forward
 ```
 
 ### Pass arguments to `compinit`
-
 If necessary, you can let Autocomplete pass arguments to `compinit` as follows:
 ```sh
 zstyle '*:compinit' arguments -D -i -u -C -w
