@@ -139,10 +139,11 @@ _autocomplete__history_lines() {
     fi
   fi
 
-  _comp_tags=history-lines
+  local tag=history-lines
+  _comp_tags=" $tag"
   local _comp_no_ignore=1
   local -a expl=()
-  _description -2V $_comp_tags expl ''
+  _description -2V $tag expl ''
   builtin compadd $suf -QU -ld displays "$expl[@]" -a matches
 }
 

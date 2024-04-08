@@ -1,6 +1,6 @@
 #autoload
 
-[[ $_comp_tags == (history-lines|* recent-*) ]] &&
+[[ $_comp_tags == *\ (history-lines|recent-)* ]] &&
     return 1
 
 # Is not going to be correct.
