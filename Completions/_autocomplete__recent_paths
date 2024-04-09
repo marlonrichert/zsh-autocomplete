@@ -1,6 +1,10 @@
 #autoload
 zmodload -Fa zsh/parameter p:functions
 
+# Don't run more than once.
+(( _matcher_num > 1 )) &&
+    return 1
+
 local -aU files
 local -a expl displ
 local -iP ret i
