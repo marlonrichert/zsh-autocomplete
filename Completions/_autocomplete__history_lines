@@ -66,7 +66,7 @@ _autocomplete__history_lines() {
 
   local -Pi excess= index= max= list_lines=
   if (( is_incremental )); then
-    .autocomplete:async:list-choices:max-lines 16
+    .autocomplete:async:list-choices:max-lines
     (( list_lines = _autocomplete__max_lines ))
     (( max = 16 * list_lines ))  # Buffer for bubbling up more relevant results.
   else

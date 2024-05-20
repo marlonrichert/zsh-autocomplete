@@ -399,9 +399,9 @@ ${0}:precmd() {
 } 2>>| $_autocomplete__log
 
 .autocomplete:async:list-choices:max-lines() {
-  local -Pi max_lines=0
+  local -Pi max_lines
   builtin zstyle -s ":autocomplete:${curcontext}:" list-lines max_lines ||
-      max_lines=$1
+      max_lines=16
   _autocomplete__max_lines=$(( min( max_lines, LINES - BUFFERLINES - 1 ) ))
 }
 
@@ -433,7 +433,7 @@ ${0}:precmd() {
         # functions -T compadd _describe
       } "$@"
 
-      .autocomplete:async:list-choices:max-lines 16
+      .autocomplete:async:list-choices:max-lines
       autocomplete:_main_complete:new "$@"
     } always {
       unfunction compadd comptags 2> /dev/null

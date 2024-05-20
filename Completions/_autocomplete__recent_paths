@@ -12,7 +12,7 @@ local -P singular plural tag
 
 ret=1
 
-.autocomplete:async:list-choices:max-lines 16
+.autocomplete:async:list-choices:max-lines
 
 for singular plural in directory directories file files; do
   if [[ -v functions[+autocomplete:recent-$plural] ]] &&
