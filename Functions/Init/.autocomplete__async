@@ -63,19 +63,18 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:isearch-exit() {
-  .autocomplete__zle-flags $LASTWIDGET
   unset _autocomplete__isearch
 }
 
 .autocomplete:async:save-state() {
   typeset -g \
-      _autocomplete__curcontext=$context \
+      _autocomplete__curcontext=$curcontext \
       _autocomplete__lbuffer="$LBUFFER" \
       _autocomplete__rbuffer="$RBUFFER"
 }
 
 .autocomplete:async:same-state() {
-  [[ -v _autocomplete__curcontext && $_autocomplete__curcontext == $context &&
+  [[ -v _autocomplete__curcontext && _autocomplete__curcontext=$curcontext &&
       -v _autocomplete__lbuffer && $_autocomplete__lbuffer == $LBUFFER &&
       -v _autocomplete__rbuffer && $_autocomplete__rbuffer == $RBUFFER ]]
 }
@@ -87,49 +86,62 @@ ${0}:precmd() {
       _autocomplete__rbuffer
 }
 
+# function -T
 .autocomplete:async:complete() {
-  .autocomplete__zle-flags $LASTWIDGET ||
+  if [[ -v _autocomplete__inserted ]]; then
+    unset _autocomplete__inserted
+    typeset -g curcontext=
+    builtin zstyle -s :autocomplete: default-context curcontext
+  fi
+  .autocomplete:async:save-state
+
+  .autocomplete__zle-flags ||
       return 0
 
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
-  {
-    # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
-    [[ -v _FAST_MAIN_CACHE ]] &&
-        _zsh_highlight
 
-    typeset -g _autocomplete__region_highlight=( "$region_highlight[@]" )
-
-    if [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
-      unset POSTDISPLAY
-    fi
-
-    # Completion already started
-    [[ -v _autocomplete__lbuffer || -v _autocomplete__rbuffer ]] &&
-        return 0
-
-    # Don't get triggered by asynchronous widgets.
-    if [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete:async:*:fd-widget) ]]; then
+  # Don't get activated by asynchronous widgets.
+  [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete:async:*:fd-widget) ]] &&
       return 0
-    fi
 
+  {
     if (( REGION_ACTIVE )) ||
         [[ -v _autocomplete__isearch && $LASTWIDGET == *(incremental|isearch)* ]]; then
       builtin zle -Rc
       return 0
     fi
 
-    [[ $LASTWIDGET ==
-          (_complete_help|(|.)(describe-key-briefly|(|.)(|reverse-)menu-complete|what-cursor-position|where-is)) ]] &&
-        return
+    builtin zstyle -t ":autocomplete:${LASTWIDGET}:" ignore &&
+        return 0
+
+    local -Pa ignored=(
+      '_complete_help'
+      '(copy|insert)-*-word'
+      'describe-key-briefly'
+      '(|reverse-)menu-complete'
+      'what-cursor-position'
+      'where-is'
+    )
+    [[ ${LASTWIDGET##.} == (${(~j:|:)ignored}) ]] &&
+        return 0
 
     [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
         builtin zle -Rc
 
-    .autocomplete:async:wait
+    # WORKAROUND: #549 Bug in zdharma/fast-syntax-highlighting.
+    [[ -v _FAST_MAIN_CACHE ]] &&
+        _zsh_highlight
 
-    set +x
-  } 2>>| $_autocomplete__log
+    typeset -ga _autocomplete__region_highlight=( "$region_highlight[@]" )
+
+    if  [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
+        (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )); then
+      unset POSTDISPLAY
+    fi
+
+    .autocomplete:async:wait
+  }
 
   return 0
 }
@@ -141,10 +153,9 @@ ${0}:precmd() {
   return 0
 }
 
+# function -t
 .autocomplete:async:wait() {
   local fd=
-
-  .autocomplete:async:save-state
 
   sysopen -r -o cloexec -u fd <(
     local -F seconds=
@@ -164,28 +175,32 @@ ${0}:precmd() {
   return 0
 }
 
+# function -T
 .autocomplete:async:wait:fd-widget() {
   {
     local -i fd=$1
     builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
     exec {fd}<&-
-    .autocomplete__zle-flags
+
+    if [[ -n $_autocomplete__zle_flags ]]; then
+      builtin zle -f $_autocomplete__zle_flags
+
+      [[ $_autocomplete__zle_flags == yank* ]] &&
+          return 0
+    fi
+
+    (( KEYS_QUEUED_COUNT || PENDING )) &&
+        return
 
     {
-      if .autocomplete:async:same-state; then
+      .autocomplete:async:same-state &&
         .autocomplete:async:start
-      else
-        .autocomplete:async:wait
-      fi
-      set +x
-    } 2>>| $_autocomplete__log
+    }
   }
   return 0
 }
 
 .autocomplete:async:start() {
-  .autocomplete:async:save-state
-
   local fd=
   sysopen -r -o cloexec -u fd <(
     .autocomplete:async:start:inner 2>>| $_autocomplete__log
@@ -300,23 +315,25 @@ ${0}:precmd() {
   } 2>>| $_autocomplete__log
 }
 
+# function -T
 .autocomplete:async:complete:fd-widget() {
   {
     local -i fd=$1
     {
       builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
 
-      if ! .autocomplete__zle-flags; then
-        .autocomplete:async:reset-state
+      if [[ -n $_autocomplete__zle_flags ]]; then
+        builtin zle -f $_autocomplete__zle_flags
+
+        [[ $_autocomplete__zle_flags == yank* ]] &&
         return 0
       fi
 
-      if ! .autocomplete:async:same-state; then
-        .autocomplete:async:start
-        return 0
-      fi
+      (( KEYS_QUEUED_COUNT || PENDING )) &&
+          return
 
-      .autocomplete:async:reset-state
+      .autocomplete:async:same-state ||
+        return 0
 
       local -a reply=()
       IFS=$'\0' read -rAu $fd
@@ -343,9 +360,9 @@ ${0}:precmd() {
       builtin zle -R
     fi
     .autocomplete:async:reset-state
-    set +x
+
     return 0
-  } 2>>| $_autocomplete__log
+  }
 }
 
 .autocomplete:async:sufficient-input() {

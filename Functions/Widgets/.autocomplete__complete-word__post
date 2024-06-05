@@ -15,43 +15,51 @@ else
   compstate[to_end]='always'
 fi
 
-compstate[insert]=
+{
+  compstate[insert]=
 
-if _autocomplete__should_insert_unambiguous; then
-  if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
-    compstate[insert]='automenu-'
-  fi
-  compstate[insert]+='unambiguous'
-  unset _autocomplete__unambiguous
-
-  return
-fi
-
-if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
-  if [[ $WIDGETSTYLE == (|*-)select(|-*) ]]; then
-    typeset -gi MENUSELECT=0
-    if [[ $WIDGET == (|*-)search(|-*) ]]; then
-        typeset -g MENUMODE=search-forward
+  if _autocomplete__should_insert_unambiguous; then
+    if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
+      compstate[insert]='automenu-'
     fi
+    compstate[insert]+='unambiguous'
+    unset _autocomplete__unambiguous
+
+    return
   fi
-  compstate[insert]='menu:'
-fi
-if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
-  compstate[insert]+='0'
-else
-  compstate[insert]+='1'
-fi
 
-local -Pa comptags=()
-if [[ $compstate[old_list] == keep ]]; then
-  comptags=( $=_lastcomp[tags] )
-else
-  comptags=( $=_comp_tags )
-fi
+  if [[ $WIDGETSTYLE == (|*-)menu(|-*) ]]; then
+    if [[ $WIDGETSTYLE == (|*-)select(|-*) ]]; then
+      typeset -gi MENUSELECT=0
+      if [[ $WIDGET == (|*-)search(|-*) ]]; then
+          typeset -g MENUMODE=search-forward
+      fi
+    fi
+    compstate[insert]='menu:'
+  fi
+  if [[ $WIDGET == (|.)reverse-* || $WIDGETSTYLE == (|.)reverse-menu-complete ]]; then
+    compstate[insert]+='0'
+  else
+    compstate[insert]+='1'
+  fi
 
-local -a spacetags=()
-builtin zstyle -a ":autocomplete:$WIDGET:" add-space spacetags ||
-  spacetags=( executables aliases functions builtins reserved-words commands )
+  local -Pa comptags=()
+  if [[ $compstate[old_list] == keep ]]; then
+    comptags=( $=_lastcomp[tags] )
+  else
+    comptags=( $=_comp_tags )
+  fi
 
-[[ -n ${comptags:*spacetags} ]] &&
-    compstate[insert]+=' '
+  local -a spacetags=()
+  builtin zstyle -a ":autocomplete:$WIDGET:" add-space spacetags ||
+    spacetags=( executables aliases functions builtins reserved-words commands )
+
+  [[ -n ${comptags:*spacetags} ]] &&
+      compstate[insert]+=' '
+
+} always {
+  unset _autocomplete__inserted
+  [[ -n $compstate[insert] ]] &&
+      typeset -g _autocomplete__inserted
+
+}
