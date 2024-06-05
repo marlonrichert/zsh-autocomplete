@@ -95,8 +95,7 @@ Otherwise, simply use your package manager or plugin manager's update mechanisms
 * Plugins or other scripts that you load _after_ loading Autocomplete may override these bindings.
   If you find that some shortcuts don't work as expected, then you can fix them by
   * changing the order in which you source your plugins or by
-  * running [`bindkey` commands](#reassign-keys) in `.zshrc` file _after_ you've source your
-    plugins.
+  * running [`bindkey` commands](#reassign-keys) in your dotfiles _after_ you source your plugins.
 * Depending on your terminal, not all keybindings might be available to you.
 * Instead of <kbd>Alt</kbd>, your terminal might require you to press <kbd>Escape</kbd>,
   <kbd>Option</kbd> or <kbd>Meta</kbd>.
