@@ -204,6 +204,7 @@ ${0}:precmd() {
   return 0
 }
 
+# function -T
 .autocomplete:async:start() {
   local fd=
   sysopen -r -o cloexec -u fd <(
@@ -216,6 +217,7 @@ ${0}:precmd() {
   command true
 }
 
+# function -T
 .autocomplete:async:start:inner() {
   {
     typeset -F SECONDS=0
@@ -271,6 +273,7 @@ ${0}:precmd() {
   }
 }
 
+# function -T
 .autocomplete:async:pty() {
   # Make sure this shell dies after it times out.
   local -F seconds=
@@ -290,6 +293,7 @@ ${0}:precmd() {
   :
 }
 
+# function -T
 .autocomplete:async:pty:zle-widget() {
   local -a _autocomplete__comp_mesg=()
   local -i _autocomplete__list_lines=0
@@ -312,6 +316,7 @@ ${0}:precmd() {
   }
 } 2>>| $_autocomplete__log
 
+# function -T
 .autocomplete:async:pty:completion-widget() {
   {
     if ! .autocomplete:async:sufficient-input; then
@@ -320,7 +325,7 @@ ${0}:precmd() {
     {
       unfunction compadd 2> /dev/null
       unset 'compstate[vared]'
-      autocomplete:_main_complete:new
+      .autocomplete:async:list-choices:main-complete
     } always {
       _autocomplete__list_lines=$compstate[list_lines]
     }
