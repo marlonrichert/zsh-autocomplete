@@ -75,8 +75,8 @@ ${0}:precmd() {
 
 .autocomplete:async:same-state() {
   [[ -v _autocomplete__curcontext && _autocomplete__curcontext=$curcontext &&
-      -v _autocomplete__lbuffer && $_autocomplete__lbuffer == $LBUFFER &&
-      -v _autocomplete__rbuffer && $_autocomplete__rbuffer == $RBUFFER ]]
+     -v _autocomplete__lbuffer && $_autocomplete__lbuffer == $LBUFFER &&
+     -v _autocomplete__rbuffer && $_autocomplete__rbuffer == $RBUFFER ]]
 }
 
 .autocomplete:async:reset-state() {
@@ -198,7 +198,7 @@ ${0}:precmd() {
 
     {
       .autocomplete:async:same-state &&
-        .autocomplete:async:start
+          .autocomplete:async:start
     }
   }
   return 0
@@ -278,6 +278,9 @@ ${0}:precmd() {
       seconds=0.5
   TMOUT=$(( [#10] 1 + seconds ))
 
+  # WORKAROUND: #654 Inside the PTY, formatting can lead to incorrect list trimming.
+  eval ${${${"$( zstyle -L '*' format )"}//zstyle /zstyle -d }// -e / }
+
   builtin bindkey $'\C-@' .autocomplete:async:pty:zle-widget
   local __tmp__=
   builtin vared __tmp__
@@ -315,8 +318,9 @@ ${0}:precmd() {
       return
     fi
     {
+      unfunction compadd 2> /dev/null
       unset 'compstate[vared]'
-      .autocomplete:async:list-choices:main-complete
+      autocomplete:_main_complete:new
     } always {
       _autocomplete__list_lines=$compstate[list_lines]
     }
@@ -335,14 +339,14 @@ ${0}:precmd() {
         builtin zle -f $_autocomplete__zle_flags
 
         [[ $_autocomplete__zle_flags == yank* ]] &&
-        return 0
+            return 0
       fi
 
       (( KEYS_QUEUED_COUNT || PENDING )) &&
           return
 
       .autocomplete:async:same-state ||
-        return 0
+          return 0
 
       local -a reply=()
       IFS=$'\0' read -rAu $fd
@@ -421,12 +425,12 @@ ${0}:precmd() {
   compstate[pattern_insert]=
   _lastcomp[pattern_insert]=
   if [[ -v _autocomplete__partial_list ]]; then
-    builtin compadd -J -last- -x '%F{black}%K{12}(MORE)%f%k'
+    builtin compadd -J -last- -x '%F{0}%K{12}(MORE)%f%k'
     _lastcomp[list_lines]=$compstate[list_lines]
   fi
 
   return 2  # Don't return 1, to prevent beeping.
-} 2>>| $_autocomplete__log
+}
 
 .autocomplete:async:list-choices:max-lines() {
   local -Pi max_lines
@@ -460,7 +464,7 @@ ${0}:precmd() {
         autoload -Uz +X _describe
         .autocomplete:async:shadow _describe
 
-        # functions -T compadd _describe
+        # functions -T compadd _describe _description
       } "$@"
 
       .autocomplete:async:list-choices:max-lines
@@ -488,121 +492,164 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:_describe() {
-  local -i _autocomplete__described_lines=0
+  local -i _autocomplete__described_lines=1  # Assume we'll add a title.
   autocomplete:async:_describe:old "$@"
 }
 
 .autocomplete:async:compadd() {
-  local -Pi _ret_=1
+  local -A _opts_=()
+  local -a _xopts_=() _displ_=() _matches_=()
   local -P _displ_name_= _matches_name_=
 
-  local -A _opts_=()
-  local -a _displ_=() _dopt_=() _groupname_=() _matches_=()
-  zparseopts -A _opts_ -E -- D: E: O: X: x: d+:=_dopt_ l
+  zparseopts -A _opts_ -E -- D: E: O: X:=_xopts_ x:=_xopts_
 
-  if [[ -v _opts_[-x] && $# -eq 2 ]]; then
-    # Adding a message only.
-    builtin compadd "$@"
-    return
-  fi
+  local -Pi _unused_lines_=$(( _autocomplete__max_lines - compstate[list_lines] ))
 
-  # -X and -x are titles.
-  local -Pi _avail_list_lines_=$((
-      max( 0, _autocomplete__max_lines - 1 - ${${_opts_[(i)-[Xx]]}:+1} - compstate[list_lines] )
-  ))
-
+  # If $_grp is not set, then _describe is adding completions in a normal way and we don't need to
+  # do all this.
   if [[ -v _autocomplete__described_lines && -n $_grp ]]; then
-    if [[ -n $_opts_[-D] ]]; then
-      _displ_name_=$_opts_[-D]
-      _matches_name_=$_opts_[-O]
 
-      if [[ -v _autocomplete__partial_list ]]; then
-        set -A $_displ_name_
-        return 1
-      fi
-
+    # We cannot interfere when _describe is actually adding the completions or we risk breaking the
+    # layout.
+    if [[ -z $_opts_[-D] ]]; then
       builtin compadd "$@"
-      _ret_=$?
+      return
+    fi
 
-      local -i _len_=${(PA)#_displ_name_}
-      local -i _max_=$(( _avail_list_lines_ - _autocomplete__described_lines ))
+    _displ_name_=$_opts_[-D]
+    _matches_name_=$_opts_[-O]
 
-      if (( ${#${(u)${(PA)_displ_name_}[@]#*:}} > _max_ )); then
-        shift -p $(( _len_ - _max_ )) $_displ_name_ $_matches_name_
-        .autocomplete:async:compadd:disable
-      else
-        (( _autocomplete__described_lines += _len_ ))
-      fi
-
-      return _ret_
+    # We already ran out of space.
+    if [[ -v _autocomplete__partial_list ]]; then
+      set -A $_displ_name_
+      [[ -n $_matches_name_ ]] &&
+          set -A $_matches_name_
     fi
 
     builtin compadd "$@"
-    return
+    local -Pi _ret_=$?
+
+    local -i _ndisplay_=${(PA)#_displ_name_}
+    local -i _lines_left_for_describe_=$(( _unused_lines_ - _autocomplete__described_lines ))
+
+    # The number of lines that would be added is equal to the number of unique display strings.
+    if (( ${#${(u)${(PA)_displ_name_}[@]#*:}} > _lines_left_for_describe_ )); then
+      local -Pi _matches_to_remove=$(( _ndisplay_ - max( 0, _lines_left_for_describe_ ) ))
+      if (( _matches_to_remove < _ndisplay_ )); then
+        shift -p $_matches_to_remove $_displ_name_ $_matches_name_
+      else
+        set -A $_displ_name_
+        [[ -n $_matches_name_ ]] &&
+            set -A $_matches_name_
+      fi
+      _ndisplay_=${(PA)#_displ_name_}
+      .autocomplete:async:compadd:disable
+    fi
+    (( _autocomplete__described_lines += _ndisplay_ ))
+
+    return _ret_
   fi
 
-  # Deleting or collecting completions, but not actually adding them.
+  # We already ran out of space.
+  if [[ -v _autocomplete__partial_list ]]; then
+    [[ -n $_opts_[-D] ]] &&
+        set -A $_opts_[-D]
+    [[ -n $_opts_[-O] ]] &&
+        set -A $_opts_[-O]
+    return 1
+  fi
+
+  # If
   if [[ -n $_opts_[-D]$_opts_[-O] ]]; then
     builtin compadd "$@"
     return
   fi
 
-  [[ -v _autocomplete__partial_list ]] &&
-      return 1
+  local -i _old_total_lines=$compstate[list_lines]
 
-  local -Pi _resulting_list_lines="$(
+  # Need to remove prompt escape codes or compadd might crash.
+  local -Pi _total_new_lines_="$(
+      zparseopts -a _xopts_ -D -E -- X: x:
+      # builtin compadd $_xopts_[1] ${_xopts_[2]//\%([^{]|)(\{[^{]##\}|)/} "$@"
       builtin compadd "$@"
-      print -nr -- $compstate[list_lines]
+      print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
   )"
-  local -Pi _new_list_lines_=$(( _resulting_list_lines - $compstate[list_lines] ))
-  local -Pi _remaining_list_lines=$(( _avail_list_lines_ - _new_list_lines_ ))
 
-  (( _remaining_list_lines <= 0 )) &&
-      .autocomplete:async:compadd:disable
+  local -Pi _new_completion_lines_="$(
+      zparseopts -a _xopts_ -D -E -- X: x:
+      builtin compadd "$@"
+      print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
+  )"
 
-  if (( _remaining_list_lines >= 0 )); then
+  local -Pi _new_heading_lines_=$(( _total_new_lines_ - _new_completion_lines_ ))
+
+  # Everything fits.
+  if (( _total_new_lines_ + $compstate[list_lines] <= _autocomplete__max_lines )); then
     builtin compadd "$@"
     return
   fi
 
-  _displ_name_=$_dopt_[2]
-  [[ -n $_displ_name_ ]] &&
-      local -a _Dopt_=( -D $_displ_name_ )
+  # We're apparently trying to add a message that spans more than one line, but not any completions.
+  if (( _new_heading_lines_ > 1 && _new_completion_lines_ < 1 )); then
+    .autocomplete:async:compadd:disable
+    return 1
+  fi
 
-  # Collect all matching completions and, if present, remove the display strings of those that don't match.
+  local -a _dopt_=()
+  zparseopts -a _dopt_ -D -E -- d: ld:
+
+  _displ_name_=$_dopt_[2]
+
+  # Collect all matching completions and their display strings (if any).
+  local -a _Dopt_=()
+  [[ -n $_displ_name_ ]] &&
+      _Dopt_=( -D $_displ_name_ )
   builtin compadd -O _matches_ $_Dopt_ "$@"
 
+  # If we don't have an array with display strings, then create one.
   if [[ -z $_displ_name_ ]]; then
-    _displ_=( "$_matches_[@]" )
-    _dopt_=( -d _displ_ )
     _displ_name_=_displ_
+    _displ_=( "$_matches_[@]" )
+    _dopt_=( -d $_displ_name_ )
   fi
 
-  local -Pi _nmatches_per_line_=$(( 1.0 * $#_matches_ / _new_list_lines_ ))
+  local -Pi _nmatches_per_line_=$(( 1.0 * $#_matches_ / _new_completion_lines_ ))
 
+  # If we need more than one line per match, then make each match fit exactly one line.
   if (( _nmatches_per_line_ < 1 )); then
-    # If we need more than one line per match, then make each match fit exactly one line.
-    _nmatches_per_line_=1
-    _dopt_=( -l "$_dopt_[@]" )
-
-    # WORKAROUND: Display strings that are exactly $COLUMNS wide are mistakenly counted as spanning two lines, causing
-    # the dreaded `zsh: do you wish to see all XX possibilities (YY lines)?`
+    # WORKAROUND: Zsh mistakenly treats display strings that are exactly $COLUMNS wide as not
+    # fitting on one line.
     set -A $_displ_name_ ${(@r:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
+
+    _dopt_=( -ld $_displ_name_ )
+    (( _nmatches_per_line_ = 1 ))
   fi
 
-  # Need to round this down _before_ subtracting or it will be effectively rounded up.
-  local -Pi _nmatches_that_fit_=$(( _avail_list_lines_ * _nmatches_per_line_ ))
-  local -Pi _nmatches_to_remove_=$(( $#_matches_ - _nmatches_that_fit_ ))
+  # Need to round this down _before_ subtracting it or it will effectively be rounded up.
+  local -Pi _nmatches_that_fit_=$((
+      ( _unused_lines_ - _new_heading_lines_ ) * _nmatches_per_line_
+  ))
 
-  (( _nmatches_to_remove_ > 0 )) &&
+  local -Pi _nmatches_to_remove_=$(( $#_matches_ - max( 0, _nmatches_that_fit_ ) ))
+
+  if (( _nmatches_to_remove_ > 0 )); then
+    # If we're going to remove anything, then we need to make room for the `(MORE)` prompt.
+    (( _nmatches_to_remove_++ ))
+
+    if (( _nmatches_to_remove_ < $#_matches_ )); then
       shift -p $_nmatches_to_remove_ _matches_ $_displ_name_
+    else
+      set -A _matches_
+      set -A $_displ_name_
+    fi
+    .autocomplete:async:compadd:disable
+  fi
 
   _autocomplete__compadd_opts_len "$@"
-  builtin compadd $_dopt_ -a "$@[1,?]" _matches_
+  builtin compadd "$_dopt_[@]" -a "$@[1,?]" _matches_
 }
 
 .autocomplete:async:compadd:disable() {
-  # Disable all further completions.
   typeset -g _autocomplete__partial_list=$curtag
-  comptags() { false }
+  comptags() { false }  # Stop completion from trying more tags.
 }
