@@ -161,11 +161,15 @@ ${0}:precmd() {
     local -F seconds=
     builtin zstyle -s :autocomplete: delay seconds ||
         builtin zstyle -s :autocomplete: min-delay seconds ||
-        (( seconds = 0.04 ))
+        (( seconds = 0.05 ))
 
+    (( seconds_delay = max( 0, seconds_delay - _autocomplete__overhead ) ))
+
+    # Convert to 100ths of a second for `zselect -t`.
     # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
     # of max() gets converted to an integer _before_ being multiplied.
-    local -i timeout=$(( 100 * max( 0, seconds ) ))
+    local -i timeout=$(( 100 * seconds ))
+
     zselect -t $timeout
 
     print
@@ -239,12 +243,16 @@ ${0}:precmd() {
       local -a reply=()
       local text=
 
+      local -F seconds=0.0
       builtin zstyle -s :autocomplete: timeout seconds ||
-          (( seconds = 0.4 ))
+          (( seconds = 1.0 ))
 
+      (( seconds = max( 0, seconds - SECONDS ) ))
+
+      # Convert to 100ths of a second for `zselect -t`.
       # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
       # of max() gets converted to an integer _before_ being multiplied.
-      local -i timeout=$(( 100 * max( 0, seconds - SECONDS ) ))
+      local -i timeout=$(( 100 * seconds ))
 
       if zselect -rt $timeout "$fd"; then
         zpty -r AUTOCOMPLETE text $'*\C-B'
@@ -318,6 +326,7 @@ ${0}:precmd() {
 # function -T
 .autocomplete:async:complete:fd-widget() {
   {
+    local +h -F SECONDS=0.0
     local -i fd=$1
     {
       builtin zle -F $fd # Unhook ourselves immediately, so we don't get called more than once.
@@ -338,6 +347,8 @@ ${0}:precmd() {
       local -a reply=()
       IFS=$'\0' read -rAu $fd
       shift -p reply
+      (( SECONDS += reply[2] ))
+
     } always {
       exec {fd}<&-
     }
@@ -348,7 +359,9 @@ ${0}:precmd() {
 
     # If a widget can't be called, zle always returns true.
     # Thus, we return false on purpose, so we can check if our widget got called.
-    if ! builtin zle ._list_choices -w "$reply[@]" 2>>| $_autocomplete__log; then
+    if ! builtin zle ._list_choices -w "$reply[1]" 2>>| $_autocomplete__log; then
+
+      typeset -g _autocomplete__overhead=$SECONDS
 
       typeset -g region_highlight=( "$_autocomplete__region_highlight[@]" )
 

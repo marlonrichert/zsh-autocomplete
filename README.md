@@ -221,7 +221,8 @@ zstyle ':autocomplete:*' min-input 3
 ```
 
 ### Wait with autocompletion until typing stops for a certain amount of seconds
-Normally, Autocomplete fetches completions after you stop typing for about 0.05 seconds. You can change this as follows:
+Normally, Autocomplete fetches completions after you stop typing for about 0.05 seconds. You can
+change this as follows:
 ```zsh
 zstyle ':autocomplete:*' delay 0.1  # seconds (float)
 ```
