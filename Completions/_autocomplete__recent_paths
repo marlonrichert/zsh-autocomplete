@@ -23,7 +23,7 @@ for singular plural in directory directories file files; do
     _comp_tags+=" $tag"
     _description -V "$tag" expl "recent $singular"
 
-    for (( i = 1 ; i <= $#files, compstate[list_lines] < _autocomplete__max_lines ; i++ )); do
+    for (( i = 1 ; i <= $#files && compstate[list_lines] < _autocomplete__max_lines ; i++ )); do
       displ=( "$files[i]" )
       compadd -U "$expl[@]" -d displ -P "${${displ[1]:h}%/}/" -fW "${${files[i]:h}%/}/" \
           -- "$files[i]:t" &&
