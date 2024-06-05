@@ -87,16 +87,19 @@ Otherwise, simply use your package manager or plugin manager's update mechanisms
 | | <kbd>Ctrl</kbd><kbd>-</kbd><br><kbd>Ctrl</kbd><kbd>/</kbd> | <kbd>U</kbd> | | Undo last item
 | | <kbd>Ctrl</kbd><kbd>G</kbd> | | | Undo all added items
 
-Note:
-* Plugins or other scripts that you load _after_ loading Autocomplete may override these bindings.
-  If you find that some shortcuts don't work as expected, then you can fix them by running
-  [`bindkey` commands](#reassign-keys) at the end of your `.zshrc` file.
-* Depending on your terminal, not all keybindings might be available to you.
-* Instead of <kbd>Alt</kbd>, your terminal might require you to press
-  <kbd>Escape</kbd>, <kbd>Option</kbd> or <kbd>Meta</kbd>.
+### Caveats
 * `main` is whichever keymap was aliased to `main` when Autocomplete was sourced.
   * By default, this is `emacs`.
-  * If you run `bindkey -v`, then this becomes `viins`.
+  * If you run `bindkey -v` _before_ sourcing Autocomplete, then `main` will be `viins` when
+     Autocomplete installs keybindings.
+* Plugins or other scripts that you load _after_ loading Autocomplete may override these bindings.
+  If you find that some shortcuts don't work as expected, then you can fix them by
+  * changing the order in which you source your plugins or by
+  * running [`bindkey` commands](#reassign-keys) in `.zshrc` file _after_ you've source your
+    plugins.
+* Depending on your terminal, not all keybindings might be available to you.
+* Instead of <kbd>Alt</kbd>, your terminal might require you to press <kbd>Escape</kbd>,
+  <kbd>Option</kbd> or <kbd>Meta</kbd>.
 * In the menus, the bindings listed under `vicmd` require you to press <kbd>Alt</kbd> for each,
   instead of just once.
 * The bindings listed under `emacs` and `vicmd` are always both active in the menus, no matter which
