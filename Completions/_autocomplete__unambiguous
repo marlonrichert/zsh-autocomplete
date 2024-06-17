@@ -33,6 +33,13 @@ _requested $tag ||
 
 typeset -g _autocomplete__unambiguous="$compstate[unambiguous]"
 
-builtin compadd -J "$tag" -x $'%{\e[0;2m%}%Bcommon substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+# Retrieve highlight value.
+local format
+zstyle -s ":completion:${curcontext}:unambiguous" format format ||
+    format=$'%{\e[0;2m%}%Bcommon substring:%b %0F%11K%d%f%k'
+
+zformat -F format "$format" "d:$compstate[unambiguous]"
+
+builtin compadd -J "$tag" -x "$format"
 
 false

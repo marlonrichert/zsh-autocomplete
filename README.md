@@ -194,6 +194,24 @@ zstyle ':completion:*:*' matcher-list 'm:{[:lower:]-}={[:upper:]_}' '+r:|[.]=**'
 Note, though, that this will also slightly change what completions are listed initially. This is a
 limitation of the underlying implementation in Zsh.
 
+### Customize common substring message
+You can customize the way the common substring is presented. The following sets the presentation to
+the default:
+```zsh
+builtin zstyle ':autocomplete:*:unambiguous' format \
+    $'%{\e[0;2m%}%Bcommon substring:%b %0F%11K%d%f%k'
+```
+`%d` will be replaced with the common substring. Additionally, the following [Zsh prompt escape
+sequences](https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html#Visual-effects) are
+supported for adding visual effects:
+* `%B`: bold
+* `%F`: foreground color
+* `%K`: background color
+* `%S`: `terminfo` "standout"
+* `%U`: underline
+* `%{...%}`: arbitrary [ANSI escape
+   sequence](https://en.wikipedia.org/wiki/ANSI_escape_code#Select_Graphic_Rendition_parameters)
+
 ### Make <kbd>Enter</kbd> submit the command line straight from the menu
 By default, pressing <kbd>Enter</kbd> in the menu search exits the search and
 pressing it otherwise in the menu exits the menu.  If you instead want to make
