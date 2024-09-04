@@ -21,6 +21,9 @@ Minimum:
 * Should theoretically work with Zsh 5.4, but I'm unable to test that.
 
 ## Installation & setup
+> Note: In this manual, `%` represents the command line prompt. If you see it in front of a command,
+> it means you should run it on the command line, not put it in a script.
+
 First, install Autocomplete itself. Here are some way to do so:
   * To use only releases (instead of the `main` branch), install `zsh-autocomplete` with a package
     manager. As of this writing, this package is available through Homebrew, Nix, `pacman`, Plumage,
