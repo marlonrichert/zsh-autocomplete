@@ -191,6 +191,15 @@ zstyle ':completion:*:*' matcher-list 'm:{[:lower:]-}={[:upper:]_}' '+r:|[.]=**'
 Note, though, that this will also slightly change what completions are listed initially. This is a
 limitation of the underlying implementation in Zsh.
 
+### Customizing Colors for common-substring-highlight
+You can customize the colors used for highlighting the common substring by changing the last string in the following zstyle:
+```zsh 
+builtin zstyle ':autocomplete:*' common-substring-highlight '%F{0}%K{11}'
+```
+You can control the foreground and background colors:
+  - Foreground Color (%F{X}): The value inside the curly braces (X) corresponds to the text color.
+  - Background Color (%K{Y}): The value inside the curly braces (Y) corresponds to the background color.
+
 ### Make <kbd>Enter</kbd> submit the command line straight from the menu
 By default, pressing <kbd>Enter</kbd> in the menu search exits the search and
 pressing it otherwise in the menu exits the menu.  If you instead want to make
