@@ -33,6 +33,9 @@ _requested $tag ||
 
 typeset -g _autocomplete__unambiguous="$compstate[unambiguous]"
 
-builtin compadd -J "$tag" -x $'%{\e[0;2m%}%Bcommon substring:%b %F{0}%K{11}'"$compstate[unambiguous]%f%k"
+# Retrieve highlight value
+builtin zstyle -s ":autocomplete:$curcontext" common-substring-highlight highlight
+
+builtin compadd -J "$tag" -x $'%{\e[0;2m%}%Bcommon substring:%b '"$highlight""$compstate[unambiguous]%f%k"
 
 false
