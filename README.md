@@ -23,8 +23,8 @@ Minimum:
 ## Installation & setup
 First, install Autocomplete itself. Here are some way to do so:
   * To use only releases (instead of the `main` branch), install `zsh-autocomplete` with a package
-    manager. As of this writing, this package is available through Homebrew, Nix, Plumage,
-    and (as `app-shells/zsh-autocomplete`) Portage, or the package `zsh-completions` using pacman.
+    manager. As of this writing, this package is available through Homebrew, Nix, Plumage, Portage
+    (as `app-shells/zsh-autocomplete`), and Pacman (as part of `zsh-completions`).
   * To always use the latest commit on the `main` branch, do one of the following:
     * Use `pacman` to install `zsh-autocomplete-git`.
     * Use a Zsh plugin manager to install `marlonrichert/zsh-autocomplete`. (If you don't have a
