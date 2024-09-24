@@ -123,7 +123,7 @@ ${0}:precmd() {
       'what-cursor-position'
       'where-is'
     )
-    [[ ${LASTWIDGET##.} == (${(~j:|:)ignored}) ]] &&
+    [[ ${LASTWIDGET##.} == (${(~j:|:)~ignored}) ]] &&
         return 0
 
     [[ $KEYS == ([\ -+*]|$'\e\t') ]] &&
