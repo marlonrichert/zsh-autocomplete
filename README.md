@@ -1,6 +1,6 @@
 # Autocomplete for Zsh
 This plugin for Zsh adds real-time type-ahead autocompletion to your command line, similar to what
-you find desktop apps. While you type on the command line, available completions are listed
+you find in desktop apps. While you type on the command line, available completions are listed
 automatically; no need to press any keyboard shortcuts. Press <kbd>Tab</kbd> to insert the top
 completion or <kbd>↓</kbd> to select a different one.
 
