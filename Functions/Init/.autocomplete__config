@@ -162,9 +162,6 @@ builtin zstyle ':completion:*:default' select-prompt '%F{black}%K{12}line %l %p%
 builtin zstyle ':completion:*' insert-sections yes
 builtin zstyle ':completion:*' separate-sections yes
 
-builtin zstyle ':autocomplete:*' common-substring-highlight '%F{0}%K{11}'
-
-
 # Needed for _gnu_generic to prevent descriptions from getting cropped.
 is-at-least 5.9 ||
     builtin zstyle ':completion:*' command '- COLUMNS=999'
