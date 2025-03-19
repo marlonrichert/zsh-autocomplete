@@ -148,8 +148,10 @@ _autocomplete__history_lines() {
 }
 
 _autocomplete__history_lines_suffix() {
-  [[ $KEYS[-1] != $'\C-@' ]] &&
-      LBUFFER=$LBUFFER[1,-1-$1]
+  if [[ $WIDGET != history-search-backward ]]; then
+    LBUFFER="$LBUFFER[1,SUFFIX_START]"
+    RBUFFER="$RBUFFER[SUFFIX_END,-1]"
+  fi
 }
 
 _autocomplete__history_lines "$@"
