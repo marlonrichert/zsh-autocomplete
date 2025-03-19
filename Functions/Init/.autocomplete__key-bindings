@@ -53,7 +53,7 @@ emacs+=(
 )
 
 ${0}:bind history-search-backward vi-backward-blank-word '\ep' '^P' $key_alt_up[@]
-${0}:bind history-search-forward   vi-forward-blank-word '\en' '^N' $key_alt_down[@]
+${0}:bind menu-select             vi-forward-blank-word  '\en' '^N' $key_alt_down[@]
 
 ${0}:bind history-incremental-search-backward history-incremental-search-backward '^R' '/'
 ${0}:bind                         menu-search history-incremental-search-forward  '^S' '?'
