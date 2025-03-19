@@ -157,12 +157,33 @@ This makes <kbd>Enter</kbd> always submit the command line, even when you are in
 bindkey -M menuselect '^M' .accept-line
 ```
 
-#### Restore Zsh-default functionality
-Autocomplete overrides the behavior of some of Zsh's built-in keyboard widgets. To use the original
-widget instead, prefix it with a `.`:
+#### Restore Zsh-default history shortcuts
+This restores the default Zsh keybindings for history control:
 ```sh
-bindkey '^R' .history-incremental-search-backward
-bindkey '^S' .history-incremental-search-forward
+bindkey -M emacs \
+    "^[p"   .history-search-backward \
+    "^[n"   .history-search-forward \
+    "^P"    .up-line-or-history \
+    "^[OA"  .up-line-or-history \
+    "^[[A"  .up-line-or-history \
+    "^N"    .down-line-or-history \
+    "^[OB"  .down-line-or-history \
+    "^[[B"  .down-line-or-history \
+    "^R"    .history-incremental-search-backward \
+    "^S"    .history-incremental-search-forward \
+    #
+bindkey -a \
+    "^P"    .up-history \
+    "^N"    .down-history \
+    "k"     .up-line-or-history \
+    "^[OA"  .up-line-or-history \
+    "^[[A"  .up-line-or-history \
+    "j"     .down-line-or-history \
+    "^[OB"  .down-line-or-history \
+    "^[[B"  .down-line-or-history \
+    "/"     .vi-history-search-backward \
+    "?"     .vi-history-search-forward \
+    #
 ```
 
 ### Pass arguments to `compinit`
