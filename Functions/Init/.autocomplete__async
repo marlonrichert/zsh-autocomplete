@@ -575,7 +575,6 @@ ${0}:precmd() {
   # Need to remove prompt escape codes or compadd might crash.
   local -Pi _total_new_lines_="$(
       zparseopts -a _xopts_ -D -E -- X: x:
-      # builtin compadd $_xopts_[1] ${_xopts_[2]//\%([^{]|)(\{[^{]##\}|)/} "$@"
       builtin compadd "$@"
       print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
   )"
