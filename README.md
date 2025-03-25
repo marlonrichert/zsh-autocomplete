@@ -253,15 +253,10 @@ list to `'*'`, a space is always inserted.  If you put no elements in the list,
 then a space is never inserted.
 
 ### Start each command line in history search mode
-This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd> at the start of each new command line:
+This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd> at the start of
+each new command line:
 ```zsh
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
-```
-
-### Wait for a minimum amount of input
-To suppress autocompletion until a minimum number of characters have been typed:
-```zsh
-zstyle ':autocomplete:*' min-input 3
 ```
 
 ### Wait with autocompletion until typing stops for a certain amount of seconds
@@ -271,8 +266,23 @@ change this as follows:
 zstyle ':autocomplete:*' delay 0.1  # seconds (float)
 ```
 
+### Wait longer before timing out autocompletion
+Slow autocompletion can make the command line hang. Therefore, by default, Autocomplete waits at
+most 1 second for completion to finish. You can change this value as follows:
+```zsh
+zstyle ':autocomplete:*' timeout 2.0  # seconds (float)
+```
+Note, though, that increasing this value can make your command line feel less responsive.
+
+### Wait for a minimum amount of input
+To suppress autocompletion until a minimum number of characters have been typed:
+```zsh
+zstyle ':autocomplete:*' min-input 3
+```
+
 ### Don't show completions if the current word matches a pattern
-For example, this will stop completions from showing whenever the current word consists of two or more dots:
+For example, this will stop completions from showing whenever the current word consists of two or
+more dots:
 ```zsh
 zstyle ':autocomplete:*' ignored-input '..##'
 ```

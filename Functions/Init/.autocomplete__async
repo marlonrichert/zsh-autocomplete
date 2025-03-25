@@ -246,7 +246,7 @@ ${0}:precmd() {
       local text=
 
       local -F seconds=0.0
-      builtin zstyle -s :autocomplete: timeout seconds ||
+      builtin zstyle -s ":autocomplete:${curcontext}" timeout seconds ||
           (( seconds = 1.0 ))
 
       (( seconds = max( 0, seconds - SECONDS ) ))
@@ -277,7 +277,7 @@ ${0}:precmd() {
 .autocomplete:async:pty() {
   # Make sure this shell dies after it times out.
   local -F seconds=
-  builtin zstyle -s :autocomplete: timeout seconds ||
+  builtin zstyle -s ":autocomplete:${curcontext}" timeout seconds ||
       seconds=0.5
   TMOUT=$(( [#10] 1 + seconds ))
 
