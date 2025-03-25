@@ -1,0 +1,3 @@
+[submodule "clitest"]
+	path = clitest
+	url = https://github.com/aureliojargas/clitest.git
