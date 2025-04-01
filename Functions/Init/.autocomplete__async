@@ -101,6 +101,9 @@ ${0}:precmd() {
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
+  [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] && (( ZSH_AUTOSUGGEST_IGNORE_WIDGETS[(I)$LASTWIDGET] )) &&
+      unset POSTDISPLAY
+
   # Don't get activated by asynchronous widgets.
   [[ $LASTWIDGET == (autosuggest-suggest|.autocomplete:async:*:fd-widget) ]] &&
       return 0
