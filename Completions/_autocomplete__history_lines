@@ -149,7 +149,7 @@ _autocomplete__history_lines() {
 
 _autocomplete__history_lines_suffix() {
   if [[ $WIDGET != history-search-backward ]]; then
-    LBUFFER="$LBUFFER[1,SUFFIX_START]"
+    LBUFFER="$LBUFFER[1,SUFFIX_START-1]"
     RBUFFER="$RBUFFER[SUFFIX_END,-1]"
   fi
 }
