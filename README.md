@@ -343,9 +343,5 @@ a backend for it:
 Try the steps in the
 [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).
 
-## Author
-© 2020-2023 [Marlon Richert](https://github.com/marlonrichert)
-
-## License
-This project is licensed under the MIT License.  See the [LICENSE](LICENSE) file
-for details.
+## Author & License
+See the [LICENSE](LICENSE) file for details.
