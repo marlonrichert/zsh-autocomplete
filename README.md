@@ -48,9 +48,32 @@ After installing, make the following modifications to your shell config:
   ```sh
   skip_global_compinit=1
   ```
-* When using **Nix,** add to your `home.nix` file:
+* When using **NixOS**, add to your configuration:
   ```
-  programs.zsh.enableCompletion = false;
+  programs.zsh = {
+    enable = true;
+    enableCompletion = false;  # important to avoid conflicts
+    ohMyZsh = 
+      let
+        zsh-autocomplete-src = pkgs.fetchFromGitHub {
+          owner = "marlonrichert";
+          repo = "zsh-autocomplete";
+          # when changing the version, make sure to update (delete) the hash
+          rev = "25.03.19";
+          sha256 = "sha256-eb5a5WMQi8arZRZDt4aX1IV+ik6Iee3OxNMCiMnjIx4=";
+        };
+        # remove run-tests.zsh
+        zsh-autocomplete = pkgs.runCommand "zsh-autocomplete-plugin" {} ''
+          mkdir -p $out
+          cp -r ${zsh-autocomplete-src}/. $out
+          rm $out/run-tests.zsh
+        '';
+      in
+      {
+        enable = true;
+        custom = "${zsh-autocomplete}";
+      };
+  };
   ```
 
 Finally, restart your shell. Here's two ways to do so:
