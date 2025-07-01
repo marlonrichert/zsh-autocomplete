@@ -93,6 +93,7 @@ EOF
     local -Pi ret=1
     unset _autocomplete__partial_list _autocomplete__unambiguous
 
+    compstate[insert]=automenu-unambiguous  # To get `all-expansions` from _expand.
     compstate[last_prompt]=yes  # Completion doesn't stay on the same command line without this.
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
@@ -107,32 +108,6 @@ EOF
     _autocomplete__unambiguous
     compstate[list_max]=0
     MENUSCROLL=0
-  }
-
-  _expand() {
-    local word=$words[CURRENT]
-    [[ $word == (|*[^\\])\`?*\`* || $word == (|*[^\\])'$('*')'* ]] &&
-        return 1
-
-    local special=${(j:|:)${(kb)parameters[(R)*-special]}}
-    [[
-        $word == *'$'($~special)(|[^[:alnum:]]*) ||
-        $word == *'$'($~special)(:[/:[:alnum:]]*)#(|[^[:alnum:]]*) ||
-        $word == *'${'(|\(?*\))[^_[:alnum:]]#($~special)(:?*)#'}'*
-    ]] &&
-        return 1
-
-    local expansion
-
-    expansion="${(b)$( eval print -r -- $word )}" 2> /dev/null ||
-        return 1
-    [[ $expansion == $word ]] &&
-        return 1
-
-    local -a expl
-    _description expansions expl expansion
-    compadd -QU "$expl[@]" -- $expansion
-    return 1
   }
 
   .autocomplete__patch _complete

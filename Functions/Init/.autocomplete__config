@@ -44,31 +44,14 @@ builtin zstyle ':completion:*' single-ignored ''
 
 builtin zstyle ':completion:*:expand-alias:*' complete yes
 
-builtin zstyle    ':completion:*:expand:*' tag-order '! expansions original' -
-builtin zstyle    ':completion:*:expand:*' accept-exact continue
+builtin zstyle ':completion:*:expand:*' tag-order 'expansions all-expansions' -
+builtin zstyle ':completion:*:expand:*' accept-exact continue
+builtin zstyle ':completion:*:expand:*' add-space no
+builtin zstyle ':completion:*:expand:*' glob yes
+builtin zstyle ':completion:*:expand:*' keep-prefix no  # Needed for file type highlighting
+builtin zstyle ':completion:*:expand:*' substitute yes
+builtin zstyle ':completion:*:expand:*' subst-globs-only yes
 
-builtin zstyle -e ':completion:*:expand:*' glob autocomplete:config:glob:expand
-autocomplete:config:glob:expand() {
-  if [[ -z $QIPREFIX && "$exp" == $word ]]; then
-    # Glob only when the string isn't quoted and no substitution has occured.
-    reply=( yes )
-  else
-    reply=( no )
-  fi
-}
-
-builtin zstyle    ':completion:*:expand:*' keep-prefix no  # Needed for file type highlighting
-builtin zstyle    ':completion:*:expand:*' add-space subst
-
-builtin zstyle -e ':completion:*:expand:*' substitute autocomplete:config:substitute:expand
-autocomplete:config:substitute:expand() {
-  local -P __word__=$PREFIX$SUFFIX
-  if [[ ${(Q)__word__} == *(\`*\`|\$\(*\))* ]]; then
-    typeset -ga reply=( no )
-  else
-    typeset -ga reply=( yes )
-  fi
-}
 builtin zstyle -e ':completion:*:-command-:*' tag-order autocomplete:config:tag-order:command
 autocomplete:config:tag-order:command() {
   if [[ $PREFIX == (|.|*/*) ]]; then
@@ -111,9 +94,10 @@ builtin zstyle ':completion:*:paths' special-dirs no
 
 builtin zstyle ':completion:*'             group-name ''
 builtin zstyle ':completion:*:-command-:*' group-name commands
+builtin zstyle ':completion:*:all-expansions' group-name 'expansion'
 
 builtin zstyle ':completion:*' group-order \
-    all-expansions expansions options \
+    expansions all-expansions options \
     aliases suffix-aliases functions reserved-words builtins commands \
     remotes hosts recent-branches commits \
     local-directories directories executables
@@ -136,15 +120,8 @@ builtin zstyle -e ':completion:*:all-expansions' format autocomplete:config:form
 autocomplete:config:format() {
   reply=( $'%{\e[0;1;2m%}'$1$'%{\e[0m%}' )
 }
-
-builtin zstyle -e ':completion:*:expansions'     format autocomplete:config:format:expansions
-autocomplete:config:format:expansions() {
-  if (( $#exp[@] > 1 )); then
-    autocomplete:config:format 'globbed files'
-  else
-    autocomplete:config:format expansion
-  fi
-}
+builtin zstyle -e ':completion:*:all-expansions' format autocomplete:config:format expansion
+builtin zstyle -e ':completion:*:expansions'     format autocomplete:config:format '"globbed files"'
 
 builtin zstyle -e ':completion:*:warnings'    format autocomplete:config:format:warnings
 autocomplete:config:format:warnings() {
