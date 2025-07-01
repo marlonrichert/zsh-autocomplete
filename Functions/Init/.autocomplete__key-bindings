@@ -39,7 +39,8 @@ ${0}:bind                         menu-search history-incremental-search-forward
 local backtab=$terminfo[kcbt]
 
 menukeys+=(
-                '\t' accept-line
+                '\t' menu-complete
+          "$backtab" reverse-menu-complete
                 '^@' accept-and-hold
                '^[v' accept-and-hold
                 '^_' undo
@@ -47,12 +48,9 @@ menukeys+=(
     "$terminfo[kpp]" backward-word
     "$terminfo[knp]"  forward-word
 )
-bindkey -M menuselect -s "$backtab" "^_$backtab"
-
-
 main+=(
           '\t' complete-word
-    "$backtab" insert-unambiguous-or-complete
+    "$backtab" expand-word
 )
 emacs+=(
     '^X/' recent-paths

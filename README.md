@@ -75,8 +75,8 @@ Otherwise, simply use your package manager or plugin manager's update mechanisms
 | `main` | `emacs` | `vicmd` | On the command line | In the menus
 | ---: | ---: | ---: | :--- | :---
 | <kbd>Enter</kbd><br><kbd>Return</kbd> | | | | Exit menu text search or exit  menu
-| <kbd>Tab</kbd> | | | Insert first listed menu item | Exit menu text search or exit menu
-| <kbd>Shift</kbd><kbd>Tab</kbd> | | | Insert substring occurring in all listed completions | Exit menu text search or exit menu
+| <kbd>Tab</kbd> | | | Insert first listed menu item | Next completion
+| <kbd>Shift</kbd><kbd>Tab</kbd> | | | Expand the current word | Previous completion
 | <kbd>↓</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | <kbd>J</kbd> | Cursor down or enter completion menu | Change selection
 | <kbd>↑</kbd> | <kbd>Ctrl</kbd><kbd>P</kbd> | <kbd>K</kbd> | Cursor up or enter [history menu](#history-menu) | Change selection
 | <kbd>Alt</kbd><kbd>↓</kbd> | <kbd>Alt</kbd><kbd>N</kbd> | <kbd>Ctrl</kbd><kbd>N</kbd> | Enter completion menu | Next section
