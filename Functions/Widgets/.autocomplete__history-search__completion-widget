@@ -14,6 +14,9 @@ ${0}() {
 ${0}:post() {
   typeset -gi MENUSELECT=0
   compstate[insert]='menu:0'
+  if (( compstate[nmatches] < 2 )); then
+    compstate[list]=
+  fi
 }
 
 ${0} "$@"
