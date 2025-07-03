@@ -298,6 +298,8 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:pty:zle-widget() {
+  setopt localoptions NO_banghist
+
   local -a _autocomplete__comp_mesg=()
   local -i _autocomplete__list_lines=0
   local _autocomplete__mesg=
@@ -308,7 +310,6 @@ ${0}:precmd() {
     LBUFFER=$_autocomplete__lbuffer
     RBUFFER=$_autocomplete__rbuffer
 
-    setopt $_autocomplete__comp_opts[@]
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
 
@@ -321,6 +322,7 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:pty:completion-widget() {
+  setopt localoptions banghist
   {
     if ! .autocomplete:async:sufficient-input; then
       return
@@ -337,6 +339,8 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:complete:fd-widget() {
+  setopt localoptions NO_banghist
+
   {
     local +h -F SECONDS=0.0
     local -i fd=$1
@@ -365,7 +369,6 @@ ${0}:precmd() {
       exec {fd}<&-
     }
 
-    setopt $_autocomplete__comp_opts[@]
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
 
@@ -413,6 +416,8 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:list-choices:completion-widget() {
+  setopt localoptions banghist
+
   if [[ $1 != <1-> ]]; then
     compstate[list]=
     return

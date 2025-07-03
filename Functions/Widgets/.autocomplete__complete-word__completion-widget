@@ -1,4 +1,5 @@
 #!/bin/zsh
+setopt localoptions banghist
 zmodload -F zsh/terminfo p:terminfo
 
 local context=${curcontext:-${WIDGET}:::}
