@@ -98,8 +98,24 @@ EOF
     compstate[list]='list force packed rows' # `_setup` doesn't work well for this.
     unset 'compstate[vared]'
 
+    local +h -a  compprefuncs=( autocomplete:_main_complete:new:pre  "$compprefuncs[@]" )
     local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
     autocomplete:_main_complete:old "$@"
+  }
+
+  autocomplete:_main_complete:new:pre() {
+    unsetopt localtraps
+    trap -
+    TRAPINT() {  # ^C
+      zle -M "${(F)funcfiletrace}"
+      zle -R
+      return 130
+    }
+    TRAPQUIT() { # ^\
+      zle -M "${(F)funcfiletrace}"
+      zle -R
+      return 131
+    }
   }
 
   autocomplete:_main_complete:new:post() {
