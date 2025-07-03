@@ -10,6 +10,7 @@ builtin autoload -RUz \
     is-at-least
 
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
+typeset -g _autocomplete__overhead=0
 
 ${0}:precmd() {
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
