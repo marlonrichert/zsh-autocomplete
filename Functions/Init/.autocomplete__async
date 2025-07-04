@@ -212,6 +212,7 @@ ${0}:precmd() {
 .autocomplete:async:start() {
   local fd=
   sysopen -r -o cloexec -u fd <(
+    local +h PS4=$_autocomplete__ps4
     .autocomplete:async:start:inner 2>>| $_autocomplete__log
   )
   builtin zle -Fw "$fd" .autocomplete:async:complete:fd-widget
@@ -279,6 +280,8 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:pty() {
+  local +h PS4=$_autocomplete__ps4
+
   # Make sure this shell dies after it times out.
   local -F seconds=
   builtin zstyle -s ":autocomplete:${curcontext}" timeout seconds ||
@@ -299,6 +302,8 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:pty:zle-widget() {
+  local +h PS4=$_autocomplete__ps4
+
   setopt localoptions NO_banghist
 
   local -a _autocomplete__comp_mesg=()
@@ -314,6 +319,7 @@ ${0}:precmd() {
     [[ -n $curcontext ]] &&
         setopt $_autocomplete__ctxt_opts[@]
 
+    local +h PS4=$_autocomplete__ps4
     builtin zle .autocomplete:async:pty:completion-widget -w 2>>| $_autocomplete__log
   } always {
     print -rNC1 -- ${_autocomplete__list_lines:-0}$'\C-B'
@@ -323,6 +329,8 @@ ${0}:precmd() {
 
 # function -T
 .autocomplete:async:pty:completion-widget() {
+  local +h PS4=$_autocomplete__ps4
+
   setopt localoptions banghist
   {
     if ! .autocomplete:async:sufficient-input; then
@@ -375,6 +383,7 @@ ${0}:precmd() {
 
     # If a widget can't be called, zle always returns true.
     # Thus, we return false on purpose, so we can check if our widget got called.
+    local +h PS4=$_autocomplete__ps4
     if ! builtin zle ._list_choices -w "$reply[1]" 2>>| $_autocomplete__log; then
 
       typeset -g _autocomplete__overhead=$SECONDS
@@ -417,6 +426,8 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:list-choices:completion-widget() {
+  local +h PS4=$_autocomplete__ps4
+
   setopt localoptions banghist
 
   if [[ $1 != <1-> ]]; then
