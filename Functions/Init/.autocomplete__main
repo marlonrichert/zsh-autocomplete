@@ -39,7 +39,7 @@ local -Pa older_than_a_week=( $logdir/*(Nmd+7) )
     zf_rm -f -- $older_than_a_week[@]
 
 typeset -g _autocomplete__log=${logdir}/${(%):-%D{%F}}.log
-typeset -g _autocomplete__ps4=$'%D{%T.%.} %e\t%N\t%I\t%? %(1_,%_ ,)'
+typeset -g _autocomplete__ps4=$'%D{%T.%.} %e:%N:%I\t%? %(1_,%_ ,)'
 
 local -P zsh_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
 [[ -d $zsh_cache_dir ]] ||
