@@ -134,8 +134,10 @@ _autocomplete__history_lines() {
 
   local -Pa suf=( -S '' )
   if [[ $WIDGETSTYLE == *-select* && $#matches[@] > 1 ]]; then
-    # Enable multi-select.
-    suf=( -S ';' -R _autocomplete__history_lines_suffix )
+    # By default, enable multi-select.
+    if ! zstyle -t ":autocomplete:${curcontext}:" single-history; then
+      suf=( -S ';' -R _autocomplete__history_lines_suffix )
+    fi
   fi
 
   local tag=history-lines
