@@ -2,7 +2,7 @@
 name: Bug report
 about: Always include a minimal, reproducible test case. If I cannot reproduce it, then I cannot fix it!
 title: ''
-labels: 'bug'
+labels: type::bug report
 assignees: ''
 
 ---

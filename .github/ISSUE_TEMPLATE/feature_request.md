@@ -2,7 +2,7 @@
 name: Feature request
 about: If this template doesn't suit your needs, then please open a Discussion instead.
 title: ''
-labels: 'enhancement'
+labels: type::feature request
 assignees: ''
 
 ---
