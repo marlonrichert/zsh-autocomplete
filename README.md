@@ -252,6 +252,13 @@ Modifying this list will change when a space is inserted.  If you change the
 list to `'*'`, a space is always inserted.  If you put no elements in the list,
 then a space is never inserted.
 
+### Don't add a semicolon after history completions
+By default, Autocomplete adds a semicolon to each history line to allow adding another line with
+<kbd>Ctrl</kbd><kbd>Space</kbd>. You can deactivate this feature as follows:
+```zsh
+zstyle ':autocomplete:*' append-semicolon no
+```
+
 ### Start each command line in history search mode
 This will make Autocomplete behave as if you pressed <kbd>Ctrl</kbd><kbd>R</kbd> at the start of
 each new command line:
