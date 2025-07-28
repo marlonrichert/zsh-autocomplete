@@ -339,6 +339,14 @@ a backend for it:
 }
 ```
 
+## Disable automatically added semicolons
+Autocomplete adds a semicolon to each line to allow selecting another line afterwards.
+The added semicolon get removed on most keystrokes besides <kbd>↑</kbd>.
+You can deactivate this feature by setting `append-semicolon` to a non-true value:
+```zsh
+zstyle ':autocomplete:*' append-semicolon off
+```
+
 ## Troubleshooting
 Try the steps in the
 [bug report template](.github/ISSUE_TEMPLATE/bug-report.md).

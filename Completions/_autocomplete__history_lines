@@ -133,10 +133,9 @@ _autocomplete__history_lines() {
   fi
 
   local -Pa suf=( -S '' )
-  if [[ $WIDGETSTYLE == *-select* && $#matches[@] > 1 ]]; then
-    # Enable multi-select.
+  zstyle -t ":autocomplete:$curcontext" append-semicolon; [[ $? != 1 ]] &&
+    [[ $WIDGETSTYLE == *-select* && $#matches[@] > 1 ]] &&
     suf=( -S ';' -R _autocomplete__history_lines_suffix )
-  fi
 
   local tag=history-lines
   _comp_tags=" $tag"
