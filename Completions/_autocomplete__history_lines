@@ -146,11 +146,17 @@ _autocomplete__history_lines() {
   builtin compadd "$suf[@]" -QU -ld displays "$expl[@]" -a matches
 }
 
-_autocomplete__history_lines_suffix() {
-  if [[ SUFFIX_ACTIVE -ne 0 && $WIDGET != history-search-backward ]]; then
-    LBUFFER="$LBUFFER[1,SUFFIX_START]"
-    RBUFFER="$RBUFFER[SUFFIX_END,-1]"
-  fi
-}
+if is-at-least 5.9; then
+  _autocomplete__history_lines_suffix() {
+    if [[ SUFFIX_ACTIVE -ne 0 && $WIDGET != history-search-backward ]]; then
+      LBUFFER="$LBUFFER[1,SUFFIX_START]"
+      RBUFFER="$RBUFFER[SUFFIX_END,-1]"
+    fi
+  }
+else
+  _autocomplete__history_lines_suffix() {
+    [[ $KEYS[-1] != $'\C-@' ]] && LBUFFER=$LBUFFER[1,-1-$1]
+  }
+fi
 
 _autocomplete__history_lines "$@"
