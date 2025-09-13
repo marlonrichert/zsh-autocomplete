@@ -592,24 +592,37 @@ ${0}:precmd() {
 
   local -i _old_total_lines=$compstate[list_lines]
 
+  # WORKAROUND: Zsh mistakenly treats strings that are exactly $COLUMNS wide as not
+  # fitting on one line, so we use COLUMNS-1 for display width calculations.
+  local -Pi _display_width_=$(( COLUMNS - 1 ))
+
+  # Parse out heading options and remove them from arguments
+  zparseopts -a _xopts_ -D -E -- X: x:
+
   # Need to remove prompt escape codes or compadd might crash.
   local -Pi _total_new_lines_="$(
-      zparseopts -a _xopts_ -D -E -- X: x:
-      builtin compadd "$@"
+      builtin compadd $_xopts_ "$@"
       print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
   )"
 
   local -Pi _new_completion_lines_="$(
-      zparseopts -a _xopts_ -D -E -- X: x:
       builtin compadd "$@"
       print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
   )"
+
+  # Trim heading strings to fit terminal width to prevent line wrapping
+  if (( $#_xopts_ > 0 )); then
+    local -i i
+    for (( i = 2; i <= $#_xopts_; i += 2 )); do
+      _xopts_[i]=${_xopts_[i]:0:_display_width_}
+    done
+  fi
 
   local -Pi _new_heading_lines_=$(( _total_new_lines_ - _new_completion_lines_ ))
 
   # Everything fits.
   if (( _total_new_lines_ + $compstate[list_lines] <= _autocomplete__max_lines )); then
-    builtin compadd "$@"
+    builtin compadd $_xopts_ "$@"
     return
   fi
 
@@ -628,7 +641,7 @@ ${0}:precmd() {
   local -a _Dopt_=()
   [[ -n $_displ_name_ ]] &&
       _Dopt_=( -D $_displ_name_ )
-  builtin compadd -O _matches_ $_Dopt_ "$@"
+  builtin compadd -O _matches_ $_Dopt_ $_xopts_ "$@"
 
   # If we don't have an array with display strings, then create one.
   if [[ -z $_displ_name_ ]]; then
@@ -641,9 +654,7 @@ ${0}:precmd() {
 
   # If we need more than one line per match, then make each match fit exactly one line.
   if (( _nmatches_per_line_ < 1 )); then
-    # WORKAROUND: Zsh mistakenly treats display strings that are exactly $COLUMNS wide as not
-    # fitting on one line.
-    set -A $_displ_name_ ${(@r:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
+    set -A $_displ_name_ ${(@r:_display_width_:)${(PA)_displ_name_}[@]//$'\n'/\n}
 
     _dopt_=( -ld $_displ_name_ )
     (( _nmatches_per_line_ = 1 ))
