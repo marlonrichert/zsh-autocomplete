@@ -7,7 +7,7 @@ unsetopt listbeep
 
   typeset -ga _autocomplete__func_opts=(
     localoptions extendedglob clobber
-    NO_aliases localloops pipefail NO_shortloops NO_unset warncreateglobal
+    NO_aliases evallineno localloops pipefail NO_shortloops NO_unset warncreateglobal
   )
   setopt $_autocomplete__func_opts[@]
 

@@ -1,5 +1,6 @@
 #!/bin/zsh
-emulate -L zsh
+emulate -L zsh \
+    # -x
 setopt $_autocomplete__func_opts[@]
 
 typeset -g _autocomplete__last_cutbuffer

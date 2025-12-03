@@ -18,7 +18,8 @@ ${0}:z down-line-or-select{,}
 ${0}:z history-search{-backward,}
 
 ${0}:precmd() {
-  emulate -L zsh
+  emulate -L zsh \
+      # -x
   setopt $_autocomplete__func_opts[@]
 
   0=${0%:*}

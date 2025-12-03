@@ -18,7 +18,8 @@ compdef() {
     }
 
 ${0}:precmd() {
-  emulate -L zsh
+  emulate -L zsh \
+      # -x
   setopt $_autocomplete__func_opts[@]
 
   [[ -v CDPATH && -z $CDPATH ]] &&
@@ -100,7 +101,12 @@ EOF
 
     local +h -a  compprefuncs=( autocomplete:_main_complete:new:pre  "$compprefuncs[@]" )
     local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
+    # functions -T autocomplete:_main_complete:old
     autocomplete:_main_complete:old "$@"
+    # functions +T _path_files
+
+    # print -nu2 ' after: '
+    # typeset -m compstate >&2
   }
 
   autocomplete:_main_complete:new:pre() {

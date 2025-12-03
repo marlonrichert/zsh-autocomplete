@@ -65,7 +65,8 @@ ${0}:precmd() {
   unfunction $0
 
   () {
-    emulate -L zsh
+    emulate -L zsh \
+        # -x
     setopt $_autocomplete__func_opts[@]
 
     # Workaround for https://www.zsh.org/mla/workers/2021/msg01310.html
