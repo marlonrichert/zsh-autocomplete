@@ -522,11 +522,13 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:compadd() {
+  setopt localoptions multibyte
+
   local -A _opts_=()
   local -a _xopts_=() _displ_=() _matches_=()
   local -P _displ_name_= _matches_name_=
 
-  zparseopts -A _opts_ -E -- D: E: O: X:=_xopts_ x:=_xopts_
+  zparseopts -A _opts_ -E -- D: E: O:
 
   local -Pi _unused_lines_=$(( _autocomplete__max_lines - compstate[list_lines] ))
 
@@ -592,32 +594,42 @@ ${0}:precmd() {
 
   local -i _old_total_lines=$compstate[list_lines]
 
-  # Need to remove prompt escape codes or compadd might crash.
+  zparseopts -a _xopts_ -D -E -- X: x:
+
+  if (( $#_xopts_ )); then
+    local original="$_xopts_[-1]"
+    local formatted="${(%g:ce:)original}"
+
+    # Trim text to one line and omit ANSI sequences to avoid crash in command substitution.
+    local ansi_start=${(M)formatted##($'\C-[['[;[:digit:]]#m)#}
+    local ansi_end=${(M)formatted%%($'\C-[['[;[:digit:]]#m)#}
+    local text=${${formatted#$ansi_start}%$ansi_end}
+    _xopts_=(
+      "$_xopts_[-2]"
+      "${(mr:COLUMNS-1:)text%%[[:space:]]#}"
+    )
+  fi
+
   local -Pi _total_new_lines_="$(
-      zparseopts -a _xopts_ -D -E -- X: x:
-      builtin compadd "$@"
+      builtin compadd "$_xopts_[@]" "$@"
       print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
   )"
 
-  local -Pi _new_completion_lines_="$(
-      zparseopts -a _xopts_ -D -E -- X: x:
-      builtin compadd "$@"
-      print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
-  )"
-
-  local -Pi _new_heading_lines_=$(( _total_new_lines_ - _new_completion_lines_ ))
+  if (( $#_xopts_ )); then
+    # Replace original text with trimmed text.
+    _xopts_[-1]="${original/$text/$_xopts_[-1]}"
+  fi
 
   # Everything fits.
   if (( _total_new_lines_ + $compstate[list_lines] <= _autocomplete__max_lines )); then
-    builtin compadd "$@"
+    builtin compadd "$_xopts_[@]" "$@"
     return
   fi
 
-  # We're apparently trying to add a message that spans more than one line, but not any completions.
-  if (( _new_heading_lines_ > 1 && _new_completion_lines_ < 1 )); then
-    .autocomplete:async:compadd:disable
-    return 1
-  fi
+  local -Pi _new_completion_lines_="$(
+      builtin compadd "$@"
+      print -nr -- $(( $compstate[list_lines] - _old_total_lines ))
+  )"
 
   local -a _dopt_=()
   zparseopts -a _dopt_ -D -E -- d: ld:
@@ -643,11 +655,13 @@ ${0}:precmd() {
   if (( _nmatches_per_line_ < 1 )); then
     # WORKAROUND: Zsh mistakenly treats display strings that are exactly $COLUMNS wide as not
     # fitting on one line.
-    set -A $_displ_name_ ${(@r:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
+    set -A $_displ_name_ ${(@mr:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
 
     _dopt_=( -ld $_displ_name_ )
     (( _nmatches_per_line_ = 1 ))
   fi
+
+  local -Pi _new_heading_lines_=$(( _total_new_lines_ - _new_completion_lines_ ))
 
   # Need to round this down _before_ subtracting it or it will effectively be rounded up.
   local -Pi _nmatches_that_fit_=$((
@@ -658,19 +672,19 @@ ${0}:precmd() {
 
   if (( _nmatches_to_remove_ > 0 )); then
     # If we're going to remove anything, then we need to make room for the `(MORE)` prompt.
-    (( _nmatches_to_remove_++ ))
+    (( _nmatches_to_remove_ = min( ++_nmatches_to_remove_, $#_matches_ ) ))
 
-    if (( _nmatches_to_remove_ < $#_matches_ )); then
-      shift -p $_nmatches_to_remove_ _matches_ $_displ_name_
-    else
-      set -A _matches_
-      set -A $_displ_name_
-    fi
     .autocomplete:async:compadd:disable
+
+    # Make sure we always add a headline, even when we don't add any matches, because a single
+    # '(MORE)' without other content doesn't make sense.
+    (( _nmatches_to_remove_ >= $#_matches_ )) && _xopts_[1]=-x
+
+    shift -p $_nmatches_to_remove_ _matches_ $_displ_name_
   fi
 
   _autocomplete__compadd_opts_len "$@"
-  builtin compadd "$_dopt_[@]" -a "$@[1,?]" _matches_
+  builtin compadd "$_xopts_[@]" "$_dopt_[@]" -a "$@[1,?]" _matches_
 }
 
 .autocomplete:async:compadd:disable() {
