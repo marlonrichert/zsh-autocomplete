@@ -1,6 +1,8 @@
 #autoload
 
 _autocomplete__history_lines() {
+  setopt localoptions multibyte
+
   # Don't run more than once.
   (( _matcher_num > 1 )) &&
       return 1
@@ -121,7 +123,7 @@ _autocomplete__history_lines() {
       shift $pop $excess displays
 
   # To avoid wrapping, each completion should be one char less than terminal width.
-  displays=( ${(@r:COLUMNS-1:)displays} )
+  displays=( ${(@mr:COLUMNS-1:)displays} )
 
   local -Pa matches=()
   for index in "${(MS)displays[@]##<->}"; do
