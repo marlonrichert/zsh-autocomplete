@@ -29,7 +29,10 @@ First, install Autocomplete itself. Here are some way to do so:
     manager. As of this writing, this package is available through Homebrew, Nix, `pacman`, Plumage,
     and (as `app-shells/zsh-autocomplete`) Portage.
   * To always use the latest commit on the `main` branch, do one of the following:
-    * Use `pacman` to install `zsh-autocomplete-git`.
+    * Install the AUR package [zsh-autocomplete-git](https://aur.archlinux.org/packages/zsh-autocomplete-git)<sup>AUR</sup> from the Arch User Repository (for example, using [yay](https://github.com/Jguer/yay), an AUR helper):
+      ```sh
+       yay -S zsh-autocomplete-git
+      ```
     * Use a Zsh plugin manager to install `marlonrichert/zsh-autocomplete`. (If you don't have a
       plugin manager yet, I recommend using [Znap](https://github.com/marlonrichert/zsh-snap).)
     * Clone the repo directly:
