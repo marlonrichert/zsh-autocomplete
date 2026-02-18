@@ -693,3 +693,15 @@ ${0}:precmd() {
   typeset -g _autocomplete__partial_list=$curtag
   comptags() { false }  # Stop completion from trying more tags.
 }
+
+_autocomplete__compadd_opts_len() {
+  local -Pi len=$(( ${@[(i)(-|--)]} - 1 ))
+  (( len < $# )) &&
+      return len
+
+  len=${@[(I)-*]}
+  [[ $@[len] == -*[PSpsiIdJVXxrRWFMOAD] ]] &&
+      (( len++ ))
+  return len
+}
+
