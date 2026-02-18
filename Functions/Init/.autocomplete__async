@@ -594,10 +594,12 @@ ${0}:precmd() {
 
   local -i _old_total_lines=$compstate[list_lines]
 
-  zparseopts -a _xopts_ -D -E -- X: x:
+  # +: Keep all occurences. Otherwise, only last occurence is kept.
+  zparseopts -a _xopts_ -D -E -- X+: x+:
 
   if (( $#_xopts_ )); then
-    local original="$_xopts_[-1]"
+    # Use only the first one, because subsequent ones are ignored by compadd anyway.
+    local original="$_xopts_[2]"
     local formatted="${(%g:ce:)original}"
 
     # Trim text to one line and omit ANSI sequences to avoid crash in command substitution.
@@ -605,7 +607,7 @@ ${0}:precmd() {
     local ansi_end=${(M)formatted%%($'\C-[['[;[:digit:]]#m)#}
     local text=${${formatted#$ansi_start}%$ansi_end}
     _xopts_=(
-      "$_xopts_[-2]"
+      "$_xopts_[1]"
       "${(mr:COLUMNS-1:)text%%[[:space:]]#}"
     )
   fi
@@ -617,7 +619,7 @@ ${0}:precmd() {
 
   if (( $#_xopts_ )); then
     # Replace original text with trimmed text.
-    _xopts_[-1]="${original/$text/$_xopts_[-1]}"
+    _xopts_[2]="${original/$text/$_xopts_[-1]}"
   fi
 
   # Everything fits.
