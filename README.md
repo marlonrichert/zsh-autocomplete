@@ -256,7 +256,7 @@ then a space is never inserted.
 By default, Autocomplete adds a semicolon to each history line to allow adding another line with
 <kbd>Ctrl</kbd><kbd>Space</kbd>. You can deactivate this feature as follows:
 ```zsh
-zstyle ':autocomplete:*' append-semicolon no
+zstyle ':autocomplete:*' add-semicolon no
 ```
 
 ### Start each command line in history search mode
