@@ -152,7 +152,7 @@ ${0}:precmd() {
 .autocomplete:async:clear() {
   # If we exit the ZLE before the last hook widget called, then it won't be able to close the fd.
   [[
-    -v _autocomplete__async_fd && _autocomplete__async_fd -ge 10 && -t $_autocomplete__async_fd
+    -v _autocomplete_async_fd && _autocomplete_async_fd -ge 10 && -t $_autocomplete_async_fd
   ]] &&
     exec {_autocomplete_async_fd}<&- &&
     unset _autocomplete_async_fd
