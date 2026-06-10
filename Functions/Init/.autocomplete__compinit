@@ -134,6 +134,10 @@ EOF
     MENUSCROLL=0
   }
 
+  # Prevent brace expansion on quoted words
+  .autocomplete__patch _expand
+  functions[_expand]="${functions[autocomplete:_expand:old]/\[ignorebraces\] == on &&/[ignorebraces] == on && -z \$compstate[quote] &&}"
+
   .autocomplete__patch _complete
   _complete() {
     local -i nmatches=$compstate[nmatches]
