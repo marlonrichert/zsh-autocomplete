@@ -118,6 +118,11 @@ ${0}:precmd() {
     builtin zstyle -t ":autocomplete:${LASTWIDGET}:" ignore &&
         return 0
 
+    .autocomplete:async:command-disabled && {
+      builtin zle -Rc
+      return 0
+    }
+
     local -Pa ignored=(
       '_complete_help'
       '(copy|insert)-*-word'
@@ -147,6 +152,59 @@ ${0}:precmd() {
   }
 
   return 0
+}
+
+# Returns true if real-time autocompletion should be suppressed for the command
+# on the current line, based on the `enabled-commands` (whitelist) and
+# `disabled-commands` (blacklist) styles. Whitelist takes precedence: if it is
+# set, only its commands are completed. Returns false (do complete) when neither
+# style is set, so this is a no-op unless the user opts in.
+.autocomplete:async:command-disabled() {
+  setopt localoptions extendedglob
+
+  local -a enabled=() disabled=()
+  builtin zstyle -a ":autocomplete:${curcontext}:" enabled-commands enabled
+  builtin zstyle -a ":autocomplete:${curcontext}:" disabled-commands disabled
+
+  (( $#enabled || $#disabled )) ||
+      return 1
+
+  # Lex the command line the same way the shell would.
+  local -a words=( ${(z)BUFFER} )
+
+  # While still typing the first word (and no space follows it yet), we're
+  # completing the command name itself, so never suppress: that would break
+  # command-name completion, including for whitelisted commands.
+  (( $#words > 1 )) || [[ $BUFFER == *[[:space:]] ]] ||
+      return 1
+
+  # Find the command word, skipping variable assignments and precommand
+  # modifiers like `sudo` so that e.g. `sudo ls` matches `ls`.
+  local word= command=
+  local -a precommands=(
+    - builtin command doas env exec nocorrect noglob sudo time
+  )
+  for word in $words; do
+    [[ $word == [[:IDENT:]]##=* ]] && continue
+    (( ${precommands[(I)$word]} )) && continue
+    command=$word
+    break
+  done
+  [[ -n $command ]] ||
+      return 1
+
+  # Match against the command as typed and its base name (e.g. /bin/ls -> ls).
+  local -a names=( $command ${command:t} )
+
+  if (( $#enabled )); then
+    # Whitelist: suppress unless the command matches.
+    [[ -n ${names[(r)(${(~j:|:)~enabled})]} ]] &&
+        return 1
+    return 0
+  fi
+
+  # Blacklist: suppress if the command matches.
+  [[ -n ${names[(r)(${(~j:|:)~disabled})]} ]]
 }
 
 .autocomplete:async:clear() {

@@ -297,6 +297,29 @@ more dots:
 zstyle ':autocomplete:*' ignored-input '..##'
 ```
 
+### Enable or disable autocompletion for specific commands
+By default, Autocomplete shows real-time completions for every command. You can limit this to a
+chosen set of commands (a whitelist) or exclude certain commands (a blacklist). This is useful to
+hide completions for commands where they aren't helpful (like `ls`), or to keep them only for
+commands where they are (like `git` or `curl`):
+
+```zsh
+# Blacklist: autocomplete everything EXCEPT these commands.
+zstyle ':autocomplete:*' disabled-commands 'ls' 'cd' 'pwd'
+
+# Whitelist: autocomplete ONLY these commands.
+zstyle ':autocomplete:*' enabled-commands 'git' 'curl' 'docker' 'kubectl'
+```
+
+Each value is a glob pattern, so you can match groups of commands, e.g. `'kube*'`. Matching is done
+against both the command as typed and its base name, so `/usr/bin/ls` matches `ls`, and leading
+variable assignments and precommand modifiers such as `sudo` are skipped (`sudo ls` matches `ls`).
+Completion for the command name itself is never suppressed, so you can always complete the command
+you're typing.
+
+If `enabled-commands` is set, it takes precedence and `disabled-commands` is ignored. Setting
+neither (the default) completes every command.
+
 ## Change the max number of lines shown
 By default, Autocomplete lets the history menu fill half of the screen, and limits all real-time
 listings to a maximum of 16 lines. You can change these limits as follows:
