@@ -151,10 +151,10 @@ ${0}:precmd() {
 
 .autocomplete:async:clear() {
   # If we exit the ZLE before the last hook widget called, then it won't be able to close the fd.
-  [[
-    -v _autocomplete__async_fd && _autocomplete__async_fd -ge 10 && -t $_autocomplete__async_fd
-  ]] &&
-    exec {_autocomplete_async_fd}<&- &&
+  # The fd is a pipe from `sysopen <(...)`, so close it unconditionally: a `-t` (tty) guard is always
+  # false here, and the previous guard also tested the wrong var name.
+  [[ -v _autocomplete_async_fd && $_autocomplete_async_fd -ge 10 ]] &&
+    { exec {_autocomplete_async_fd}<&- } 2> /dev/null &&
     unset _autocomplete_async_fd
   unset curcontext _autocomplete__isearch
 
@@ -194,7 +194,7 @@ ${0}:precmd() {
 
   # Unhook ourselves immediately, so we don't get called more than once.
   builtin zle -F "$fd" 2> /dev/null
-  [[ -t $fd ]] && exec {fd}<&-
+  { exec {fd}<&- } 2> /dev/null  # pipe fd, never a tty — close unconditionally
 
   if [[ -n $_autocomplete__zle_flags ]]; then
     builtin zle -f $_autocomplete__zle_flags
@@ -370,7 +370,7 @@ ${0}:precmd() {
       (( SECONDS += reply[2] ))
 
     } always {
-      [[ -t $fd ]] && exec {fd}<&-
+      { exec {fd}<&- } 2> /dev/null  # pipe fd, never a tty — close unconditionally
     }
 
     [[ -n $curcontext ]] &&
