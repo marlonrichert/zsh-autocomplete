@@ -32,6 +32,7 @@ builtin zstyle ':completion:*-fuzzy:*' matcher-list \
     "$lower_to_upper $any_before_dot $any_before_word" \
     "+$nonseparators_after_any_before_separator $separator_after_any" \
     "$lower_to_upper $any_before_any"
+builtin zstyle -e ':completion:*:correct:*' matcher-list ''
 
 local minus_at_beginning_to_plus='b:-=+'
 builtin zstyle ':completion:*:options' matcher $minus_at_beginning_to_plus
@@ -67,7 +68,7 @@ autocomplete:config:tag-order:command() {
 }
 builtin zstyle ':completion:*:-tilde-:*' tag-order directory-stack named-directories
 
-builtin zstyle ':completion:*:(approximate|correct):*' tag-order '! original' -
+builtin zstyle ':completion:*:(approximate|correct|match):*' tag-order '! original' -
 
 # Complete options rather than directory stack. You can get directory stack by typing `~-` (tilde plus dash).
 builtin zstyle ':completion:*:cd:*' complete-options yes
