@@ -113,16 +113,11 @@ EOF
 
   autocomplete:_main_complete:new:pre() {
     unsetopt localtraps
-    trap -
-    TRAPINT() {  # ^C
-      zle -M "${(F)funcfiletrace}"
+    trap - INT QUIT
+    TRAPINT TRAPQUIT () {  # ^C ^/
+      zle -M "$( printf $'%s (%s)\n' "${(@)functrace:^^funcfiletrace}" )"
       zle -R
-      return 130
-    }
-    TRAPQUIT() { # ^\
-      zle -M "${(F)funcfiletrace}"
-      zle -R
-      return 131
+      return $1
     }
   }
 
