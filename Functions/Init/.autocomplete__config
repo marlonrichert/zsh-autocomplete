@@ -11,7 +11,7 @@ autocomplete:config:cache-path() {
 }
 
 builtin zstyle ':completion:*' completer \
-    _expand _complete _complete:-fuzzy _correct _approximate _ignored
+    _expand _complete _complete:-fuzzy _prefix _correct _ignored
 
 builtin zstyle -e ':completion:*' max-errors autocomplete:config:max-errors
 autocomplete:config:max-errors() {
@@ -67,6 +67,16 @@ autocomplete:config:tag-order:command() {
     fi
   fi
 }
+
+builtin zstyle -e ':completion:*:prefix:*' add-space autocomplete:config:add-space:prefix
+autocomplete:config:add-space:prefix() {
+  if _autocomplete__should_add_space; then
+    reply=( yes )
+  else
+    reply=( no )
+  fi
+}
+
 builtin zstyle ':completion:*:-tilde-:*' tag-order directory-stack named-directories
 
 builtin zstyle ':completion:*:(approximate|correct|match):*' tag-order '! original' -
