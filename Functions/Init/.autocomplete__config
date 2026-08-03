@@ -26,9 +26,10 @@ local any_before_any='r:|?=**'
 local nonseparators_after_any_before_separator='r:?||[-_ \]=*'
 local any_before_word='l:|=*'
 local separator_after_any='l:?|=[-_ \]'
+
 builtin zstyle ':completion:*' matcher-list \
     "$lower_to_upper $any_before_dot"
-builtin zstyle ':completion:*-fuzzy:*' matcher-list \
+builtin zstyle ':completion:*:*-fuzzy:*' matcher-list \
     "$lower_to_upper $any_before_dot $any_before_word" \
     "+$nonseparators_after_any_before_separator $separator_after_any" \
     "$lower_to_upper $any_before_any"
