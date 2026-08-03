@@ -1,3 +1,6 @@
 [submodule "clitest"]
 	path = clitest
 	url = https://github.com/aureliojargas/clitest.git
+[submodule "z-async"]
+	path = z-async
+	url = git@github.com:marlonrichert/z-async.git
