@@ -102,7 +102,6 @@ EOF
 
     local +h -a  compprefuncs=( autocomplete:_main_complete:new:pre  "$compprefuncs[@]" )
     local +h -a comppostfuncs=( autocomplete:_main_complete:new:post "$comppostfuncs[@]" )
-    # functions -T autocomplete:_main_complete:old
 
     autocomplete:_main_complete:old "$@"
     # functions +T _path_files
@@ -129,23 +128,9 @@ EOF
     MENUSCROLL=0
   }
 
-  .autocomplete__patch _complete
-  _complete() {
-    local -i nmatches=$compstate[nmatches]
-
-    PREFIX=$PREFIX$SUFFIX
-    SUFFIX=
-    autocomplete:_complete:old "$@"
-
-    # WORKAROUND: Some completion functions mistakenly don't return 0 when they have succeeded.
-    (( compstate[nmatches] > nmatches ))
-  }
-
-
   ##
   # WORKAROUND: _approximate won't do corrections if there already is a function called 'compadd'.
   #
-
   .autocomplete__patch _approximate
   _approximate() {
     {
