@@ -69,7 +69,8 @@ builtin zstyle ':completion:*:-tilde-:*' tag-order directory-stack named-directo
 
 builtin zstyle ':completion:*:(approximate|correct):*' tag-order '! original' -
 
-# Complete options rather than directory stack. You can get directory stack by typing `~-` (tilde plus dash).
+# Complete options rather than directory stack. You can get directory stack by typing `~-` (tilde
+# plus dash).
 builtin zstyle ':completion:*:cd:*' complete-options yes
 builtin zstyle ':completion:*:cd:*' tag-order '! directory-stack' -
 
@@ -87,7 +88,7 @@ autocomplete:config:tag-order:git() {
 }
 
 # Complete only the tail of a path.
-builtin zstyle ':completion:*' ignore-parents 'parent pwd directory'
+builtin zstyle ':completion:*' parents 'parent pwd directory'
 builtin zstyle ':completion:*:paths' expand suffix
 builtin zstyle ':completion:*:paths' list-suffixes yes
 builtin zstyle ':completion:*:paths' special-dirs no
