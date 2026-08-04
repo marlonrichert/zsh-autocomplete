@@ -301,7 +301,19 @@ more dots:
 zstyle ':autocomplete:*' ignored-input '..##'  # Don't complete when the word is 2 or more dots.
 ```
 
-## Change the max number of lines shown
+### Don't suggest certain words as completions
+For example, to exclude `ls`, `cd` and `pwd` from command completions, you can
+use this:
+```zsh
+zstyle ':completion:*:-command-:*:commands' ignored-patterns 'ls' 'cat' 'grep'
+```
+Conversely, to get _only_ `curl`, `git`, `docker` and `kubectl` as command
+completions, you can use this:
+```zsh
+zstyle ':completion:*:-command-:*:commands' ignored-patterns '^(curl|docker|git|kubectl)'
+```
+
+### Change the max number of lines shown
 By default, Autocomplete lets the history menu fill half of the screen, and limits all real-time
 listings to a maximum of 16 lines. You can change these limits as follows:
 
@@ -322,7 +334,7 @@ zstyle ':autocomplete:history-incremental-search-backward:*' list-lines 8
 Note that for all real-time listings, the maximum number of lines is additionally capped to the
 number of lines that fit on screen.
 
-## Change the number of lines in the history menu
+### Change the number of lines in the history menu
 For performance reasons and prevent the prompt from jumping around, the history menu loads only
 just enough lines to fill half of the screen by default. If you don't mind waiting a bit longer for
 it to open and your prompt jumping to the top of the screen, you can increase this as follows:
