@@ -36,7 +36,9 @@ local format
 zstyle -s ":completion:${curcontext}:unambiguous" format format ||
     format=$'%{\e[0;2m%}%Bcommon substring:%b %0F%11K%d%f%k'
 
-zformat -F format "$format" "d:$compstate[unambiguous]"
+local flag=-f
+is-at-least 5.9 && flag=-F
+zformat $flag format "$format" "d:$compstate[unambiguous]"
 
 builtin compadd -J "$tag" -x "$format"
 
