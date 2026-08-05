@@ -18,6 +18,15 @@ each new command line:
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 ```
 
+### Change the order of completions
+You can make Autocomplete list specific types of completions before all other completions, for
+example:
+```zsh
+zstyle ':completion:*:' group-order \
+  options executables directories suffix-aliases aliases functions builtins reserved-words
+```
+These will then be listed in the order you specify them, followed by all other completions.
+
 ## Excluding completions
 There are two ways available to prevent certain completions from being shown.
 
@@ -29,8 +38,7 @@ zstyle ':autocomplete:*' ignored-input '..##'  # Don't complete when the word is
 ```
 
 ### Don't suggest certain words as completions
-For example, to exclude `ls`, `cd` and `pwd` from command completions, you can
-use this:
+For example, to exclude `ls`, `cd` and `pwd` from command completions, you can use this:
 ```zsh
 zstyle ':completion:*:-command-:*:commands' ignored-patterns 'ls' 'cat' 'grep'
 ```
@@ -44,15 +52,14 @@ zstyle ':completion:*:-command-:*:commands' ignored-patterns '^(curl|docker|git|
 Some completions automatically have a specific character inserted after them.
 
 ### Add or don't add a space after certain completions
-When inserting a completion, a space is added after certain types of
-completions.  The default list is as follows:
+When inserting a completion, a space is added after certain types of completions. The default list
+is as follows:
 ```zsh
 zstyle ':autocomplete:*' add-space \
     executables aliases functions builtins reserved-words commands
 ```
-Modifying this list will change when a space is inserted.  If you change the
-list to `'*'`, a space is always inserted.  If you put no elements in the list,
-then a space is never inserted.
+Modifying this list will change when a space is inserted. If you change the list to `'*'`, a space
+is always inserted. If you put no elements in the list, then a space is never inserted.
 
 ### Don't add a semicolon after history completions
 By default, Autocomplete adds a semicolon to each history line to allow adding another line with
