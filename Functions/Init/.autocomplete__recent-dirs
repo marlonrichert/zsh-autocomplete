@@ -6,12 +6,20 @@ ${0}:precmd() {
   setopt autopushd pushdignoredups  # Set *global* shell options.
   builtin autoload -Uz chpwd_recent_dirs chpwd_recent_filehandler
 
-  local __=
+  local __=  # Holds throwaway zstyle -s results we don't need.
   builtin zstyle -s :chpwd: recent-dirs-file __ ||
       builtin zstyle ':chpwd:*' recent-dirs-file \
           ${XDG_DATA_HOME:-$HOME/.local/share}/zsh/chpwd-recent-dirs
   builtin zstyle -s :chpwd: recent-dirs-max __ ||
       builtin zstyle ':chpwd:*' recent-dirs-max 0
+
+  # `chpwd_recent_filehandler` writes the recent-dirs file with a bare redirect
+  # and errors out if its parent dir is missing. Create it first. `zf_mkdir` is
+  # already loaded at the top of this file.
+  local recent_dirs_file=
+  builtin zstyle -s :chpwd: recent-dirs-file recent_dirs_file
+  [[ -z $recent_dirs_file || -d ${recent_dirs_file:h} ]] ||
+      zf_mkdir -p -- ${recent_dirs_file:h}
 
   local -a reply=()
   chpwd_recent_filehandler
