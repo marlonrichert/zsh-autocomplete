@@ -33,15 +33,10 @@ ${0}:precmd() {
   typeset -g \
       _comp_dumpfile=${_comp_dumpfile:-${ZSH_COMPDUMP:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump}}
 
-  if [[ -v _comps[-command-] && $_comps[-command-] != _autocomplete__command ]]; then
+  # Check if our most recently modified completion function is newer than the comp dump file.
+  local -Pa newest=( ~autocomplete/Completions/_*~*.zwc(N-.omY1) )
+  if [[ $newest[1] -nt $_comp_dumpfile ]]; then
     zf_rm -f $_comp_dumpfile
-  else
-
-    # Check if our most recently modified completion function is newer than the comp dump file.
-    local -Pa newest=( ~autocomplete/Completions/_*~*.zwc(N-.omY1) )
-    if [[ $newest[1] -nt $_comp_dumpfile ]]; then
-      zf_rm -f $_comp_dumpfile
-    fi
   fi
 
   if [[ ! -v _comp_setup ]] || [[ ! -r $_comp_dumpfile ]]; then
