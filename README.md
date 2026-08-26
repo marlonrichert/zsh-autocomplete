@@ -18,7 +18,7 @@ Recommended:
 * Tested to work with [Zsh](http://zsh.sourceforge.net) 5.8 and newer.
 
 Minimum:
-* Should theoretically work with Zsh 5.4, but I'm unable to test that.
+* Should theoretically work with Zsh 5.5.1
 
 ## Installation & setup
 > Note: In this manual, `%` represents the command line prompt. If you see it in front of a command,
