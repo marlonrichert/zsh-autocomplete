@@ -9,12 +9,21 @@ builtin autoload -RUz \
     add-zle-hook-widget \
     is-at-least
 
-typeset -gU FPATH fpath=( ~autocomplete/z-async $fpath[@] )
-builtin autoload -Uz z-async
-
 typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 
 ${0}:precmd() {
+  if [[ -z $functions[zasync] || $functions[zasync] == builtin\ autoload* ]] &&
+      ! builtin autoload -Uz +X zasync 2> /dev/null; then
+    local -P zasync_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zasync"
+    if [[ ! -d $zasync_dir/.git ]]; then
+      command git clone --depth 1 -- \
+          https://github.com/marlonrichert/zasync.git "$zasync_dir"
+    elif [[ ~autocomplete/zsh-autocomplete.plugin.zsh -nt $zasync_dir/.git/FETCH_HEAD ]]; then
+      command git -C "$zasync_dir" pull --ff-only
+    fi
+    builtin autoload -Uz $zasync_dir/zasync
+  fi
+
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(
           history-incremental-search-backward
@@ -151,16 +160,16 @@ ${0}:precmd() {
       unset POSTDISPLAY
     fi
 
-    z-async cancel complete
-    z-async start wait .autocomplete:async:wait-worker .autocomplete:async:wait:callback
+    zasync cancel complete
+    zasync start wait .autocomplete:async:wait-worker .autocomplete:async:wait:callback
   }
 
   return 0
 }
 
 .autocomplete:async:clear() {
-  z-async cancel wait
-  z-async cancel complete
+  zasync cancel wait
+  zasync cancel complete
   unset curcontext _autocomplete__isearch
 
   .autocomplete:async:reset-context
@@ -197,7 +206,7 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:start() {
-  z-async start complete .autocomplete:async:start-worker .autocomplete:async:complete:callback
+  zasync start complete .autocomplete:async:start-worker .autocomplete:async:complete:callback
 
   # WORKAROUND: https://github.com/zsh-users/zsh-autosuggestions/issues/364
   # There's a weird bug in Zsh < 5.8, where ^C stops working unless we force a fork.
@@ -258,7 +267,7 @@ ${0}:precmd() {
       zpty -d AUTOCOMPLETE
     }
   } always {
-    # Always produce output, so z-async always fires the callback.
+    # Always produce output, so zasync always fires the callback.
     # Strip the leading terminal output; keep only the trailing integer (list_lines count).
     print -r -- "${${text%$'\C-B'}##*[^0-9]}"
   }
@@ -336,7 +345,7 @@ ${0}:precmd() {
   .autocomplete:async:same-state ||
       return 0
 
-  local -i list_lines="$( z-async reply complete )"
+  local -i list_lines="$( zasync reply complete )"
 
   [[ -n $curcontext ]] &&
       setopt $_autocomplete__ctxt_opts[@]
