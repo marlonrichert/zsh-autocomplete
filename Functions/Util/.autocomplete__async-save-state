@@ -1,0 +1,4 @@
+typeset -g \
+    _autocomplete__curcontext=$curcontext \
+    _autocomplete__lbuffer="$LBUFFER" \
+    _autocomplete__rbuffer="$RBUFFER"
