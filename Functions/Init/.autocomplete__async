@@ -1,4 +1,5 @@
 #!/bin/zsh
+zmodload -F zsh/datetime p:EPOCHREALTIME
 zmodload -F zsh/zpty b:zpty
 zmodload -F zsh/parameter p:funcstack p:functions p:parameters
 zmodload -F zsh/system b:sysopen p:sysparams
@@ -62,7 +63,7 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:reset-context() {
-  .autocomplete:async:reset-state
+  .autocomplete__async-reset-state
 
   typeset -g curcontext=
   builtin zstyle -s :autocomplete: default-context curcontext
@@ -79,33 +80,13 @@ ${0}:precmd() {
   unset _autocomplete__isearch
 }
 
-.autocomplete:async:save-state() {
-  typeset -g \
-      _autocomplete__curcontext=$curcontext \
-      _autocomplete__lbuffer="$LBUFFER" \
-      _autocomplete__rbuffer="$RBUFFER"
-}
-
-.autocomplete:async:same-state() {
-  [[ -v _autocomplete__curcontext && $_autocomplete__curcontext == $curcontext &&
-     -v _autocomplete__lbuffer && $_autocomplete__lbuffer == $LBUFFER &&
-     -v _autocomplete__rbuffer && $_autocomplete__rbuffer == $RBUFFER ]]
-}
-
-.autocomplete:async:reset-state() {
-  unset \
-      _autocomplete__curcontext \
-      _autocomplete__lbuffer \
-      _autocomplete__rbuffer
-}
-
 .autocomplete:async:complete() {
   if [[ -v _autocomplete__inserted ]]; then
     unset _autocomplete__inserted
     typeset -g curcontext=
     builtin zstyle -s :autocomplete: default-context curcontext
   fi
-  .autocomplete:async:save-state
+  .autocomplete__async-save-state
 
   .autocomplete__zle-flags ||
       return 0
@@ -186,8 +167,9 @@ ${0}:precmd() {
   (( seconds = max( 0, seconds ) ))
 
   # Convert to 100ths of a second for `zselect -t`.
-  # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
-  # of max() gets converted to an integer _before_ being multiplied.
+  # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh
+  # 5.9, as the result of max() gets converted to an integer _before_ being
+  # multiplied.
   local -i timeout=$(( 100 * seconds ))
 
   zselect -t $timeout
@@ -200,8 +182,12 @@ ${0}:precmd() {
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  .autocomplete:async:same-state &&
-      .autocomplete:async:start
+  .autocomplete__async-same-state || return 0
+
+  .autocomplete__async-timed-out-recently &&
+      return 0
+
+  .autocomplete:async:start
   return 0
 }
 
@@ -209,7 +195,8 @@ ${0}:precmd() {
   zasync start complete .autocomplete:async:start-worker .autocomplete:async:complete:callback
 
   # WORKAROUND: https://github.com/zsh-users/zsh-autosuggestions/issues/364
-  # There's a weird bug in Zsh < 5.8, where ^C stops working unless we force a fork.
+  # There's a weird bug in Zsh < 5.8, where ^C stops working unless we force
+  # a fork.
   command true
 }
 
@@ -219,6 +206,7 @@ ${0}:precmd() {
 }
 
 .autocomplete:async:start:inner() {
+  local -i timed_out=0
   {
     typeset -F SECONDS=0
 
@@ -252,24 +240,32 @@ ${0}:precmd() {
       (( seconds = max( 0, seconds - SECONDS ) ))
 
       # Convert to 100ths of a second for `zselect -t`.
-      # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in Zsh 5.9, as the result
-      # of max() gets converted to an integer _before_ being multiplied.
+      # WORKAROUND: #441 Directly using $(( [#10] … max( … ) )) leads to 0 in
+      # Zsh 5.9, as the result of max() gets converted to an integer
+      # _before_ being multiplied.
       local -i timeout=$(( 100 * seconds ))
 
       if zselect -rt $timeout "$fd"; then
         zpty -r AUTOCOMPLETE text $'*\C-B'
       else
-        # Press ^C twice: Once to abort completion, then once to abort the command line.
-        # Then exit the shell with ^D.
+        # Press ^C twice: Once to abort completion, then once to abort the
+        # command line. Then exit the shell with ^D.
         zpty -wn AUTOCOMPLETE $'\C-C\C-C\C-D'
+        timed_out=1
       fi
     } always {
       zpty -d AUTOCOMPLETE
     }
   } always {
     # Always produce output, so zasync always fires the callback.
-    # Strip the leading terminal output; keep only the trailing integer (list_lines count).
-    print -r -- "${${text%$'\C-B'}##*[^0-9]}"
+    if (( timed_out )); then
+      # Signal the timeout with a value that can't be mistaken for a line count.
+      print -r -- timeout
+    else
+      # Strip the leading terminal output; keep only the trailing integer
+      # (list_lines count).
+      print -r -- "${${text%$'\C-B'}##*[^0-9]}"
+    fi
   }
 }
 
@@ -301,8 +297,9 @@ ${0}:precmd() {
   local -i _autocomplete__list_lines=0
   local _autocomplete__mesg=
   {
-    # The completion widget sometimes returns without calling its function. So, we need to print all
-    # our control characters here, to ensure we don't end up waiting endlessly to read them.
+    # The completion widget sometimes returns without calling its function.
+    # So, we need to print all our control characters here, to ensure we
+    # don't end up waiting endlessly to read them.
     print -n -- '\C-A'
     LBUFFER=$_autocomplete__lbuffer
     RBUFFER=$_autocomplete__rbuffer
@@ -342,10 +339,17 @@ ${0}:precmd() {
   (( KEYS_QUEUED_COUNT || PENDING )) &&
       return
 
-  .autocomplete:async:same-state ||
+  .autocomplete__async-same-state ||
       return 0
 
-  local -i list_lines="$( zasync reply complete )"
+  local reply="$( zasync reply complete )"
+  if [[ $reply == timeout ]]; then
+    .autocomplete__async-save-timeout
+    return 0
+  fi
+  .autocomplete__async-clear-timeout
+
+  local -i list_lines=$reply
 
   [[ -n $curcontext ]] &&
       setopt $_autocomplete__ctxt_opts[@]
@@ -366,10 +370,11 @@ ${0}:precmd() {
     [[ -z $_lastcomp[list] ]] &&
       clear=c  # Force-clear the old list if the new one is empty.
 
-    # Refresh if and only if our widget got called. Otherwise, Zsh will crash (eventually).
+    # Refresh if and only if our widget got called. Otherwise, Zsh will crash
+    # (eventually).
     builtin zle -R$clear
   fi
-  .autocomplete:async:reset-state
+  .autocomplete__async-reset-state
 
   return 0
 }
@@ -411,7 +416,8 @@ ${0}:precmd() {
 
   .autocomplete:async:list-choices:main-complete
 
-  # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after completing subscripts.
+  # Workaround: In Zsh <= 5.9.0, comppostfuncs don't get called after
+  # completing subscripts.
   unset MENUSELECT MENUMODE
   compstate[insert]=
   _lastcomp[insert]=
@@ -424,7 +430,8 @@ ${0}:precmd() {
 
   if [[ -n $compstate[exact_string] && -z $_lastcomp[tags] &&
         compstate[nmatches] -eq 1 && compstate[list_lines] -eq 1 ]]; then
-    # WORKAROUND: _arguments adds $compstate[exact_string] as a completion w/out description.
+    # WORKAROUND: _arguments adds $compstate[exact_string] as a completion
+    # w/out description.
     compstate[list]=
     _lastcomp[list]=
   fi
@@ -502,12 +509,12 @@ ${0}:precmd() {
 
   local -Pi _unused_lines_=$(( _autocomplete__max_lines - compstate[list_lines] ))
 
-  # If $_grp is not set, then _describe is adding completions in a normal way and we don't need to
-  # do all this.
+  # If $_grp is not set, then _describe is adding completions in a normal way
+  # and we don't need to do all this.
   if [[ -v _autocomplete__described_lines && -n $_grp ]]; then
 
-    # We cannot interfere when _describe is actually adding the completions or we risk breaking the
-    # layout.
+    # We cannot interfere when _describe is actually adding the completions
+    # or we risk breaking the layout.
     if [[ -z $_opts_[-D] ]]; then
       builtin compadd "$@"
       return
@@ -529,7 +536,8 @@ ${0}:precmd() {
     local -i _ndisplay_=${(PA)#_displ_name_}
     local -i _lines_left_for_describe_=$(( _unused_lines_ - _autocomplete__described_lines ))
 
-    # The number of lines that would be added is equal to the number of unique display strings.
+    # The number of lines that would be added is equal to the number of
+    # unique display strings.
     if (( ${#${(u)${(PA)_displ_name_}[@]#*:}} > _lines_left_for_describe_ )); then
       local -Pi _matches_to_remove=$(( _ndisplay_ - max( 0, _lines_left_for_describe_ ) ))
       if (( _matches_to_remove < _ndisplay_ )); then
@@ -568,11 +576,13 @@ ${0}:precmd() {
   zparseopts -a _xopts_ -D -E -- X+: x+:
 
   if (( $#_xopts_ )); then
-    # Use only the first one, because subsequent ones are ignored by compadd anyway.
+    # Use only the first one, because subsequent ones are ignored by compadd
+    # anyway.
     local original="$_xopts_[2]"
     local formatted="${(%g:ce:)original}"
 
-    # Trim text to one line and omit ANSI sequences to avoid crash in command substitution.
+    # Trim text to one line and omit ANSI sequences to avoid crash in
+    # command substitution.
     local ansi_start=${(M)formatted##($'\C-[['[;[:digit:]]#m)#}
     local ansi_end=${(M)formatted%%($'\C-[['[;[:digit:]]#m)#}
     local text=${${formatted#$ansi_start}%$ansi_end}
@@ -623,10 +633,11 @@ ${0}:precmd() {
 
   local -Pi _nmatches_per_line_=$(( 1.0 * $#_matches_ / _new_completion_lines_ ))
 
-  # If we need more than one line per match, then make each match fit exactly one line.
+  # If we need more than one line per match, then make each match fit
+  # exactly one line.
   if (( _nmatches_per_line_ < 1 )); then
-    # WORKAROUND: Zsh mistakenly treats display strings that are exactly $COLUMNS wide as not
-    # fitting on one line.
+    # WORKAROUND: Zsh mistakenly treats display strings that are exactly
+    # $COLUMNS wide as not fitting on one line.
     set -A $_displ_name_ ${(@mr:COLUMNS-1:)${(PA)_displ_name_}[@]//$'\n'/\n}
 
     _dopt_=( -ld $_displ_name_ )
@@ -635,7 +646,8 @@ ${0}:precmd() {
 
   local -Pi _new_heading_lines_=$(( _total_new_lines_ - _new_completion_lines_ ))
 
-  # Need to round this down _before_ subtracting it or it will effectively be rounded up.
+  # Need to round this down _before_ subtracting it or it will effectively
+  # be rounded up.
   local -Pi _nmatches_that_fit_=$((
       ( _unused_lines_ - _new_heading_lines_ ) * _nmatches_per_line_
   ))
@@ -643,13 +655,15 @@ ${0}:precmd() {
   local -Pi _nmatches_to_remove_=$(( $#_matches_ - max( 0, _nmatches_that_fit_ ) ))
 
   if (( _nmatches_to_remove_ > 0 )); then
-    # If we're going to remove anything, then we need to make room for the `(MORE)` prompt.
+    # If we're going to remove anything, then we need to make room for the
+    # `(MORE)` prompt.
     (( _nmatches_to_remove_ = min( ++_nmatches_to_remove_, $#_matches_ ) ))
 
     .autocomplete:async:compadd:disable
 
-    # Make sure we always add a headline, even when we don't add any matches, because a single
-    # '(MORE)' without other content doesn't make sense.
+    # Make sure we always add a headline, even when we don't add any
+    # matches, because a single '(MORE)' without other content doesn't make
+    # sense.
     (( _nmatches_to_remove_ >= $#_matches_ )) && _xopts_[1]=-x
 
     shift -p $_nmatches_to_remove_ _matches_ $_displ_name_

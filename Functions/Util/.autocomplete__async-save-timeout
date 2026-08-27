@@ -1,0 +1,12 @@
+# Record that completion for the current state just timed out, so that
+# retrying it can be skipped for a while: it would otherwise very likely
+# time out again and just waste time and CPU.
+local -F cooldown=
+builtin zstyle -s :autocomplete: cooldown cooldown ||
+    (( cooldown = 10.0 ))
+
+typeset -g \
+    _autocomplete__timeout_curcontext=$curcontext \
+    _autocomplete__timeout_lbuffer="$LBUFFER" \
+    _autocomplete__timeout_rbuffer="$RBUFFER" \
+    _autocomplete__timeout_until=$(( EPOCHREALTIME + cooldown ))

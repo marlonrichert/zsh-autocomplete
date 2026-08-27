@@ -1,0 +1,4 @@
+unset \
+    _autocomplete__curcontext \
+    _autocomplete__lbuffer \
+    _autocomplete__rbuffer

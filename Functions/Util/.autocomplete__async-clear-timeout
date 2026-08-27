@@ -1,0 +1,5 @@
+unset \
+    _autocomplete__timeout_curcontext \
+    _autocomplete__timeout_lbuffer \
+    _autocomplete__timeout_rbuffer \
+    _autocomplete__timeout_until
