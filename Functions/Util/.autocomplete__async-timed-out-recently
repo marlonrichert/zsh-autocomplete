@@ -1,0 +1,5 @@
+[[ -v _autocomplete__timeout_until ]] || return 1
+(( EPOCHREALTIME < _autocomplete__timeout_until )) &&
+    [[ -v _autocomplete__timeout_curcontext && $_autocomplete__timeout_curcontext == $curcontext &&
+       -v _autocomplete__timeout_lbuffer && $_autocomplete__timeout_lbuffer == $LBUFFER &&
+       -v _autocomplete__timeout_rbuffer && $_autocomplete__timeout_rbuffer == $RBUFFER ]]

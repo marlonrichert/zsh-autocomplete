@@ -92,6 +92,14 @@ zstyle ':autocomplete:*' timeout 2  # seconds (int)
 ```
 Note, though, that increasing this value can make your command line feel less responsive.
 
+### Wait longer before retrying autocompletion that just timed out
+After autocompletion times out, Autocomplete waits at least 10 seconds before retrying it for the
+same input, so that it doesn't keep wasting time and CPU retrying something that's likely to time
+out again on every keystroke. You can change this value as follows:
+```zsh
+zstyle ':autocomplete:*' cooldown 5  # seconds (float)
+```
+
 ## Recent directories/files
 Autocomplete can automatically complete recent directories. If you provide a backend for it, it can
 also complete recent files.
