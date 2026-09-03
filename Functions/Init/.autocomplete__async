@@ -21,7 +21,9 @@ ${0}:precmd() {
     elif [[ ~autocomplete/zsh-autocomplete.plugin.zsh -nt $zasync_dir/.git/FETCH_HEAD ]]; then
       command git -C "$zasync_dir" pull --ff-only
     fi
-    builtin autoload -Uz $zasync_dir/zasync
+
+    local -aU fpath=( "$zasync_dir" "${fpath[@]}" )
+    builtin autoload -Uz +X zasync
   fi
 
   [[ -v ZSH_AUTOSUGGEST_IGNORE_WIDGETS ]] &&
