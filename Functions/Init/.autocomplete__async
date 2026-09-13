@@ -15,6 +15,9 @@ typeset -g ZSH_AUTOSUGGEST_USE_ASYNC=yes
 ${0}:precmd() {
   if [[ -z $functions[zasync] || $functions[zasync] == builtin\ autoload* ]] &&
       ! builtin autoload -Uz +X zasync 2> /dev/null; then
+    # Clear the undefined autoload stub left by a failed `autoload +X`.
+    builtin unfunction zasync 2>/dev/null
+
     local -P zasync_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zasync"
     if [[ ! -d $zasync_dir/.git ]]; then
       command git clone --depth 1 -- \
