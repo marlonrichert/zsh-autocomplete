@@ -19,11 +19,11 @@ _autocomplete__history_lines() {
   local -P query=''
   if [[ -n $words[CURRENT] ]]; then
     local -Pa includes=( "${(@s..b)^words[CURRENT]}" )
-    local -Pa excludes=( "(|[^${(@s..b)^words[CURRENT]}\n;]#)" )
+    local -Pa excludes=( '(|[^'${(@s..b)^words[CURRENT]}$'\n;]#)' )
     local -Pa tokens=( ${(@)excludes:^includes} )
     query="((#l)$tokens[2]${(j..)tokens[3,-1]})"
 
-    local -P no_delim='[^\n;]#' pre='' post=''
+    local -P no_delim=$'[^\n;]#' pre='' post=''
     if [[ -z $lbuffer ]]; then
       pre='*'
     else
