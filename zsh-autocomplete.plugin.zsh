@@ -17,6 +17,7 @@ unsetopt listbeep
   hash -d autocomplete=$basedir zsh-autocomplete=$basedir
 
   typeset -gU FPATH fpath=( ~autocomplete/Completions $fpath[@] )
+  builtin autoload -Uz ~autocomplete/Completions/_autocomplete__*~*.zwc(D-:)
   builtin autoload +X -Uz ~autocomplete/Functions/**/?autocomplete__*~*.zwc(D-:)
   .autocomplete__main "$@"
 }
