@@ -36,7 +36,7 @@ ${0}:bind menu-select             vi-forward-blank-word  '\en' '^N' $key_alt_dow
 ${0}:bind history-incremental-search-backward history-incremental-search-backward '^R' '/'
 ${0}:bind                         menu-search history-incremental-search-forward  '^S' '?'
 
-local backtab=$terminfo[kcbt]
+local backtab=${terminfo[kcbt]:-$'\e[Z'}
 
 menukeys+=(
                 '\t' menu-complete
