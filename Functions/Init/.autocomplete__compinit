@@ -60,6 +60,10 @@ $omzdump[-1]
 EOF
   fi
 
+  # If something else (e.g. Oh My Zsh) ran `compinit` before we were loaded, its comp dump does not
+  # include our own functions and we skip our `compinit` above, so make sure they are available.
+  builtin autoload -Uz ~autocomplete/Completions/_autocomplete__*~*.zwc(N-.:t)
+
   compinit() { : }
 
   local -P args=
